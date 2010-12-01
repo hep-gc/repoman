@@ -10,7 +10,7 @@ from routes.middleware import RoutesMiddleware
 
 from repoman.config.environment import load_environment
 
-from repoman.lib.authentication import UserAuthentication
+from repoman.lib.middleware.authentication import UserAuthentication
 
 def make_app(global_conf, full_stack=True, static_files=True, **app_conf):
     """Create a Pylons WSGI application and return it
