@@ -42,7 +42,14 @@ class GroupsController(BaseController):
             abort(501, '501 Not Implemented')
 
     def list_users(self, group, format='json'):
-        pass
+        group = meta.Session.query(Group).filter(Group.name==group).first()
+        urls = [url('user', user=u, qualified=True) for u in group.users]
+        if group:
+            if format == 'json':
+            response.headers['content-type'] = app_globals.json_content_type
+            return h.render_json(urls)
+        else:
+            abort(501, '501 Not Implemented')
 
     def list_permissions(self, group, format='json'):
         pass
