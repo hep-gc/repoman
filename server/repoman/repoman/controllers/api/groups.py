@@ -43,23 +43,28 @@ class GroupsController(BaseController):
 
     def list_users(self, group, format='json'):
         group = meta.Session.query(Group).filter(Group.name==group).first()
-        urls = [url('user', user=u, qualified=True) for u in group.users]
         if group:
+            urls = [url('user', user=u, qualified=True) for u in group.users]
             if format == 'json':
-            response.headers['content-type'] = app_globals.json_content_type
-            return h.render_json(urls)
+                response.headers['content-type'] = app_globals.json_content_type
+                return h.render_json(urls)
+            else:
+                abort(501, '501 Not Implemented')
         else:
-            abort(501, '501 Not Implemented')
+            abort(404, '404 Not Found')
 
     def list_permissions(self, group, format='json'):
         group = meta.Session.query(Group).filter(Group.name==group).first()
-        urls = [p.permission_name for p in group.permissions]
         if group:
+            urls = [p.permission_name for p in group.permissions]
             if format == 'json':
-            response.headers['content-type'] = app_globals.json_content_type
-            return h.render_json(urls)
+                response.headers['content-type'] = app_globals.json_content_type
+                return h.render_json(urls)
+            else:
+                abort(501, '501 Not Implemented')
         else:
-            abort(501, '501 Not Implemented')
+            abort(404, '404 Not Found')
+
 
     @authorize(HasPermission('group_create'), auth_403)
     def new_group(self, format='json'):
