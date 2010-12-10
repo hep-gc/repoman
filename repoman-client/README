@@ -9,8 +9,8 @@ Install process:
 2.    Install repoman-client
       $ pip install repoman-client
 
-3.    Run repoman make-config --repo REPO --snapshot_location SNAPSHOT_IMAGE_LOCATION --mount_location SNAPSHOT_MOUNT_LOCATION.  This will create a configuration file in ~/.repoman-client.  If you need to specify a different userkey/usercertificate than a grid proxy certificate, use --usercert USER_CERT --userkey USER_KEY.
-      You can also specify a custom configuration file by exporting the REPOMAN_CLIENT_CONFIG variable in your BASH terminal.
+3.    Run repoman make-config --repo REPO .  This will create a configuration file in ~/.repoman-client.  If you need to specify a different userkey/usercertificate than a grid proxy certificate, use --usercert USER_CERT --userkey USER_KEY.
+      You can also specify a custom configuration file by exporting the REPOMAN_CLIENT_CONFIG variable in your BASH terminal, and custom snapshotting locations with  --snapshot_location SNAPSHOT_IMAGE_LOCATION --mount_location SNAPSHOT_MOUNT_LOCATION
       
 5.    Run repoman-client with the command repoman.
 
