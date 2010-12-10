@@ -44,7 +44,7 @@ class GroupsController(BaseController):
     def list_users(self, group, format='json'):
         group = meta.Session.query(Group).filter(Group.name==group).first()
         if group:
-            urls = [url('user', user=u, qualified=True) for u in group.users]
+            urls = [url('user', user=u.user_name, qualified=True) for u in group.users]
             if format == 'json':
                 response.headers['content-type'] = app_globals.json_content_type
                 return h.render_json(urls)
