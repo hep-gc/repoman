@@ -11,6 +11,7 @@ from routes.middleware import RoutesMiddleware
 from repoman.config.environment import load_environment
 
 from repoman.lib.middleware.authentication import UserAuthentication
+from repoman.lib.middleware.filestorage import StorageMiddleware
 
 def make_app(global_conf, full_stack=True, static_files=True, **app_conf):
     """Create a Pylons WSGI application and return it
@@ -47,7 +48,7 @@ def make_app(global_conf, full_stack=True, static_files=True, **app_conf):
 
     # CUSTOM MIDDLEWARE HERE (filtered by error handling middlewares)
 
-    app = UserAuthentication(app)
+    app = UserAuthentication(app, config['global_conf']['deploy_type'])
 
     # END OF CUSTOM MIDDLEWARE
 
@@ -71,6 +72,9 @@ def make_app(global_conf, full_stack=True, static_files=True, **app_conf):
         # Serve static files
         static_app = StaticURLParser(config['pylons.paths']['static_files'])
         app = Cascade([static_app, app])
+
+    #app = StorageMiddleware(app, '/tmp')
+
     app.config = config
     return app
 
