@@ -606,7 +606,6 @@ def main():
     elif command == 'about' or command == 'a':
         print "Repoman-client"
         print "Version:                     0.2"
-        print "User:                        "+repo.return_username()
         print "User certificate:            "+repo.return_usercert()
         print "User key:                    "+repo.return_userkey()
         print "Repository:                  "+repo.return_repo()
