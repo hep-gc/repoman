@@ -18,7 +18,42 @@ Repoman-client uses grid certificates to authenticate with the repoman server.
 Ensure that you have a valid, RFC-compliant grid proxy certificate before running repoman.
 (e.g. $ grid-proxy-init -rfc)
 
-Available Sub-Commands
+Available Sub-Commands:
+
+Command                  |   Shortname
+----------------------------------
+help                     |   h
+make-config              |   mc
+about                    |   a
+whoami                   |   whoami
+list-user                |   lu
+list-groups              |   lg
+list-images              |   li
+create-user              |   cuser
+create-group             |   cg
+create-image             |   ci
+describe-user            |   du
+describe-group           |   dg
+describe-image           |   di
+modify-user              |   mu
+modify-group             |   mg
+modify-image             |   mi
+remove-user              |   ru
+remove-group             |   rg
+remove-image             |   ri
+upload-image             |   ui
+download-image           |   get
+share-image              |   si
+unshare-image            |   usi
+add-users-to-group       |   aug
+remove-users-from-group  |   rug
+add-permissions          |   ap
+remove-permissions       |   rp
+snapshot-system          |   ss
+upload-snapshot          |   us
+
+
+COMMAND USAGE:
 
 help | h | --help | -h 
     returns this message
@@ -140,4 +175,3 @@ upload-snapshot | us [--force] --METAVAR VALUE ...
     upload-snapshot --force --name test_image.gz --description "blah blah balh"
         the --force option will overwrite an existing image if there is a name conflict
 
-All defaults are set in repoman-client.conf, set in /etc/repoman-client/repoman-client.conf by default (custom may be placed at ~/.repoman-client)
