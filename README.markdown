@@ -9,9 +9,9 @@ The issue tracker can be found at: https://github.com/hep-gc/repoman/issues
 1.  Install the server.
 
     See `server/INSTALL.markdown` and follow the instructions for installing from an EGG.
-1.  Install the `repoclient` on any of your workstations you want to use.
+1.  Install the `repoman-client` on any of your workstations you want to use.
 
-    See the documentation at `repoclient/README`
+    See the documentation at `repoman-client/README`
 
 
 ## Server Documentation
@@ -22,7 +22,7 @@ See these files for documentation of the server side
 * `server/HOWTO.markdown`   - some quick examples
 
 ## Client Documentation
-see `repoclient/README` for a description of the client side
+see `repoman-client/README` for a description of the client side
 
 ## License
 
