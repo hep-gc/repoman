@@ -272,4 +272,3 @@ Example Workflow
         100 5000k    0 5000k    0     0  9247k      0 --:--:-- --:--:-- --:--:-- 10.3M
         Image downloaded successfully.
 
-
