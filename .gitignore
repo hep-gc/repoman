@@ -22,3 +22,15 @@ server/repoman/build/
 server/repoman/dist/
 server/repoman/repoman.egg-info/
 server/repoman/repoman.egg-info/*
+
+#client
+repoman-client/tmpfile
+repoman-client/build/
+repoman-client/build/*
+repoman-client/dist/
+repoman-client/dist/*
+repoman-client/repoman_client.egg-info/
+repoman-client/repoman_client.egg-info/*
+repoman-client/scripts/repoman.old
+
+
