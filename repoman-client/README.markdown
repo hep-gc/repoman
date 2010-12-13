@@ -6,20 +6,21 @@ Install Process
 --------------------------------
 
 1.  Install prerequisites
-`$ yum install python-setuptools`
-`$ easy_install pip`
+    $ yum install python-setuptools
+    $ easy_install pip
 
 2.  Install repoman-client
-      $ pip install repoman-client
+    $ pip install repoman-client
 
-3.    Run repoman make-config --repo REPO .  This will create a configuration file in ~/.repoman-client.  If you need to specify a different userkey/usercertificate than a grid proxy certificate, use --usercert USER_CERT --userkey USER_KEY.
-      You can also specify a custom configuration file by exporting the REPOMAN_CLIENT_CONFIG variable in your BASH terminal, and custom snapshotting locations with  --snapshot_location SNAPSHOT_IMAGE_LOCATION --mount_location SNAPSHOT_MOUNT_LOCATION
+3.  Run repoman 
+    make-config --repo REPO .  
+This will create a configuration file in `~/.repoman-client`.  If you need to specify a different userkey/usercertificate than a grid proxy certificate, use `--usercert USER_CERT --userkey USER_KEY`.  You can also specify a custom configuration file by exporting the REPOMAN_CLIENT_CONFIG variable in your BASH terminal, and custom snapshotting locations with  `--snapshot_location SNAPSHOT_IMAGE_LOCATION --mount_location SNAPSHOT_MOUNT_LOCATION`
       
-5.    Run repoman-client with the command repoman.
+5.    Run repoman-client with the command `repoman`.
 
 Repoman-client uses grid certificates to authenticate with the repoman server.
 Ensure that you have a valid, RFC-compliant grid proxy certificate before running repoman.
-(e.g. $ grid-proxy-init -rfc)
+(e.g. `$ grid-proxy-init -rfc`)
 
 Command Listing
 --------------------------------
@@ -265,5 +266,4 @@ Example Workflow
                                          Dload  Upload   Total   Spent    Left  Speed
         100 5000k    0 5000k    0     0  9247k      0 --:--:-- --:--:-- --:--:-- 10.3M
         Image downloaded successfully.
-
 
