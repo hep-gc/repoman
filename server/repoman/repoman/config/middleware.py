@@ -12,6 +12,7 @@ from repoman.config.environment import load_environment
 
 from repoman.lib.middleware.authentication import UserAuthentication
 from repoman.lib.middleware.filestorage import StorageMiddleware
+from repoman.lib.middleware.cascade import BypassCascade
 
 def make_app(global_conf, full_stack=True, static_files=True, **app_conf):
     """Create a Pylons WSGI application and return it
@@ -71,9 +72,10 @@ def make_app(global_conf, full_stack=True, static_files=True, **app_conf):
     if asbool(static_files):
         # Serve static files
         static_app = StaticURLParser(config['pylons.paths']['static_files'])
-        app = Cascade([static_app, app])
+        #app = Cascade([static_app, app])
+        app = BypassCascade(app, [static_app, app])
 
-    #app = StorageMiddleware(app, '/tmp')
+    app = StorageMiddleware(app, '/tmp')
 
     app.config = config
     return app

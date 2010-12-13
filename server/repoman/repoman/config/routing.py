@@ -157,17 +157,25 @@ def make_map(config):
                 action='get_raw_by_user',
                 conditions=dict(method=['GET']))
 
+#    map.connect(None, '/api/images/raw/:(user)/:(image)', controller='api/images',
+#                action='upload_raw_by_user',
+#                conditions=dict(method=['POST']))
+
     map.connect(None, '/api/images/raw/:(user)/:(image)', controller='api/images',
-                action='upload_raw_by_user',
-                conditions=dict(method=['POST']))
+                action='put_raw_by_user',
+                conditions=dict(method=['PUT']))
 
     map.connect('raw', '/api/images/raw:(image)', controller='api/raw',
                 action='get_raw',
                 conditions=dict(method=['GET']))
 
+#    map.connect(None, '/api/images/raw/:(image)', controller='api/images',
+#                action='upload_raw',
+#                conditions=dict(method=['POST']))
+
     map.connect(None, '/api/images/raw/:(image)', controller='api/images',
-                action='upload_raw',
-                conditions=dict(method=['POST']))
+                action='put_raw',
+                conditions=dict(method=['PUT']))
 
     map.connect('image_by_user', '/api/images/:(user)/:(image)', controller='api/images',
                 action='show_meta_by_user',
@@ -198,7 +206,7 @@ def make_map(config):
 
     map.connect(None, '/api/images', controller='api/images', action='new',
                 conditions=dict(method=['POST']))
-    
+
     # Actions
     map.connect(None, 'api/actions/clone/image/:(image)', controller='api/actions',
                 action='clone_image',

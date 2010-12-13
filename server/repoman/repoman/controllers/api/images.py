@@ -41,6 +41,38 @@ class ImagesController(BaseController):
     def __before__(self):
         inline_auth(IsAthuenticated(), auth_403)
 
+    def put_raw_by_user(self, user, image, format='json'):
+        #return request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE')
+        image_q = meta.Session.query(Image)
+        image = image_q.filter(Image.name==image)\
+                       .filter(Image.owner.has(User.user_name==user)).first()
+
+        if image:
+            inline_auth(OwnsImage(image), auth_403)
+            image_file = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE')
+            if image_file:
+                try:
+                    file_name = user + '_' + image.name
+                    final_path = path.join(app_globals.image_storage, file_name)
+                    #return {'user':user, 'image':image, 'file':image_file, 'dest':final_path}
+                    shutil.move(image_file, final_path)
+                except Exception, e:
+                    remove(image_file)
+                    abort(500, '500 Internal Error - Error uploading file %s' %e)
+
+                image.raw_uploaded = True
+                image.path = file_name
+                image.version += 1
+                image.modified = datetime.utcfromtimestamp(time())
+                meta.Session.commit()
+        else:
+            abort(404, '404 Item not found')
+
+
+    def put_raw(self, image, format='json'):
+        user = request.environ['REPOMAN_USER'].user_name
+        return self.put_raw_by_user(user=user, image=image, format=format)
+
     def user_share_by_user(self, user, image, share_with, format='json'):
         image = meta.Session.query(Image)\
                             .filter(Image.name==image)\
