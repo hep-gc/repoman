@@ -32,6 +32,12 @@ class repoutils(object):
         repo_https.request('POST', '/api/images/'+kwargs['image_name'], params, headers)
         return repo_https.getresponse()
         
+    def rename_image(self, url, repo, cert, key, image_name, new_image_name, headers=HEADERS):
+        repo_https = self.repo(repo, cert, key)
+        params = urllib.urlencode({'name': new_image_name})
+        repo_https.request('POST', '/api/images/'+image_name, params, headers)
+        return repo_https.getresponse()
+        
     def create_user(self, repo, cert, key, metadata, headers=HEADERS):
         repo_https = self.repo(repo, cert, key)
         params = urllib.urlencode(metadata)
@@ -229,8 +235,16 @@ class repoutils(object):
         
     def get_uri_response(self,uri,cert,key):
         opener = urllib2.build_opener(HTTPSClientAuthHandler(key, cert))
-        response = opener.open(uri)
-        json_response = json.load(response)
+        try:
+            response = opener.open(uri)
+        except urllib2.HTTPError,e:
+            print "Server error: "+e
+            sys.exit(0)
+        try:
+            json_response = json.load(response)
+        except:
+            print "Error decoding server reponse."
+            print "Contact your administrator."
         return json_response
 
     def get_username(self,repo,cert,key):

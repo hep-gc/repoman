@@ -48,8 +48,9 @@ class repoman_client(object):
             self.mountpoint=os.path.expanduser(config.get("ThisImage","mountpoint"))
         except ConfigParser.NoSectionError:
             print "Trouble reading config file."  
-            print "Make sure a mountpoint and image file are specified in the config"
-            print "(either ~/.repoman-client)"
+            print "Make sure a mountpoint and image file are specified in the config."
+            print "(~/.repoman-client)"
+            print "You can regenerate your config file with \"repoman make-config\""
             sys.exit(1)
     
         try:
@@ -57,7 +58,8 @@ class repoman_client(object):
         except ConfigParser.NoSectionError:
             print "Trouble reading config file."  
             print "Make sure a repository is specified in the config"
-            print "(either ~/.repoman-client)"
+            print "(~/.repoman-client)"
+            print "You can regenerate your config file with \"repoman make-config\""
             sys.exit(1)
         
         #attempt to define the usercert/userkey based on default grid-proxy-init values    
@@ -70,17 +72,20 @@ class repoman_client(object):
             except ConfigParser.NoOptionError:
                 print "Could not find a certificate in the configuration file or at /tmp/x509up_u%USERID%."  
                 print "Please either use grid-proxy-init to generate a new proxy cert or specify an alternate certifate in the configuration file."
-                print "(either ~/.repoman-client)"
+                print "(~/.repoman-client)"
+                print "You can regenerate your config file with \"repoman make-config\""
                 sys.exit(1)
             except ConfigParser.NoSectionError:
                 print "Could not find a certificate in the configuration file."
                 print "Please either use grid-proxy-init to generate a new proxy cert or specify an alternate certifate in the configuration file."
-                print "(either ~/.repoman-client)"
+                print "(~/.repoman-client)"
+                print "You can regenerate your config file with \"repoman make-config\""
                 sys.exit(1)
             if not (os.path.exists(self.usercert) or os.path.exists(self.userkey)):
                 print "Your certificate and/or key doesn't exist as specified in"
                 print "the config file."
-                print "(either ~/.repoman-client)"
+                print "(~/.repoman-client)"
+                print "You can regenerate your config file with \"repoman make-config\""
                 sys.exit(1)    
         
         
@@ -427,7 +432,6 @@ class repoman_client(object):
 
     def update_metadata(self, *args, **kwargs):
         metadata = kwargs['metadata']
-        resp = self.rut.post_image_metadata('/api/images', self.repository, self.usercert, self.userkey, metadata=metadata)
         if kwargs['exists']:
             print "Updating metadata."
             
@@ -438,6 +442,7 @@ class repoman_client(object):
             else:
                 print "Metadata was not modified: "+str(resp.status)+" error returned by the server."
         else:
+            resp = self.rut.post_image_metadata('/api/images', self.repository, self.usercert, self.userkey, metadata=metadata)
             if resp.status == 201:
                 print "Metadata uploaded, image created."
             elif resp.status == 409:
@@ -445,8 +450,15 @@ class repoman_client(object):
                 sys.exit(1)
             else:
                 print "Image was not created: response code "+str(resp.status)
-            
-
+                
+    def rename_image(self, image_name, new_image_name):
+        resp = self.rut.rename_image('/api/images', self.repository, self.usercert, self.userkey, image_name, new_image_name)
+        if resp.status == 200:
+            print "Rename complete."
+        elif resp.status == 404:
+            print "Image not found in repository."
+        else:
+            print "Image was not created: server response code "+str(resp.status)
 
     def describe_image(self, image, *args, **kwargs):
         resp = self.rut.get_image_metadata(self.repository, self.usercert, self.userkey, image)

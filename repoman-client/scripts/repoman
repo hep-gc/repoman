@@ -23,45 +23,60 @@ def ask_yes_or_no(*args, **kwargs):
     return False
     
 
-def print_help_menu():
-    print "Repoman-Client 0.2"
-    print 'usage: repoman [subcommand]'
-    print " "
-    print "Manages VMs, users and groups on a Repoman repository."
-    print " "
-    print "Possible subcommands:"
-    print "Run \"repoman [subcommand] --help|-h\" for a complete list of options."
-    print ""
-    print "  make-config | mc               creates a config file (must be done first)"
-    print "  list-users | li                list users"
-    print "  list-groups | lg               list groups"
-    print "  list-images | li               list images"
-    print "  create-user | cu               create a user"
-    print "  create-group | cg              create a group"
-    print "  create-image | ci              create an image"
-    print "  modify-user | mu               modify user metadata"
-    print "  modify-group | mg              modify group metadata"
-    print "  modify-image | mi              modify image metadata"
-    print "  remove-user | ru               remove a user"
-    print "  remove-group | rg              remove a group"
-    print "  remove-image | ri              remove an image"
-    print "  describe-user | du             describe a user"
-    print "  describe-group | dg            describe a group"
-    print "  describe-image | di            describe an image"
-    print "  download-image | get           download an image"
-    print "  upload-image | ui              upload an image"
-    print "  share-image | si               share an image with a user or group"
-    print "  unshare-image | usi            unshare an image with a user or group"
-    print "  add-users-to-group | aug       add users to a group"
-    print "  remove-users-from-group | rug  remove users from a group"
-    print "  add-permissions | ap           add permissions to a group"
-    print "  remove-permissions | rp        add permissions to a group"
-    print "  snapshot-system | ss           snapshot current system and store locally or upload."
-    print "  upload-snapshot | us           upload a snapshot to the server."
-    print "  whoami                         returns current username or user information"
-    print "  about | a                      returns information about repoman-client"
-    sys.exit(0)
-
+def print_help_menu(long):
+    if long:
+        print "Repoman-Client 0.2"
+        print 'usage: repoman [subcommand]'
+        print " "
+        print "Manages VMs, users and groups on a Repoman repository."
+        print " "
+        print "Possible subcommands:"
+        print "Run \"repoman [subcommand] --help|-h\" for a complete list of options."
+        print ""
+        print "  make-config | mc               creates a config file (must be done first)"
+        print "  list-users | li                list users"
+        print "  list-groups | lg               list groups"
+        print "  list-images | li               list images"
+        print "  create-user | cu               create a user"
+        print "  create-group | cg              create a group"
+        print "  create-image | ci              create an image"
+        print "  modify-user | mu               modify user metadata"
+        print "  modify-group | mg              modify group metadata"
+        print "  modify-image | mi              modify image metadata"
+        print "  remove-user | ru               remove a user"
+        print "  remove-group | rg              remove a group"
+        print "  remove-image | ri              remove an image"
+        print "  describe-user | du             describe a user"
+        print "  describe-group | dg            describe a group"
+        print "  describe-image | di            describe an image"
+        print "  download-image | get           download an image"
+        print "  upload-image | ui              upload an image"
+        print "  share-image | si               share an image with a user or group"
+        print "  unshare-image | usi            unshare an image with a user or group"
+        print "  add-users-to-group | aug       add users to a group"
+        print "  remove-users-from-group | rug  remove users from a group"
+        print "  add-permissions | ap           add permissions to a group"
+        print "  remove-permissions | rp        add permissions to a group"
+        print "  snapshot-system | ss           snapshot current system and store locally or upload."
+        print "  upload-snapshot | us           upload a snapshot to the server."
+        print "  whoami                         returns current username or user information"
+        print "  about | a                      returns information about repoman-client"
+        sys.exit(0)
+    else:
+        print "  Repoman-Client 0.2"
+        print "  usage: repoman [subcommand]"
+        print ""
+        print "  The most commonly used commands are:"
+        print ""
+        print "  make-config -- create the initial configuration file (required)"
+        print "  get -- download an image"
+        print "  save -- snapshot current system and upload it to the server"
+        print "  delete -- delete an image"
+        print "  rename -- rename an image"
+        print "  list -- list your available images"
+        print ""
+        print "For a full list of repoman commands use \"--help --long\""
+        sys.exit(0)
 def main():
     if not len(sys.argv) > 1:
         print_help_menu()
@@ -107,8 +122,8 @@ def main():
     else:  
         repo = repoman_client.repoman_client()
 
-    if command == 'list-images' or command == 'li':
-        parser = argparse.ArgumentParser(prog='repoman list-images', description='Lists images on the Repoman repository.', usage='%(prog)s [--long | -l] [--all | -a] [--sharedwith] [--sharedwith [[--user | -u] USER] | [[--group | -g] GROUP]]] [[--user | -u] USER] [[--group | -g] GROUP]')
+    if command == 'list-images' or command == 'li' or command == 'list':
+        parser = argparse.ArgumentParser(prog='repoman list|list-images|li', description='Lists images on the Repoman repository.', usage='%(prog)s [--long | -l] [--all | -a] [--sharedwith] [--sharedwith [[--user | -u] USER] | [[--group | -g] GROUP]]] [[--user | -u] USER] [[--group | -g] GROUP]')
         parser.add_argument('--long','-l', action='store_true', default=False, help='display full URLs')
         parser.add_argument('--sharedwith', action='store_true', default=False, help='list all images shared with current user')
         parser.add_argument('--all','-a', action='store_true', default=False, help='list all images')
@@ -256,8 +271,8 @@ def main():
         sys.exit(0)
         
         
-    elif command == 'remove-image' or command == 'ri':
-        parser = argparse.ArgumentParser(prog='repoman remove-image', description='Removes an from the Repoman repository.', usage='%(prog)s [user/]image [--force | -f]')
+    elif command == 'remove-image' or command == 'ri' or command == 'delete':
+        parser = argparse.ArgumentParser(prog='repoman delete|remove-image|ri', description='Removes an from the Repoman repository.', usage='%(prog)s [user/]image [--force | -f]')
         parser.add_argument('image')
         parser.add_argument('--force','-f', action='store_true', default=False)
         args = parser.parse_args(args=sys.argv[2:])
@@ -303,9 +318,26 @@ def main():
         repo.update_metadata(metadata=metadata, exists=True)
         sys.exit(0)
 
+    elif command == 'rename':
+        parser = argparse.ArgumentParser(prog='repoman rename', description='Rename an image in the Repoman repository.', usage='%(prog)s image_name new_image_name')
+        parser.add_argument('image_name', help='image to rename')
+        parser.add_argument('new_image_name', help='new image name')
+        args = parser.parse_args(args=sys.argv[2:])
+
+        images = repo.list_images_raw()
+        exists = False
+        for image in images:
+            if args.image_name == image.split('/')[6]:
+                exists = True
+        if not exists:
+            print "This image does not exist in the repository."
+            sys.exit(1)
+        print "Renaming image "+args.image_name+" to "+args.new_image_name
+        repo.rename_image(args.image_name, args.new_image_name)
+        sys.exit(0)
         
     elif command == 'download-image' or command == 'get':
-        parser = argparse.ArgumentParser(prog='repoman download-image', description='Downloads an image from the Repoman repository.', usage='%(prog)s [user/]image [[--dest | -d] DESTINATION]')
+        parser = argparse.ArgumentParser(prog='repoman get|download-image', description='Downloads an image from the Repoman repository.', usage='%(prog)s [user/]image [[--dest | -d] DESTINATION]')
         parser.add_argument('image', help='image to download')
         parser.add_argument('--dest','-d', default='./', help='destination to save file to. defaults to current directory.')
         args = parser.parse_args(args=sys.argv[2:])
@@ -505,6 +537,42 @@ def main():
             print "To upload this image to the repository, run repoman upload-snapshot --META VALUE."
             sys.exit(0)
 
+    elif command == 'save':
+        parser = argparse.ArgumentParser(prog='repoman save', description='Snapshots current system and uploads it to the repository.', usage='%(prog)s [--force | -f] [--META_KEY VALUE]')
+        parser.add_argument('--force','-f', action='store_true', default=False)
+        args = parser.parse_known_args(args=sys.argv[2:])
+        metadata = dict([(args[1][i].strip('-'), args[1][i+1]) for i in range(0, len(args[1]) - 1, 2)])
+        try:
+            name = metadata['name']
+        except:
+            print "Please enter at least a name as metadata with --name IMAGE_NAME."
+            sys.exit(1)
+        images = repo.list_images_raw()
+        exists = False
+        for image in images:
+            if metadata['name'] == image.split('/')[6]:
+                exists = True
+                if not args[0].force:
+                    print 'WARNING!! This image already exists on the repository.'
+                    if not ask_yes_or_no(force=True):
+                        print 'Exiting repoman-client.'
+                        sys.exit(2)
+        try:
+            read_only = metadata['read_only']
+            true_values = ['t', 'True', 'true']
+            if true_values.count(metadata['read_only']):
+                metadata['read_only'] = True
+            else:
+                metadata['read_only'] = False
+        except:
+            pass
+        print "Snapshotting system and uploading with the following metadata:"
+        for key in metadata:
+            print key+": "+metadata[key]
+        repo.update_metadata(metadata=metadata, exists=exists)
+        repo.upload_snapshot(metadata=metadata,replace=exists, snapshot_complete=False)
+        sys.exit(0)
+                    
 
     elif command == 'upload-snapshot' or command == 'us':
         parser = argparse.ArgumentParser(prog='repoman upload-snapshot', description='Uploads a snapshot to the repository.  The snapshot created by upload-snapshot is stored in the location defined in the configfile.  Run "repoman about" to see the image location.', usage='%(prog)s [--force | -f] [--META_KEY VALUE]')
@@ -618,14 +686,26 @@ def main():
 
 
 
-    elif command == 'help' or command == '--help' or command == '-h':
-        print_help_menu()
+    elif command == '--help' or command == '-h':
+        try:
+            arg = sys.argv[2]
+        except:
+            print "test"
+            print_help_menu(False)
+            sys.exit(0)
+        if arg == '--long' or arg == '-l':
+            print_help_menu(True)
+            sys.exit(0)
+        else:
+            print_help_menu(False)
+            sys.exit(0)
+        
         sys.exit(0)
-    
+
     
     else:
         print "Command not recognized."
-        print_help_menu()
+        print_help_menu(False)
         sys.exit(0)
 
 if __name__ == "__main__":
