@@ -25,6 +25,12 @@ json_content_type = application/json
 #                variables provided by apache.
 deploy_type = proxy
 
+# File uploads
+# calc_md5 - if true, the StorageMiddleware will calculate the md5 has during
+#            upload and add it to the environ
+calc_md5= true
+
+
 [server:main]
 use = egg:Paste#http
 host = 0.0.0.0

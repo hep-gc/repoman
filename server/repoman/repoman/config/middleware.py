@@ -75,7 +75,7 @@ def make_app(global_conf, full_stack=True, static_files=True, **app_conf):
         #app = Cascade([static_app, app])
         app = BypassCascade(app, [static_app, app])
 
-    app = StorageMiddleware(app, '/tmp')
+    app = StorageMiddleware(app, '/tmp', calc_md5=config['global_conf']['calc_md5'])
 
     app.config = config
     return app

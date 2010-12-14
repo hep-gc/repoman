@@ -41,7 +41,7 @@ class StorageMiddleware(object):
     #pass_through = ['POST', 'GET', 'HEAD', 'DELETE']
     capture = ['PUT']
 
-    def __init__(self, app, dest, temp='/tmp', paths=[], max_size=None):
+    def __init__(self, app, temp='/tmp', paths=[], max_size=None, calc_md5=True):
         """
         Args:
             app: The WSGI app you are wrapping
@@ -53,20 +53,16 @@ class StorageMiddleware(object):
                 file size.
         """
         self.temp = temp
-        self.dest = dest
         self.max_size = max_size
         self.app = app
         self.paths = paths
+        self.calc_md5= calc_md5
 
         self._create_dirs()
 
     def _create_dirs(self):
         if not os.path.isdir(self.temp):
             os.mkdir(self.temp)
-
-        # TODO: build entire base path if not exists.
-        if not os.path.isdir(self.dest):
-            os.mkdir(self.dest)
 
     def __call__(self, environ, start_response):
         req = Request(environ)
@@ -75,8 +71,9 @@ class StorageMiddleware(object):
         # Pass through everything except PUT
         if req.method in self.capture:
             try:
-                temp_file = self.store_files(req)
+                temp_file, file_hash = self.store_files(req)
                 new_env.update({'STORAGE_MIDDLEWARE_EXTRACTED_FILE':temp_file})
+                new_env.update({'STORAGE_MIDDLEWARE_EXTRACTED_FILE_MD5':file_hash})
                 new_env.update({'BYPASS_CASCADE':True})
             except MaxSizeExceeded, e:
                 start_response('400 Bad Request', [('Content-Type','application/json')])
@@ -86,7 +83,7 @@ class StorageMiddleware(object):
                     os.remove(temp_path)
                 except:
                     pass
-                raise exc.HTTPInternalServerError()
+                raise exc.HTTPInternalServerError().exception
 
         # Next application
         return self.app(new_env, start_response)
@@ -103,13 +100,20 @@ class StorageMiddleware(object):
         if self.max_size and length > self.max_size:
             raise MaxSizeExceeded(length, self.max_size)
 
+        if self.calc_md5:
+            file_hash = md5()
+        else:
+            file_hash = None
+
         inf = req.environ['wsgi.input']
         temp_name = md5(str(datetime.datetime.now())).hexdigest() + '_body'
         temp_path = os.path.join(self.temp, temp_name)
         temp_file = open(temp_path, 'w')
         for chunk in self.read_chunks(inf):
+            if self.calc_md5:
+                file_hash.update(chunk)
             temp_file.write(chunk)
         temp_file.close()
 
-        return temp_path
+        return temp_path, file_hash.hexdigest()
 

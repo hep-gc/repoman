@@ -60,6 +60,8 @@ class ImagesController(BaseController):
                     remove(image_file)
                     abort(500, '500 Internal Error - Error uploading file %s' %e)
 
+                image.checksum.ctype = 'md5'
+                image.checksum.cvalue = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_MD5')
                 image.raw_uploaded = True
                 image.path = file_name
                 image.version += 1
