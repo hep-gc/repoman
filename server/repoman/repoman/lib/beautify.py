@@ -52,6 +52,7 @@ def image(image):
              'http_file_url':http_url,
              'raw_file_uploaded':image.raw_uploaded,
              'version':image.version,
+             'size':image.size,
              'file_url':url('raw_by_user', user=image.owner.user_name,
                             image=image.name, qualified=True),
              'shared_with':{'groups':[url('group', group=g.name, qualified=True)

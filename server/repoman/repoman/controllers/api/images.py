@@ -62,6 +62,7 @@ class ImagesController(BaseController):
 
                 image.checksum.ctype = 'md5'
                 image.checksum.cvalue = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_MD5')
+                image.size = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_LENGTH')
                 image.raw_uploaded = True
                 image.path = file_name
                 image.version += 1

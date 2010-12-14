@@ -71,9 +71,10 @@ class StorageMiddleware(object):
         # Pass through everything except PUT
         if req.method in self.capture:
             try:
-                temp_file, file_hash = self.store_files(req)
+                temp_file, length, file_hash = self.store_files(req)
                 new_env.update({'STORAGE_MIDDLEWARE_EXTRACTED_FILE':temp_file})
                 new_env.update({'STORAGE_MIDDLEWARE_EXTRACTED_FILE_MD5':file_hash})
+                new_env.update({'STORAGE_MIDDLEWARE_EXTRACTED_FILE_LENGTH':length})
                 new_env.update({'BYPASS_CASCADE':True})
             except MaxSizeExceeded, e:
                 start_response('400 Bad Request', [('Content-Type','application/json')])
@@ -115,5 +116,5 @@ class StorageMiddleware(object):
             temp_file.write(chunk)
         temp_file.close()
 
-        return temp_path, file_hash.hexdigest()
+        return temp_path, length, file_hash.hexdigest()
 
