@@ -116,5 +116,8 @@ class StorageMiddleware(object):
             temp_file.write(chunk)
         temp_file.close()
 
-        return temp_path, length, file_hash.hexdigest()
+        if self.calc_md5:
+            file_hash = file_hash.hexdigest()
+
+        return temp_path, length, file_hash
 
