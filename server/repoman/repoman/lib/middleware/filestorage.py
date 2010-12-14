@@ -3,10 +3,19 @@ import datetime
 from webob import Request, Response, exc
 import simplejson
 
+# Python 2.4 compatability
 try:
     from hashlib import md5
 except:
     from md5 import new as md5
+
+try:
+    from hashlib import sha1
+except:
+    from sha import new as sha1
+
+hash_type_map = {'md5':md5, 'sha1':sha1}
+
 
 class MaxSizeExceeded(Exception):
     def __init__(self, length, max_size):
@@ -41,7 +50,7 @@ class StorageMiddleware(object):
     #pass_through = ['POST', 'GET', 'HEAD', 'DELETE']
     capture = ['PUT']
 
-    def __init__(self, app, temp='/tmp', paths=[], max_size=None, calc_md5=True):
+    def __init__(self, app, temp='/tmp', paths=[], max_size=None, hash_type=None):
         """
         Args:
             app: The WSGI app you are wrapping
@@ -56,13 +65,25 @@ class StorageMiddleware(object):
         self.max_size = max_size
         self.app = app
         self.paths = paths
-        self.calc_md5= calc_md5
+        if hash_type_map.get(hash_type):
+            self.hash_type = hash_type
+            self.hash_func = hash_type_map.get(hash_type)
+        else:
+            self.hash_type = None
+            self.hash_func = None
 
         self._create_dirs()
 
     def _create_dirs(self):
         if not os.path.isdir(self.temp):
             os.mkdir(self.temp)
+
+    def _500_error(self):
+        e = {'component':'StorageMiddleware',
+             'error':'Unknown error',
+             'description':'An error has occured while processing your file upload.'}
+        return e
+
 
     def __call__(self, environ, start_response):
         req = Request(environ)
@@ -73,7 +94,8 @@ class StorageMiddleware(object):
             try:
                 temp_file, length, file_hash = self.store_files(req)
                 new_env.update({'STORAGE_MIDDLEWARE_EXTRACTED_FILE':temp_file})
-                new_env.update({'STORAGE_MIDDLEWARE_EXTRACTED_FILE_MD5':file_hash})
+                new_env.update({'STORAGE_MIDDLEWARE_EXTRACTED_FILE_HASH':file_hash})
+                new_env.update({'STORAGE_MIDDLEWARE_EXTRACTED_FILE_HASH_TYPE':self.hash_type})
                 new_env.update({'STORAGE_MIDDLEWARE_EXTRACTED_FILE_LENGTH':length})
                 new_env.update({'BYPASS_CASCADE':True})
             except MaxSizeExceeded, e:
@@ -84,7 +106,8 @@ class StorageMiddleware(object):
                     os.remove(temp_path)
                 except:
                     pass
-                raise exc.HTTPInternalServerError().exception
+                start_response('500 Internal Server Error', [('Content-Type','application/json')])
+                return simplejson.dumps({'errors':[self._500_error()]})
 
         # Next application
         return self.app(new_env, start_response)
@@ -101,8 +124,8 @@ class StorageMiddleware(object):
         if self.max_size and length > self.max_size:
             raise MaxSizeExceeded(length, self.max_size)
 
-        if self.calc_md5:
-            file_hash = md5()
+        if self.hash_type:
+            file_hash = self.hash_func()
         else:
             file_hash = None
 
@@ -111,12 +134,12 @@ class StorageMiddleware(object):
         temp_path = os.path.join(self.temp, temp_name)
         temp_file = open(temp_path, 'w')
         for chunk in self.read_chunks(inf):
-            if self.calc_md5:
+            if self.hash_type:
                 file_hash.update(chunk)
             temp_file.write(chunk)
         temp_file.close()
 
-        if self.calc_md5:
+        if self.hash_type:
             file_hash = file_hash.hexdigest()
 
         return temp_path, length, file_hash

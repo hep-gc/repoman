@@ -54,14 +54,13 @@ class ImagesController(BaseController):
                 try:
                     file_name = user + '_' + image.name
                     final_path = path.join(app_globals.image_storage, file_name)
-                    #return {'user':user, 'image':image, 'file':image_file, 'dest':final_path}
                     shutil.move(image_file, final_path)
                 except Exception, e:
                     remove(image_file)
                     abort(500, '500 Internal Error - Error uploading file %s' %e)
 
-                image.checksum.ctype = 'md5'
-                image.checksum.cvalue = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_MD5')
+                image.checksum.ctype = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_HASH_TYPE')
+                image.checksum.cvalue = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_HASH')
                 image.size = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_LENGTH')
                 image.raw_uploaded = True
                 image.path = file_name

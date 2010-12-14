@@ -26,10 +26,10 @@ json_content_type = application/json
 deploy_type = proxy
 
 # File uploads
-# calc_md5 - if true, the StorageMiddleware will calculate the md5 has during
-#            upload and add it to the environ
-calc_md5= true
-
+# hash_type - allowable values: md5, sha1
+#             uncomment to perform a hash on the uploaded file.
+#             to disable, leave commented out
+#hash_type = sha1
 
 [server:main]
 use = egg:Paste#http
