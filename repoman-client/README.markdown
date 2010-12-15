@@ -30,66 +30,81 @@ Ensure that you have a valid, RFC-compliant grid proxy certificate before runnin
 Command Listing
 --------------------------------
 
-help                     |   h
+**Basic Commands**
 
-make-config              |   mc
+make-config - create the initial configuration file (required)
 
-about                    |   a
+get - download an image
 
-whoami                   |   whoami
+save - snapshot current system and upload it to the server
 
-list-user                |   lu
+delete - delete an image
 
-list-groups              |   lg
+rename - rename an image
 
-list-images              |   li
+list - list your available images
 
-create-user              |   cuser
+**Advanced Commands**
 
-create-group             |   cg
+make-config | mc - creates a config file (must be done first)
 
-create-image             |   ci
+list-users | li list users
 
-describe-user            |   du
+list-groups | lg list groups
 
-describe-group           |   dg
+list-images | li list images
 
-describe-image           |   di
+create-user | cu create a user
 
-modify-user              |   mu
+create-group | cg create a group
 
-modify-group             |   mg
+create-image | ci create an image
 
-modify-image             |   mi
+modify-user | mu modify user metadata
 
-remove-user              |   ru
+modify-group | mg modify group metadata
 
-remove-group             |   rg
+modify-image | mi modify image metadata
 
-remove-image             |   ri
+remove-user | ru remove a user
 
-upload-image             |   ui
+remove-group | rg remove a group
 
-download-image           |   get
+remove-image | ri remove an image
 
-share-image              |   si
+describe-user | du describe a user
 
-unshare-image            |   usi
+describe-group | dg describe a group
 
-add-users-to-group       |   aug
+describe-image | di describe an image
 
-remove-users-from-group  |   rug
+download-image | get download an image
 
-add-permissions          |   ap
+upload-image | ui upload an image
 
-remove-permissions       |   rp
+share-image | si share an image with a user or group
 
-snapshot-system          |   ss
+unshare-image | usi unshare an image with a user or group
 
-upload-snapshot          |   us
+add-users-to-group | aug add users to a group
+
+remove-users-from-group | rug remove users from a group
+
+add-permissions | ap add permissions to a group
+
+remove-permissions | rp add permissions to a group
+
+snapshot-system | ss snapshot current system and store locally or upload.
+
+upload-snapshot | us upload a snapshot to the server.
+
+whoami returns current username or user information
+
+about | a returns information about repoman-client
 
 
-Command Usage
+
+Detailed Command Usage
 --------------------------------
 
     help | h | --help | -h
@@ -214,6 +229,65 @@ Command Usage
 
 Example Workflow
 --------------------------------
+
+**Basic**
+    $ repoman make-config --repo https://localhost:443
+        Config file successfully written.
+        
+    $ repoman save --name vm-1
+        Snapshotting system and uploading with the following metadata:
+        name: vm-1
+        Updating metadata.
+        Metadata modification complete.
+
+                Creating an image of the local filesystem.  
+                This can take up to 10 minutes or more.
+                Please be patient ...
+                test
+                
+        Creating a new image:
+        creating image /mnt/repodisk/fscopy.img
+        creating ext3 filesystem on /mnt/repodisk/fscopy.img
+        mounting image /mnt/repodisk/fscopy.img on /mnt/fscopy/
+        creating local copy of filesystem... this could take some time.  Please be patient.
+        local copy of VM created.
+        Snapshot process complete.
+
+
+                Uploading to the image repository. This can also take 
+                time, depending on the speed of your connection
+                and the size of your image...
+                
+          % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                         Dload  Upload   Total   Spent    Left  Speed
+        100 7625M    0   154  100 7625M      0  7016k  0:18:32  0:18:32 --:--:-- 6224k
+
+           Image successfully uploaded to  the repository at:
+            
+        https://localhost:443
+    $ repoman list
+        Images for user dbharris:
+        image-002
+        image-004
+        old_image-001
+        vm-1
+    $ repoman rename vm-1 vm-1-new_name
+        Renaming image vm-1 to vm-1-new_name
+        Rename complete.
+    $ repoman get vm-1-new_name
+        Downloading image dbharris/image-001.img and storing it at ./image-001.img.
+          % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                         Dload  Upload   Total   Spent    Left  Speed
+        100 7625M    0   154  100 7625M      0  7016k  0:12:30  0:12:30 --:--:-- 6224k
+    $ repoman delete vm-1-new_name
+        Removing image vm-1-new_name...
+         Are you sure you want to continue?
+         To prevent this message from displaying, run the command with
+         --force or -f.
+        [y/N]y
+        Image vm-1-new_name has been removed.
+
+**Advanced**
 
     $ repoman make-config --repo https://myrepo.com:443
         Config file successfully written.
