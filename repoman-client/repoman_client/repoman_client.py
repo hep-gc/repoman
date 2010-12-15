@@ -384,11 +384,14 @@ class repoman_client(object):
         if members.status == 404:
             print "Group not found."
             sys.exit(1)
+        members = json.loads(members.read())
         if long:
-            print str(members.read())
+            for member in members:
+                print member
         else:
-            print str(members.read())
-            
+            for member in members:
+                print member.split('/')[5]
+             
             
             
     def list_groups(self, *args):
