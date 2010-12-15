@@ -24,13 +24,14 @@ def ask_yes_or_no(*args, **kwargs):
 
 def print_help_menu(long):
     if long:
-        print "Repoman-Client 0.2"
+        print "Repoman-Client 0.2.3"
         print 'usage: repoman [subcommand]'
         print " "
         print "Manages VMs, users and groups on a Repoman repository."
         print " "
         print "Possible subcommands:"
         print "Run \"repoman [subcommand] --help|-h\" for a complete list of options."
+        print "To see the current version of repoman-client, use \"--version\""
         print ""
         print "Basic commands:"
         print ""
@@ -86,6 +87,7 @@ def print_help_menu(long):
         print "  list -- list your available images"
         print ""
         print "For a full list of repoman commands use \"--help --all\""
+        print "To see the current version of repoman-client, use \"--version\""
         sys.exit(0)
 def main():
     if not len(sys.argv) > 1:
@@ -682,7 +684,7 @@ def main():
         
         sys.exit(0)
         
-    elif command == '--version' or --command == '-v':
+    elif command == '--version' or command == '-v':
         print "Repoman-Client"
         print "Version 0.2.3"
         sys.exit(0)
