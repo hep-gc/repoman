@@ -1,4 +1,4 @@
-include README
+include README.markdown
 include setup.py
 include repoman_client/__init__.py
 include repoman_client/imageutils.py

@@ -9,11 +9,8 @@ except ImportError:
 from distutils.dir_util import mkpath
 import os.path
 
-if not os.path.exists('/etc/repoman-client'):
-    mkpath('/etc/repoman-client')
-
 setup(name='repoman-client',
-    version='0.2.3dev2',
+    version='0.2.3-r5',
     description='Client to connect to Repoman image repository.',
     author='Kyle Fransham, Drew Harris',
     author_email='fransham@uvic.ca, dbharris@uvic.ca',

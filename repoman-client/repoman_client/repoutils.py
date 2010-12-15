@@ -1,7 +1,7 @@
 '''
 Created on Oct 5, 2010
 
-@author: fransham
+@author: fransham, harris
 '''
 import urllib 
 import urllib2
@@ -187,14 +187,11 @@ class repoutils(object):
                 i = i + 1
             return users_info
             
-            
-            
     def list_group_members(self,repo,cert,key,group):
         repo_https = self.repo(repo, cert, key)
         repo_https.request('GET', '/api/groups/'+group+'/users')
         resp = repo_https.getresponse()
         return resp
-        
     
     def list_groups(self,repo,cert,key):
         repo_https = self.repo(repo, cert, key)
@@ -213,8 +210,7 @@ class repoutils(object):
         repo_https.request('GET', '/api/groups/'+group)
         resp = repo_https.getresponse()
         return resp
-            
-    
+               
     def get_my_id(self,repo,cert,key):
         ret, output = getstatusoutput("openssl x509 -subject -in "+cert)
         if ret:
@@ -230,15 +226,14 @@ class repoutils(object):
                 return user
                 #print user
         return None
-    
-
         
     def get_uri_response(self,uri,cert,key):
         opener = urllib2.build_opener(HTTPSClientAuthHandler(key, cert))
         try:
             response = opener.open(uri)
         except urllib2.HTTPError,e:
-            print "Server error: "+e
+            print "Server error: code "+str(e.code)
+            print "Contact your administrator."
             sys.exit(0)
         try:
             json_response = json.load(response)
@@ -294,7 +289,6 @@ class HTTPSClientAuthHandler(urllib2.HTTPSHandler):
     def getConnection(self, host, timeout=300):  
         return httplib.HTTPSConnection(host, key_file=self.key, cert_file=self.cert)  
     
-    
 class Callable:
     def __init__(self, anycallable):
         self.__call__ = anycallable
@@ -302,7 +296,6 @@ class Callable:
 # Controls how sequences are uncoded. If true, elements may be given multiple values by
 #  assigning a sequence.
 doseq = 1
-
     
 class MultipartPostHandler(urllib2.BaseHandler):
     handler_order = urllib2.HTTPHandler.handler_order - 10 # needs to run first

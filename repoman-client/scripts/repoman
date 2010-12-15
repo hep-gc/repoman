@@ -21,7 +21,6 @@ def ask_yes_or_no(*args, **kwargs):
     if k in ('y', 'ye', 'yes'):
         return True
     return False
-    
 
 def print_help_menu(long):
     if long:
@@ -32,6 +31,17 @@ def print_help_menu(long):
         print " "
         print "Possible subcommands:"
         print "Run \"repoman [subcommand] --help|-h\" for a complete list of options."
+        print ""
+        print "Basic commands:"
+        print ""
+        print "  make-config -- create the initial configuration file (required)"
+        print "  get -- download an image"
+        print "  save -- snapshot current system and upload it to the server"
+        print "  delete -- delete an image"
+        print "  rename -- rename an image"
+        print "  list -- list your available images"
+        print ""
+        print "Advanced commands:"
         print ""
         print "  make-config | mc               creates a config file (must be done first)"
         print "  list-users | li                list users"
@@ -63,10 +73,10 @@ def print_help_menu(long):
         print "  about | a                      returns information about repoman-client"
         sys.exit(0)
     else:
-        print "  Repoman-Client 0.2"
-        print "  usage: repoman [subcommand]"
+        print "Repoman-Client 0.2"
+        print "usage: repoman [subcommand]"
         print ""
-        print "  The most commonly used commands are:"
+        print "The most commonly used commands are:"
         print ""
         print "  make-config -- create the initial configuration file (required)"
         print "  get -- download an image"
@@ -75,11 +85,11 @@ def print_help_menu(long):
         print "  rename -- rename an image"
         print "  list -- list your available images"
         print ""
-        print "For a full list of repoman commands use \"--help --long\""
+        print "For a full list of repoman commands use \"--help --all\""
         sys.exit(0)
 def main():
     if not len(sys.argv) > 1:
-        print_help_menu()
+        print_help_menu(False)
         sys.exit(0)
     else:
         command = sys.argv[1]
@@ -152,7 +162,6 @@ def main():
         
         sys.exit(0)
 
-
     elif command == 'list-users' or command == 'lu':
         parser = argparse.ArgumentParser(prog='repoman list-users', description='Lists users on the Repoman repository.', usage='%(prog)s [--long | -l] [[--group | -g] GROUP]')
         parser.add_argument('--long','-l', action='store_true', default=False, help='display full user information')
@@ -163,7 +172,6 @@ def main():
         else:
             repo.list_users(args.long)
         sys.exit(0)
-        
         
     elif command == 'list-groups' or command == 'lg':
         parser = argparse.ArgumentParser(prog='repoman list-groups', description='Lists groups on the Repoman repository.', usage='%(prog)s [--long | -l] [--all | -a] [[--user | -u] USER]')
@@ -178,7 +186,6 @@ def main():
         else:
             repo.list_users_groups(repo.return_username(), args.long)
         sys.exit(0)
-        
 
     elif command == 'whoami':
         parser = argparse.ArgumentParser(prog='repoman whoami', description='List current username and user information.', usage='%(prog)s [--long | -l])')
@@ -189,7 +196,6 @@ def main():
         else:
             repo.get_username()
         sys.exit(0)
-    
           
     elif command == 'create-user' or command == 'cu':
         parser = argparse.ArgumentParser()
@@ -215,7 +221,6 @@ def main():
         repo.create_user(metadata)
         sys.exit(0)
         
-        
     elif command == 'create-group' or command == 'cg':
         parser = argparse.ArgumentParser()
         args = parser.parse_known_args(args=sys.argv[2:])
@@ -238,7 +243,6 @@ def main():
         repo.create_group(metadata)
         sys.exit(0)
         
-        
     elif command == 'remove-user' or command == 'ru':
         parser = argparse.ArgumentParser(prog='repoman remove-user', description='Removes a user from the Repoman repository.', usage='%(prog)s user [--force | -f]')
         parser.add_argument('user', help='user to remove')
@@ -253,7 +257,6 @@ def main():
             else:
                 print 'Exiting repoman-client.'
         sys.exit(0)
-           
             
     elif command == 'remove-group' or command == 'rg':
         parser = argparse.ArgumentParser(prog='repoman remove-group', description='Removes a group from the Repoman repository.', usage='%(prog)s group [--force | -f]')
@@ -270,7 +273,6 @@ def main():
                 print 'Exiting repoman-client.'
         sys.exit(0)
         
-        
     elif command == 'remove-image' or command == 'ri' or command == 'delete':
         parser = argparse.ArgumentParser(prog='repoman delete|remove-image|ri', description='Removes an from the Repoman repository.', usage='%(prog)s [user/]image [--force | -f]')
         parser.add_argument('image')
@@ -285,7 +287,6 @@ def main():
             else:
                 print 'Exiting repoman-client.'
         sys.exit(0)
-
         
     elif command == 'modify-image' or command == 'mi':
         parser = argparse.ArgumentParser(prog='repoman modify-image', description='Updates the metadata for an image in the Repoman repository.', usage='%(prog)s [user/]image [--META_KEY META_VALUE]')
@@ -357,7 +358,6 @@ def main():
                 args.image = repo.return_username()+'/'+args.image
         repo.get(args.image,args.dest)
         sys.exit(0)
-                  
 
     elif command == 'describe-image' or command == 'di':
         parser = argparse.ArgumentParser(prog='repoman describe-image', description='Prints detailed information about an image.', usage='%(prog)s [user/]image')
@@ -372,7 +372,6 @@ def main():
             repo.describe_image(args.image)
             sys.exit(0)
             
-            
     elif command == 'describe-user' or command == 'du':
         parser = argparse.ArgumentParser(prog='repoman describe-user', description='Prints detailed information about a user.', usage='%(prog)s user')
         parser.add_argument('user', help='user to describe')
@@ -380,14 +379,12 @@ def main():
         repo.describe_user(args.user)
         sys.exit(0)
         
-        
     elif command == 'describe-group' or command == 'dg':
         parser = argparse.ArgumentParser(prog='repoman describe-group', description='Prints detailed information about a group.', usage='%(prog)s group')
         parser.add_argument('group')
         args = parser.parse_args(args=sys.argv[2:])
         repo.describe_group(args.group)
         sys.exit(0)
-        
         
     elif command == 'modify-user' or command == 'mu':
         parser = argparse.ArgumentParser(prog='repoman modify-user', description='Updates the metadata for a user in the Repoman repository.', usage='%(prog)s user [--META_KEY META_VALUE]')
@@ -409,7 +406,6 @@ def main():
         print metadata
         repo.modify_group(args[0].group, metadata)
         sys.exit(0)     
-        
         
     elif command == 'create-image' or command == 'ci':
         parser = argparse.ArgumentParser(prog='repoman create-image', description='Creates an image on the Repoman repository.  The minimum required metadata is --name NAME.  If a file to upload is specified but a name is not, the name is set to the filename.', usage='%(prog)s [--file FILENAME] [--META_KEY VALUE]')
@@ -459,7 +455,6 @@ def main():
                 sys.exit(0)
         sys.exit(0)
         
-        
     elif command == 'share-image' or command == 'si':
         parser = argparse.ArgumentParser(prog='repoman share-image', description='Shares an image with another user or group.', usage='%(prog)s image [[--user | -u] USERNAME] [[ --group | -g] GROUPNAME]')
         parser.add_argument('image', help='image to share')
@@ -475,7 +470,6 @@ def main():
             repo.share_group(args.image,args.group)
             sys.exit(0)
         sys.exit(0)
-        
                 
     elif command == 'unshare-image' or command == 'usi':
         parser = argparse.ArgumentParser(prog='repoman unshare-image', description='Removes a previous share from another user or group.', usage='%(prog)s image [[--user | -u] USERNAME] [[ --group | -g] GROUPNAME]')
@@ -492,7 +486,6 @@ def main():
             repo.unshare_group(args.image,args.group)
             sys.exit(0)
         sys.exit(0)
-        
     
     elif command == 'snapshot-system' or command == 'ss':
         parser = argparse.ArgumentParser(prog='repoman snapshot-system', description='Snapshots currently running system and either stores it locally or uploads it to the repository.', usage='%(prog)s [--force | -f] [--upload | -u] [--META_KEY VALUE]')
@@ -572,7 +565,6 @@ def main():
         repo.update_metadata(metadata=metadata, exists=exists)
         repo.upload_snapshot(metadata=metadata,replace=exists, snapshot_complete=False)
         sys.exit(0)
-                    
 
     elif command == 'upload-snapshot' or command == 'us':
         parser = argparse.ArgumentParser(prog='repoman upload-snapshot', description='Uploads a snapshot to the repository.  The snapshot created by upload-snapshot is stored in the location defined in the configfile.  Run "repoman about" to see the image location.', usage='%(prog)s [--force | -f] [--META_KEY VALUE]')
@@ -608,7 +600,6 @@ def main():
         repo.upload_snapshot(metadata=metadata,replace=exists, snapshot_complete=True)
         sys.exit(0)
         
-        
     elif command == 'upload-image' or command == 'ui':
         parser = argparse.ArgumentParser(prog='repoman upload-image', description='Uploads a file to a previously-created image on the repository.', usage='%(prog)s [USER/]image --file FILE_NAME')
         parser.add_argument('image', help='image on repository to upload to')
@@ -628,7 +619,6 @@ def main():
         repo.upload_image(args.file,image=args.image)
         sys.exit(0)
         
-        
     elif command == 'add-users-to-group' or command == 'aug':
         parser = argparse.ArgumentParser(prog='repoman add-users-to-group', description='Adds user to a group on the repository.', usage='%(prog)s group --users USER1 USER2...')
         parser.add_argument('group', help='group to add users to')
@@ -637,7 +627,6 @@ def main():
         repo.add_users_to_group(args.group, args.users)
         sys.exit(0)
         
-        
     elif command == 'remove-users-from-group' or command == 'rug':
         parser = argparse.ArgumentParser(prog='repoman remove-users-from-group', description='Removes users from a group on the repository.', usage='%(prog)s group --users USER1 USER2...')
         parser.add_argument('group', help='group to remove users from')
@@ -645,7 +634,6 @@ def main():
         args = parser.parse_args(args=sys.argv[2:])
         repo.remove_users_from_group(args.group, args.users)
         sys.exit(0)
-        
         
     elif command == 'add-permissions' or command == 'ap':
         parser = argparse.ArgumentParser(prog='repoman add-permissions', description='Adds permissions to a group on the repository.', usage='%(prog)s group --permissions PERMISSION1 PERMISSION2...')
@@ -657,7 +645,6 @@ def main():
             sys.exit(1)
         repo.add_permissions(args.group, args.permissions)
         sys.exit(0)
-        
         
     elif command == 'remove-permissions' or command == 'rp':
         parser = argparse.ArgumentParser(prog='repoman remove-permissions', description='Removes permissions from a group on the repository.', usage='%(prog)s group --permissions PERMISSION1 PERMISSION2...')
@@ -672,28 +659,21 @@ def main():
 
     elif command == 'about' or command == 'a':
         print "Repoman-client"
-        print "Version:                     0.2"
+        print "Version:                     0.2.3"
         print "User certificate:            "+repo.return_usercert()
         print "User key:                    "+repo.return_userkey()
         print "Repository:                  "+repo.return_repo()
         print "Snapshot image location:     "+repo.return_snapshot_location()
         print "Snapshot mount location:     "+repo.return_snapshot_mount()
         sys.exit(0)
-        
-    
-        
-        
-
-
 
     elif command == '--help' or command == '-h':
         try:
             arg = sys.argv[2]
         except:
-            print "test"
             print_help_menu(False)
             sys.exit(0)
-        if arg == '--long' or arg == '-l':
+        if arg == '--all' or arg == '-a':
             print_help_menu(True)
             sys.exit(0)
         else:
@@ -701,8 +681,12 @@ def main():
             sys.exit(0)
         
         sys.exit(0)
+        
+    elif command == '--version' or --command == '-v':
+        print "Repoman-Client"
+        print "Version 0.2.3"
+        sys.exit(0)
 
-    
     else:
         print "Command not recognized."
         print_help_menu(False)
