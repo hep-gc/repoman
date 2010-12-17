@@ -74,7 +74,7 @@ def print_help_menu(long):
         print "  about | a                      returns information about repoman-client"
         sys.exit(0)
     else:
-        print "Repoman-Client 0.2"
+        print "Repoman-Client 0.2.4"
         print "usage: repoman [subcommand]"
         print ""
         print "The most commonly used commands are:"
@@ -661,7 +661,7 @@ def main():
 
     elif command == 'about' or command == 'a':
         print "Repoman-client"
-        print "Version:                     0.2.3"
+        print "Version:                     0.2.4"
         print "User certificate:            "+repo.return_usercert()
         print "User key:                    "+repo.return_userkey()
         print "Repository:                  "+repo.return_repo()
@@ -686,7 +686,7 @@ def main():
         
     elif command == '--version' or command == '-v':
         print "Repoman-Client"
-        print "Version 0.2.3"
+        print "Version 0.2.4"
         sys.exit(0)
 
     else:
