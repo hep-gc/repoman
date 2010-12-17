@@ -17,13 +17,13 @@ temp_storage = /tmp/images
 json_content_type = application/json
 
 # Set deploy type to on of
-#     proxy - repoman lives behind a server that proxies requests to it.
+#     proxy - EXPERAMENTAL: repoman lives behind a server that proxies requests to it.
 #             client ssl information needs to be transmitted in headers from the
 #             proxy to repoman.
 #     mod_wsgi - repoman lives inside mod_wsgi.
 #                client ssl information is obtained directly from the envrion
 #                variables provided by apache.
-deploy_type = proxy
+deploy_type = mod_wsgi
 
 # File uploads
 # hash_type - allowable values: md5, sha1
