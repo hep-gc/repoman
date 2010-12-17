@@ -69,12 +69,5 @@ Long line in code output have been manually wrapped.
 **Attempting to perform a GET on the raw image url will result in a "404 - Not Found" error**
 
 ### Upload the corresponding image file
-    c = pycurl.Curl()
-    c.setopt(pycurl.POST, 1)
-    c.setopt(pycurl.URL, 'https://localhost:4444/api/images/raw/bob/My_test_image.raw.gz')
-    c.setopt(pycurl.HTTPPOST, [('file', (pycurl.FORM_FILE, '/tmp/vm_image.img'))])
-    c.setopt(pycurl.SSL_VERIFYHOST, 0)
-    c.setopt(pycurl.SSL_VERIFYPEER, 0)
-    c.setopt(pycurl.SSLCERT, '/tmp/x509up_u1000')
-    c.perform()
+    curl --cert /tmp/x509up_u`id -u` -T /path/to/your/image/file https://localhost:4444/api/images/raw/bob/My_test_image.raw.gz
 
