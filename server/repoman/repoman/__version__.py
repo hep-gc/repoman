@@ -1,4 +1,4 @@
-major = '0.1'
+major = '0.2'
 minor = ''
 tag = ''
 revision = ''
