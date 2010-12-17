@@ -131,6 +131,21 @@ def main():
             sys.exit(0)
         sys.exit(0)
         
+    elif command == '--help' or command == '-h':
+        try:
+            arg = sys.argv[2]
+        except:
+            print_help_menu(False)
+            sys.exit(0)
+        if arg == '--all' or arg == '-a':
+            print_help_menu(True)
+            sys.exit(0)
+        else:
+            print_help_menu(False)
+            sys.exit(0)
+        
+        sys.exit(0)
+        
     else:  
         repo = repoman_client.repoman_client()
 
@@ -669,21 +684,7 @@ def main():
         print "Snapshot mount location:     "+repo.return_snapshot_mount()
         sys.exit(0)
 
-    elif command == '--help' or command == '-h':
-        try:
-            arg = sys.argv[2]
-        except:
-            print_help_menu(False)
-            sys.exit(0)
-        if arg == '--all' or arg == '-a':
-            print_help_menu(True)
-            sys.exit(0)
-        else:
-            print_help_menu(False)
-            sys.exit(0)
-        
-        sys.exit(0)
-        
+    
     elif command == '--version' or command == '-v':
         print "Repoman-Client"
         print "Version 0.2.4"
