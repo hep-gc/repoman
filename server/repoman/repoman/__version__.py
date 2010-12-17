@@ -1,6 +1,6 @@
 major = '0.2'
 minor = ''
-tag = ''
+tag = 'rc1'
 revision = ''
 version = major
 
