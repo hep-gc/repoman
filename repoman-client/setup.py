@@ -10,7 +10,7 @@ from distutils.dir_util import mkpath
 import os.path
 
 setup(name='repoman-client',
-    version='0.2.3-r5',
+    version='0.2.3-r6',
     description='Client to connect to Repoman image repository.',
     author='Kyle Fransham, Drew Harris',
     author_email='fransham@uvic.ca, dbharris@uvic.ca',

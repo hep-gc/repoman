@@ -201,6 +201,7 @@ class repoman_client(object):
             for user in users:
                 print user.split('/')[5]
                 
+                
     def describe_user(self, user):
     
         resp = self.rut.query_user(self.repository, self.usercert, self.userkey, user)
