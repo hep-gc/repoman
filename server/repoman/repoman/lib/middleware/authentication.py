@@ -2,7 +2,7 @@
 # Project imports
 from repoman.model import meta
 from repoman.model.certificate import Certificate
-from repoman.lib.errors.server import invalid_config_value
+#from repoman.lib.errors.server import invalid_config_value
 
 # Standard imports
 from time import strptime, gmtime
@@ -77,8 +77,6 @@ class UserAuthentication(object):
             ssl = self.get_ssl_from_environ(environ)
         elif self.deploy_type == 'proxy':
             ssl = self.get_ssl_from_headers(environ)
-        else:
-            invalid_config_value('deploy_type', self.deploy_type)
 
         return self.authorize(ssl, environ, start_response)
 
