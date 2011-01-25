@@ -34,6 +34,22 @@ class GroupsController(BaseController):
     def modify_meta(self, group):
         abort(501, '501 Not Implemented')
 
+    def list_shared_images(self, group, format='json'):
+        group = meta.Session.query(Group).filter(Group.name==group).first()
+        if group:
+            images = group.shared_images
+            urls = [url('image_by_user',
+                        user=i.image.owner.user_name,
+                        image=i.image.name,
+                        qualified=True) for i in images]
+            if format == 'json':
+                response.headers['content-type'] = app_globals.json_content_type
+                return h.render_json(urls)
+            else:
+                abort(501, '501 Not Implemented')
+        else:
+            abort(404, '404 Not Found')
+
     def list_all(self, format='json'):
         group_q = meta.Session.query(Group)
         groups = [g for g in group_q]

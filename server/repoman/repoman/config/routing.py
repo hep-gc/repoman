@@ -94,6 +94,10 @@ def make_map(config):
                 action='modify_meta',
                 conditions=dict(method=['POST']))
 
+    map.connect(None, '/api/groups/:(group)/shared', controller='api/groups',
+                action='list_shared_images',
+                conditions=dict(method=['GET']))
+
     map.connect(None, '/api/groups/:(group)/users', controller='api/groups',
                 action='list_users',
                 conditions=dict(method=['GET']))
