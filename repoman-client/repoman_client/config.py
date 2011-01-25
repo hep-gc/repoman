@@ -1,6 +1,7 @@
 import ConfigParser
 import os
 import sys
+import subprocess
 
 DEFAULT_CONFIG="""\
 # Configuration file for the repoman client scripts
@@ -186,7 +187,17 @@ class Config(object):
             self.user_proxy_cert = self._default_proxy
 
     def _check_proxy(self):
-        pass
+        if not os.path.isfile(self.user_proxy_cert):
+            self._errors_found = True
+            self._error_messages.append("The proxy certificate: '%s' does not exist.\nGenerate a new cert or manually specify with '--proxy'" % self.user_proxy_cert)
+            return
+
+        # Test expiration
+        cmd = "openssl x509 -in %s -noout -checkend 0" % self.user_proxy_cert
+        retcode = subprocess.call(cmd, shell=True)
+        if retcode:
+            self._errors_found = True
+            self._error_messages.append("The proxy certificate: '%s' is expired" % self.user_proxy_cert)
 
 
 config = Config()
