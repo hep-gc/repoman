@@ -31,6 +31,9 @@ class GroupsController(BaseController):
     def __before__(self):
         inline_auth(IsAthuenticated(), auth_403)
 
+    def modify_meta(self, group):
+        abort(501, '501 Not Implemented')
+
     def list_all(self, format='json'):
         group_q = meta.Session.query(Group)
         groups = [g for g in group_q]
