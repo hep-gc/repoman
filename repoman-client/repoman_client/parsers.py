@@ -187,8 +187,6 @@ class RepomanCLI(object):
     def dispatch(self, command, args):
         cmd = self.lookup_command(command)
         if cmd:
-            if cmd.validate_config:
-                config.validate()
             cmd = cmd()
             cmd_parser = cmd.get_parser()
             cmd_parser.prog = command
@@ -197,6 +195,8 @@ class RepomanCLI(object):
             else:
                 args = cmd_parser.parse_args(args)
                 extra = None
+            if cmd.validate_config:
+                config.validate()
             cmd(args, extra)
             sys.exit(0)
         else:
