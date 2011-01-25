@@ -14,6 +14,8 @@ class ModifyUser(SubCommand):
 
     def get_parser(self):
         p = ArgumentParser(self.description)
+        p.usage = "modify-user [-h] user [--metadata value [--metadata value ...]]"
+        p.epilog = "See documentation for a list of required and optional metadata"
         p.add_argument('user', help='The existing user you want to modify')
         return p
 
@@ -46,6 +48,8 @@ class ModifyGroup(SubCommand):
 
     def get_parser(self):
         p = ArgumentParser(self.description)
+        p.usage = "modify-group [-h] group [--metadata value [--metadata value ...]]"
+        p.epilog = "See documentation for a list of required and optional metadata"
         p.add_argument('group', help='The existing group you want to modify')
         return p
 
@@ -78,6 +82,8 @@ class ModifyImage(SubCommand):
 
     def get_parser(self):
         p = ArgumentParser(self.description)
+        p.usage = "modify-image [-h] image [--metadata value [--metadata value ...]]"
+        p.epilog = "See documentation for a list of required and optional metadata"
         p.add_argument('image', help='The existing image you want to modify')
         return p
 

@@ -14,6 +14,8 @@ class CreateUser(SubCommand):
 
     def get_parser(self):
         p = ArgumentParser(self.description)
+        p.usage = "create-user [-h] [--metadata value [--metadata value ...]]"
+        p.epilog = "See documentation for a list of required and optional metadata"
         return p
 
     def __call__(self, args, extra_args=None):
@@ -45,6 +47,8 @@ class CreateGroup(SubCommand):
 
     def get_parser(self):
         p = ArgumentParser(self.description)
+        p.usage = "create-group [-h] [--metadata value [--metadata value ...]]"
+        p.epilog = "See documentation for a list of required and optional metadata"
         return p
 
     def __call__(self, args, extra_args=None):
@@ -76,6 +80,8 @@ class CreateImage(SubCommand):
 
     def get_parser(self):
         p = ArgumentParser(self.description)
+        p.usage = "create-image [-h] [-f FILE] [--metadata value [--metadata value ...]]"
+        p.epilog = "See documentation for a list of required and optional metadata"
         p.add_argument('-f', '--file', help='Image file to upload')
         return p
 
