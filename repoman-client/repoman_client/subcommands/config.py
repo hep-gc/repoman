@@ -4,6 +4,7 @@ from repoman_client.config import config
 from argparse import ArgumentParser
 
 class MakeConfig(SubCommand):
+    validate_config = False
     command = 'make-config'
     alias = None
     description = 'Generate a configuration file'
