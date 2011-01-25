@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+from repoman_client.__version__ import version
 try:
     from setuptools import setup, find_packages
 except ImportError:
@@ -10,10 +10,10 @@ from distutils.dir_util import mkpath
 import os.path
 
 setup(name='repoman-client',
-    version='0.2.3-r6',
+    version=version,
     description='Client to connect to Repoman image repository.',
-    author='Kyle Fransham, Drew Harris',
-    author_email='fransham@uvic.ca, dbharris@uvic.ca',
+    author='Kyle Fransham, Drew Harris, Matthew Vliet',
+    author_email='fransham@uvic.ca, dbharris@uvic.ca, mvliet@uvic.ca',
     url='http://github.com/hep-gc/repoman',
     install_requires=["simplejson","argparse"],
     packages=['repoman_client'],
