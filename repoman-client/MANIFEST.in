@@ -6,3 +6,5 @@ include repoman_client/repoman_client.py
 include repoman_client/repoutils.py
 include repoman_client/make_config.py
 include scripts/repoman
+recursive-include repoman_client/subcommands *.py
+

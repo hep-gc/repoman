@@ -1,14 +1,4 @@
-"""
-Automagically find all subcommands in files in this directory.
 
-Usage:
-    from subcommands import *
-    OR
-    from subcommands import subcommands
-
-    In either case a list named `subcommands` will be imported.  This list
-    contains each of the subcommands that was automagically found in the folder.
-"""
 
 import os
 import sys
