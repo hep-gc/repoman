@@ -111,22 +111,29 @@ Example Usages:
         #TODO: impliment sharedwith calls
         repo = RepomanClient(config.host, config.port, config.proxy)
         if args.all:
-            kwargs = {'list_all':True}
+            func = repo.list_all_images
+            kwargs = {}
         elif args.group and not args.user:
+            func = repo.list_images_shared_with_group
             kwargs = {'group':args.group}
         elif args.user and not args.group:
             if args.sharedwith:
-                pass
+                func = repo.list_images_shared_with_user
+                kwargs = {'user':args.user}
             else:
+                func = repo.list_user_images
                 kwargs = {'user':args.user}
         else:
             if args.sharedwith:
-                pass
+                # shared with you
+                func = repo.list_images_shared_with_user
+                kwargs = {}
             else:
+                func = repo.list_current_user_images
                 kwargs = {}
 
         try:
-            images = repo.list_images(**kwargs)
+            images = func(**kwargs)
             display.display_image_list(images, long=args.long)
         except RepomanError, e:
             print e.message
