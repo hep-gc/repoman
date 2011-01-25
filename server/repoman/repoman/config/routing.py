@@ -90,6 +90,10 @@ def make_map(config):
                 action='delete',
                 conditions=dict(method=['DELETE']))
 
+    map.connect(None, '/api/groups/:(group)', controller='api/groups',
+                action='modify_meta',
+                conditions=dict(method=['POST']))
+
     map.connect(None, '/api/groups/:(group)/users', controller='api/groups',
                 action='list_users',
                 conditions=dict(method=['GET']))
@@ -165,7 +169,7 @@ def make_map(config):
                 action='put_raw_by_user',
                 conditions=dict(method=['PUT']))
 
-    map.connect('raw', '/api/images/raw:(image)', controller='api/raw',
+    map.connect('raw', '/api/images/raw/:(image)', controller='api/raw',
                 action='get_raw',
                 conditions=dict(method=['GET']))
 
