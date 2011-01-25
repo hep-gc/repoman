@@ -163,20 +163,32 @@ class RepomanClient(object):
             resp = self._get('/api/users/%s/groups' % user)
         return self._parse_response(resp)
 
-    def list_images(self, user=None, group=None, list_all=False):
-        if list_all:
-            # List all images
-            resp = self._get('/api/images')
-        elif not group and not user:
-            # List my images
-            resp = self.whoami()
-            return resp.get('images')
-        elif group and not user:
-            # List images shared with `group`
-            resp = self._get('/api/groups/%s/images' % group)
-        elif user and not group:
-            resp = self._get('/api/users/%s/images' % user)
+
+    def list_all_images(self):
+        resp = self._get('/api/images')
         return self._parse_response(resp)
+
+    def list_current_user_images(self):
+        resp = self.whoami()
+        return resp.get('images')
+
+    def list_user_images(self, user):
+        resp = self._get('/api/users/%s/images' % user)
+        return self._parse_response(resp)
+
+    def list_images_shared_with_group(self, group):
+        resp = self._get('/api/groups/%s/shared' % group)
+        return self._parse_response(resp)
+
+    def list_images_shared_with_user(self, user=None):
+        if user:
+            resp = self._get('/api/users/%s/shared' % user)
+            return self._parse_response(resp)
+        else:
+            # Two calls, grrr...
+            user = self.whoami().get('user_name')
+            resp = self._get('/api/users/%s/shared' % user)
+            return self._parse_response(resp)
 
     def describe_user(self, user):
         resp = self._get('/api/users/%s' % user)
