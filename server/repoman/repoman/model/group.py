@@ -5,7 +5,7 @@ from sqlalchemy.orm import relationship, backref
 from repoman.model.meta import Base
 
 class Group(Base):
-    __tablename__ = "group"
+    __tablename__ = "groups"
 
     id = Column(Integer, primary_key=True)
     created = Column(DateTime())

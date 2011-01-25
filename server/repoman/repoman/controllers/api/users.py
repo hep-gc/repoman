@@ -106,6 +106,8 @@ class UsersController(BaseController):
                 meta.Session.delete(i.checksum)
                 meta.Session.delete(i.shared)
                 meta.Session.delete(i)
+            proxy = user.certificate
+            meta.Session.delete(proxy)
             meta.Session.delete(user)
             meta.Session.commit()
         else:

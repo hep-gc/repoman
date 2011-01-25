@@ -8,13 +8,13 @@ from repoman.model.meta import Base
 # many-to-many relationship
 user_group_association = Table('user_group_association', Base.metadata,
     Column('user_id', Integer, ForeignKey('user.id')),
-    Column('group_id', Integer, ForeignKey('group.id')),
+    Column('group_id', Integer, ForeignKey('groups.id')),
 )
 
 # Group permissions
 # Many-to-many relationship
 group_permission_association = Table('group_permission_association', Base.metadata,
-    Column('group_id', Integer, ForeignKey('group.id')),
+    Column('group_id', Integer, ForeignKey('groups.id')),
     Column('permission_id', Integer, ForeignKey('permission.id')),
 )
 
@@ -29,6 +29,6 @@ imageshare_user_association = Table('imageshare_user_association', Base.metadata
 # many-to-many relationship
 imageshare_group_association = Table('imageshare_group_association', Base.metadata,
     Column('imageshare_id', Integer, ForeignKey('image_share.id')),
-    Column('group_id', Integer, ForeignKey('group.id')),
+    Column('group_id', Integer, ForeignKey('groups.id')),
 )
 
