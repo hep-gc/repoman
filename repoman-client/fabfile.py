@@ -42,9 +42,9 @@ _repoman()
         "")
             opts=$generic_flags;;
 
-    # Case statements from here down were automatically generated
+        # Case statements from here down were automatically generated
 ${_CASE_STATEMENTS_}
-    # End of automatically generated case statements
+        # End of automatically generated case statements
     esac
 
 
@@ -63,8 +63,9 @@ complete -F _repoman repoman
 """)
 
 statement = Template("""\
-    "${COMMAND}")
-        opts="${OPTIONS}";;
+        "${COMMAND}")
+            opts="${OPTIONS}";;
+
 """)
 
 
