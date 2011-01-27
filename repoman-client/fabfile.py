@@ -1,6 +1,8 @@
 from string import Template
 
 bash_template = Template("""\
+# This file was automatically generated.
+
 _repoman()
 {
     local current previous options commands
@@ -58,7 +60,7 @@ ${_CASE_STATEMENTS_}
         return 0
     fi
 }
-complete -F _repoman repoman
+complete -o dirnames -F _repoman repoman
 
 """)
 
