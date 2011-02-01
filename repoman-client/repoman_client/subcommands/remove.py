@@ -1,22 +1,10 @@
 from repoman_client.subcommand import SubCommand
 from repoman_client.client import RepomanClient, RepomanError
 from repoman_client.config import config
+from repoman_client.utils import yes_or_no
 from argparse import ArgumentParser
 import sys
 
-def yes_or_no():
-    answer = raw_input("Confirm deletion [yes]/[n]o: ")
-    attempts = 1
-    while answer in ['y', 'ye']:
-        if attempts >= 3:
-            break
-        answer = raw_input("Type the full word 'yes' to confirm deletion: ")
-        attempts = attempts + 1
-
-    if answer.lower() in ['yes']:
-        return True
-    else:
-        return False
 
 
 
