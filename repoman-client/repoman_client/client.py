@@ -56,7 +56,7 @@ class RepomanClient(object):
         self.HOST = host
         self.PORT = port
         self.PROXY = proxy
-        self._conn = httplib.HTTPSConnection(host, port, cert_file=proxy)
+        self._conn = httplib.HTTPSConnection(host, port, cert_file=proxy, key_file=proxy)
 
     def _request(self, method, url, kwargs={}, headers=HEADERS):
         try:
@@ -77,9 +77,9 @@ class RepomanClient(object):
         except socket.gaierror, e:
             print 'Unable to connect to server.  Check Host and port'
             sys.exit(1)
-        except socket.error, e:
-            print 'Unable to connect to server.  Is the server running?\n\t%s' % e
-            sys.exit(1)
+#        except socket.error, e:
+#            print 'Unable to connect to server.  Is the server running?\n\t%s' % e
+#            sys.exit(1)
         except ssl.SSLError, e:
             print "An error has occured within open ssl."
             print str(e)
