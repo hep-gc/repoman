@@ -1,4 +1,5 @@
 from repoman_client.config import config
+from repoman_client import imageutils
 import simplejson
 import httplib
 import urllib
@@ -16,6 +17,12 @@ class RepomanError(Exception):
         self.resp = resp            # Origonal response
         self.message = message      # User friendly message
         self.exit = True            # Should the client abort on this error?
+        self.status = None
+        if resp:
+            try:
+                self.status = resp.status
+            except:
+                pass
 
     def __str__(self):
         return self.message
@@ -69,6 +76,9 @@ class RepomanClient(object):
             print 'httpexception'
         except socket.gaierror, e:
             print 'Unable to connect to server.  Check Host and port'
+            sys.exit(1)
+        except socket.error, e:
+            print 'Unable to connect to server.  Is the server running?\n\t%s' % e
             sys.exit(1)
         except ssl.SSLError, e:
             print "An error has occured within open ssl."
@@ -212,7 +222,7 @@ class RepomanClient(object):
 
     def create_image_metadata(self, **kwargs):
         resp = self._post('/api/images', kwargs)
-        return True
+        return self._parse_response(resp)
 
     def remove_user(self, user):
         resp = self._delete('/api/users/%s' % user)
