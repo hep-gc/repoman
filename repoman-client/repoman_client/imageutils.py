@@ -5,14 +5,60 @@ Created on Oct 4, 2010
 '''
 
 from os import makedirs,path,mkdir
+import os
 from commands import getstatusoutput
 
 class ImageUtils(object):
-    '''
-    classdocs
-    '''
 
-    def create_image(self,imagepath):
+    def __init__(self, lockfile, snapshot, mountpoint, exclude_dirs):
+        self.lockfile = lockfile
+        self.snapshot = snapshot
+        self.mountpoint = mountpoint
+        self.exclude_dirs = exclude_dirs
+
+    def create_snapshot(self):
+        if not self.check_mounted(self.snapshot, self.mountpoint):
+            print "Creating new Image"
+            os.system("rm -rf %s %s" % (self.snapshot, self.mountpoint))
+            self.create_local_bundle()
+        elif sync_is_running():
+            print "Sync is already running...what?"
+            self.create_local_bundle()
+        else:
+            print "Syncing image."
+            self.sync_filesystem(self.mountpoint, self.exclude_dirs)
+        print "Snapshot process complete."
+
+    def sync_is_running(self):
+        if os.path.exists(self.lockfile):
+            return True
+        return False
+
+    def create_local_bundle(self):
+        if self.sync_is_running():
+            pid=open(self.lockfile,'r').read()
+            print "The local image creation is already in progress... speeding it up"
+            print "This can take some time... please wait."
+            print "If you're sure this is an error, cancel this script and delete: "
+            print "  "+self.lockfile
+            os.system("renice -19 "+pid);
+            os.waitpid(int(pid),0)
+            print "Local image copy created"
+        else:
+            pid = os.getpid()
+            lf = open(self.lockfile,'w')
+            lf.write(str(pid))
+            lf.close()
+            try:
+                self.create_image()
+                self.iut.sync_filesystem(self.mountpoint, self.exclude_dirs)
+                os.remove(self.lockfile)
+            except imageutils.MountError,e:
+                print e.msg
+                os.remove(self.lockfile)
+                sys.exit(1)
+
+    def create_image(self, imagepath):
 
         dir = path.dirname(imagepath)
         if not path.exists(dir):
@@ -21,7 +67,7 @@ class ImageUtils(object):
         ret2, fs_bytes_used = getstatusoutput("df /")
         ret3, image_dirsize = getstatusoutput("df "+dir)
 
-        if(ret1 or ret2 or ret3):
+        if (ret1 or ret2 or ret3):
             raise MountError("df ", "error getting filesystem sizes: \n"+ret1+ret2+ret3)
 
         fs_size=fs_size.split()[8]
@@ -48,9 +94,7 @@ class ImageUtils(object):
         if ret5:
             raise MountError("mkfs.ext3: ", "ERROR: problem with mkfs: "+mkfs)
 
-
-
-    def mount_image(self,imagepath,mountpoint):
+    def mount_image(self, imagepath, mountpoint):
         if not path.exists(mountpoint):
             makedirs(mountpoint)
         print "mounting image "+imagepath+" on "+mountpoint
@@ -58,8 +102,7 @@ class ImageUtils(object):
         if ret:
             raise MountError("mount -o loop", "ERROR: Mounting of image failed: "+mnt)
 
-
-    def check_mounted(self,imagepath, mountpoint):
+    def check_mounted(self, imagepath, mountpoint):
         for line in open("/etc/mtab"):
             if imagepath in line:
                 return True
@@ -83,19 +126,13 @@ class ImageUtils(object):
 
 
 
-    def __init__(self):
-        '''
-        Constructor
-        '''
-
-
 class MountError(Exception):
     """Exception raised when the system cannot mount the specified file.
 
-Attributes:
-expr -- input expression in which the error occurred
-msg -- system error from mount command
-"""
+    Attributes:
+    expr -- input expression in which the error occurred
+    msg -- system error from mount command
+    """
 
     def __init__(self, expr, msg):
         self.expr = expr
