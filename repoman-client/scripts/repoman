@@ -14,7 +14,6 @@ from repoman_client.subcommands.create import CreateUser, CreateGroup, CreateIma
 from repoman_client.subcommands.sharing import ShareImage, UnshareImage
 from repoman_client.subcommands.group_membership import AddUserToGroup, RemoveUserFromGroup
 from repoman_client.subcommands.permissions import AddPermission, RemovePermission
-from repoman_client.subcommands.snapshot import SnapshotSystem
 from repoman_client.subcommands.diagnostic import Whoami, About
 from repoman_client.config import config
 
@@ -64,7 +63,6 @@ def main():
     main_parser.add_command(AddPermission)
     main_parser.add_command(RemovePermission)
 
-    main_parser.add_command(SnapshotSystem)
     main_parser.add_command(UploadImage)
     main_parser.add_command(DownloadImage)
 
