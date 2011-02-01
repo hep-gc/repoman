@@ -4,7 +4,7 @@ from repoman_client.config import config
 from argparse import ArgumentParser
 
 
-class AddUser(SubCommand):
+class AddUserToGroup(SubCommand):
     command_group = 'advanced'
     command = 'add-users-to-group'
     alias = None
@@ -28,7 +28,7 @@ class AddUser(SubCommand):
 
 
 
-class RemoveUser(SubCommand):
+class RemoveUserFromGroup(SubCommand):
     command_group = 'advanced'
     command = 'remove-users-from-group'
     alias = None

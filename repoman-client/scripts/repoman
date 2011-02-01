@@ -4,7 +4,18 @@ import os
 import argparse
 from repoman_client.__version__ import version
 from repoman_client.parsers import RepomanCLI
-from repoman_client import subcommands
+from repoman_client.subcommands.config import MakeConfig
+from repoman_client.subcommands.up_down import Get, Save, UploadImage, DownloadImage
+from repoman_client.subcommands.modify import Rename, ModifyUser, ModifyGroup, ModifyImage
+from repoman_client.subcommands.remove import Delete, RemoveUser, RemoveGroup, RemoveImage
+from repoman_client.subcommands.listing import List, ListUsers, ListGroups, ListImages
+from repoman_client.subcommands.describe import DescribeUser, DescribeGroup, DescribeImage
+from repoman_client.subcommands.create import CreateUser, CreateGroup, CreateImage
+from repoman_client.subcommands.sharing import ShareImage, UnshareImage
+from repoman_client.subcommands.group_membership import AddUserToGroup, RemoveUserFromGroup
+from repoman_client.subcommands.permissions import AddPermission, RemovePermission
+from repoman_client.subcommands.snapshot import SnapshotSystem
+from repoman_client.subcommands.diagnostic import Whoami, About
 from repoman_client.config import config
 
 
@@ -17,48 +28,48 @@ def main():
     # Subcommand groups are automatically created based on the 'command_group'
     # class attribute for each subcommand.  If 'command_group' is None, the
     # subcommand will be added to a generic group called 'subcommands'
-    main_parser.add_command(subcommands.config.MakeConfig)
-    main_parser.add_command(subcommands.up_down.Get)
-    main_parser.add_command(subcommands.up_down.Save)
-    main_parser.add_command(subcommands.modify.Rename)
-    main_parser.add_command(subcommands.remove.Delete)
-    main_parser.add_command(subcommands.listing.List)
+    main_parser.add_command(MakeConfig)
+    main_parser.add_command(Get)
+    main_parser.add_command(Save)
+    main_parser.add_command(Rename)
+    main_parser.add_command(Delete)
+    main_parser.add_command(List)
 
-    main_parser.add_command(subcommands.listing.ListUsers)
-    main_parser.add_command(subcommands.listing.ListGroups)
-    main_parser.add_command(subcommands.listing.ListImages)
+    main_parser.add_command(ListUsers)
+    main_parser.add_command(ListGroups)
+    main_parser.add_command(ListImages)
 
-    main_parser.add_command(subcommands.describe.DescribeUser)
-    main_parser.add_command(subcommands.describe.DescribeGroup)
-    main_parser.add_command(subcommands.describe.DescribeImage)
+    main_parser.add_command(DescribeUser)
+    main_parser.add_command(DescribeGroup)
+    main_parser.add_command(DescribeImage)
 
-    main_parser.add_command(subcommands.create.CreateUser)
-    main_parser.add_command(subcommands.create.CreateGroup)
-    main_parser.add_command(subcommands.create.CreateImage)
+    main_parser.add_command(CreateUser)
+    main_parser.add_command(CreateGroup)
+    main_parser.add_command(CreateImage)
 
-    main_parser.add_command(subcommands.modify.ModifyUser)
-    main_parser.add_command(subcommands.modify.ModifyGroup)
-    main_parser.add_command(subcommands.modify.ModifyImage)
+    main_parser.add_command(ModifyUser)
+    main_parser.add_command(ModifyGroup)
+    main_parser.add_command(ModifyImage)
 
-    main_parser.add_command(subcommands.remove.RemoveUser)
-    main_parser.add_command(subcommands.remove.RemoveGroup)
-    main_parser.add_command(subcommands.remove.RemoveImage)
+    main_parser.add_command(RemoveUser)
+    main_parser.add_command(RemoveGroup)
+    main_parser.add_command(RemoveImage)
 
-    main_parser.add_command(subcommands.sharing.ShareImage)
-    main_parser.add_command(subcommands.sharing.UnshareImage)
+    main_parser.add_command(ShareImage)
+    main_parser.add_command(UnshareImage)
 
-    main_parser.add_command(subcommands.group_membership.AddUser)
-    main_parser.add_command(subcommands.group_membership.RemoveUser)
+    main_parser.add_command(AddUserToGroup)
+    main_parser.add_command(RemoveUserFromGroup)
 
-    main_parser.add_command(subcommands.permissions.AddPermission)
-    main_parser.add_command(subcommands.permissions.RemovePermission)
+    main_parser.add_command(AddPermission)
+    main_parser.add_command(RemovePermission)
 
-    main_parser.add_command(subcommands.snapshot.SnapshotSystem)
-    main_parser.add_command(subcommands.up_down.UploadImage)
-    main_parser.add_command(subcommands.up_down.DownloadImage)
+    main_parser.add_command(SnapshotSystem)
+    main_parser.add_command(UploadImage)
+    main_parser.add_command(DownloadImage)
 
-    main_parser.add_command(subcommands.diagnostic.Whoami)
-    main_parser.add_command(subcommands.diagnostic.About)
+    main_parser.add_command(Whoami)
+    main_parser.add_command(About)
 
     # Execute Main Parser
     main_parser()
