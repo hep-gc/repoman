@@ -2,6 +2,7 @@ from repoman_client.subcommand import SubCommand
 from repoman_client.client import RepomanClient, RepomanError
 from repoman_client.config import config
 from repoman_client.parsers import parse_unknown_args, ArgumentFormatError
+from repoman_client.utils import yes_or_no
 from argparse import ArgumentParser
 import sys
 
@@ -53,15 +54,66 @@ class Save(SubCommand):
     command = 'save'
     alias = None
     description = 'snapshot and upload current system'
+    parse_known_args = True
 
     def get_parser(self):
         p = ArgumentParser(self.description)
+        p.usage = "save [-h] [-f] [--metadata value [--metadata value ...]]"
+        p.epilog = "See documentation for a list of required and optional metadata"
+        p.add_argument('name', help='The name that you want to upload the image as.')
         p.add_argument('-f', '--force', action='store_true', default=False,
                        help='Force uploading even if it overwrites an existing image')
         return p
 
     def __call__(self, args, extra_args=None):
-        pass
+        repo = RepomanClient(config.host, config.port, config.proxy)
+        if extra_args:
+            try:
+                kwargs = parse_unknown_args(extra_args)
+            except ArgumentFormatError, e:
+                print e.message
+                sys.exit(1)
+        else:
+            kwargs={}
+
+        # this is a bit messy.  Maybe return conflict object from server?
+        try:
+            image = repo.create_image_metadata(**kwargs)
+            print "[OK]     Creating new image meatadata."
+        except RepomanError, e:
+            if e.status == 409 and not args.force:
+                print "An image with that name already exists."
+                if not yes_or_no('Do you want to overwrite? [yes]/[n]o'):
+                    print "Aborting.  Please select a new image name or force overwrite"
+                    sys.exit(1)
+                else:
+                    print "Image will be overwritten."
+                    try:
+                        # update metedata here!
+                        image = repo.describe_image(kwargs.name)
+                    except RepomanError, e:
+                        print e
+                        sys.exit(1)
+            else:
+                print "[FAILED] Creating new image metadata.\n\t-%s" % e
+                print "Aborting snapshot."
+                sys.exit(1)
+
+        # snapshot here
+        image_utils = imageutils.ImageUtils(config.lockfile,
+                                            config.snapshot,
+                                            config.mountpoint,
+                                            config.exclude_dirs)
+        image_utils.snapshot_system()
+
+        #upload
+        name = image.get('name')
+        print "Uploading snapshot"
+        try:
+            repo.upload_image(name, config.snapshot)
+        except RepomanError, e:
+            print e
+            sys.exit(1)
 
 
 class Get(DownloadImage):
