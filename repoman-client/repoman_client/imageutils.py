@@ -7,6 +7,8 @@ Created on Oct 4, 2010
 from os import makedirs,path,mkdir
 import os
 from commands import getstatusoutput
+from subprocess import Popen, PIPE
+import sys
 
 class ImageUtils(object):
 
@@ -21,7 +23,7 @@ class ImageUtils(object):
             print "Creating new Image"
             os.system("rm -rf %s %s" % (self.snapshot, self.mountpoint))
             self.create_local_bundle()
-        elif sync_is_running():
+        elif self.sync_is_running():
             print "Sync is already running...what?"
             self.create_local_bundle()
         else:
@@ -37,23 +39,24 @@ class ImageUtils(object):
     def create_local_bundle(self):
         if self.sync_is_running():
             pid=open(self.lockfile,'r').read()
-            print "The local image creation is already in progress... speeding it up"
-            print "This can take some time... please wait."
-            print "If you're sure this is an error, cancel this script and delete: "
-            print "  "+self.lockfile
-            os.system("renice -19 "+pid);
-            os.waitpid(int(pid),0)
-            print "Local image copy created"
+            print "The local image creation is already in progress."
+            print "If you're sure this is an error, cancel this script and delete: %s " % self.lockfile
+            sys.exit(1)
+            #os.system("renice -19 "+pid);
+            #os.waitpid(int(pid),0)
+            #print "Local image copy created"
         else:
             pid = os.getpid()
             lf = open(self.lockfile,'w')
             lf.write(str(pid))
             lf.close()
             try:
-                self.create_image()
-                self.iut.sync_filesystem(self.mountpoint, self.exclude_dirs)
+                self.create_image(self.snapshot)
+                self.label_image(self.snapshot)
+                self.mount_image(self.snapshot, self.mountpoint)
+                self.sync_filesystem(self.mountpoint, self.exclude_dirs)
                 os.remove(self.lockfile)
-            except imageutils.MountError,e:
+            except MountError,e:
                 print e.msg
                 os.remove(self.lockfile)
                 sys.exit(1)
@@ -93,6 +96,12 @@ class ImageUtils(object):
         ret5, mkfs = getstatusoutput("mkfs -t ext3 -F "+imagepath)
         if ret5:
             raise MountError("mkfs.ext3: ", "ERROR: problem with mkfs: "+mkfs)
+            
+    def label_image(self, imagepath, label='/'):
+    	print "Labeling image as: '%s'" % label
+    	ret, tune2fs = getstatusoutput("tune2fs -L %s %s" % (label, imagepath))
+    	if ret:
+    		raise MountError("tune2fs: ", "ERROR: problem with tune2fs: "+tune2fs)
 
     def mount_image(self, imagepath, mountpoint):
         if not path.exists(mountpoint):
@@ -109,20 +118,27 @@ class ImageUtils(object):
         return False
 
     def sync_filesystem(self, mountpoint, excl_dirs):
-        create_dirs = ['/dev','/mnt','/proc','/sys','/tmp']
+        create_dirs = ['/dev', '/mnt', '/proc', '/sys', '/tmp', '/root', '/root/.ssh']
         for i in create_dirs:
             if not path.exists(mountpoint+i):
-                mkdir(mountpoint+i)
+            	if i == '/root/.ssh':
+            		mkdir(mountpoint+i, mode=0700)
+            	else:
+                	mkdir(mountpoint+i)
         excludes = str.rsplit(excl_dirs)
         cmd = "rsync -ax --delete"
         for excl in excludes:
             cmd += " --exclude "+excl
         cmd += " / "+mountpoint
         print "creating local copy of filesystem... this could take some time.  Please be patient."
-        ret, sync = getstatusoutput(cmd)
+        p = Popen(cmd, shell=True, stdout=PIPE)
+        ret = p.wait()
         if ret:
-            raise MountError("rsync ","ERROR: rsync returned errors: "+ sync)
-        print "local copy of VM created."
+            raise MountError("rsync ", p.stdout.read())
+        #ret, sync = getstatusoutput(cmd)
+        #if ret:
+        #    raise MountError("rsync ","ERROR: rsync returned errors: "+ sync)
+        #print "local copy of VM created."
 
 
 
