@@ -93,13 +93,13 @@ class ImageUtils(object):
             raise MountError("dd", "ERROR: problem creating image "+imagepath+": "+dd)
 
         print "creating ext3 filesystem on "+imagepath
-        ret5, mkfs = getstatusoutput("mkfs -t ext3 -F "+imagepath)
+        ret5, mkfs = getstatusoutput("/sbin/mkfs -t ext3 -F "+imagepath)
         if ret5:
             raise MountError("mkfs.ext3: ", "ERROR: problem with mkfs: "+mkfs)
             
     def label_image(self, imagepath, label='/'):
     	print "Labeling image as: '%s'" % label
-    	ret, tune2fs = getstatusoutput("tune2fs -L %s %s" % (label, imagepath))
+        ret, tune2fs = getstatusoutput("/sbin/tune2fs -L %s %s" % (label, imagepath))
     	if ret:
     		raise MountError("tune2fs: ", "ERROR: problem with tune2fs: "+tune2fs)
 
