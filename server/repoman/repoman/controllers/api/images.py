@@ -339,6 +339,7 @@ class ImagesController(BaseController):
         meta.Session.add(new_image)
         meta.Session.commit()
 
+		response.headers['content-type'] = app_globals.json_content_type
         response.headers['Location'] = url('raw_by_user',
                                            user=user.user_name,
                                            image=new_image.name)
