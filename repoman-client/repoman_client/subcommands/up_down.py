@@ -3,6 +3,7 @@ from repoman_client.client import RepomanClient, RepomanError
 from repoman_client.config import config
 from repoman_client.parsers import parse_unknown_args, ArgumentFormatError
 from repoman_client.utils import yes_or_no
+from repoman_client import imageutils
 from argparse import ArgumentParser
 import sys
 
@@ -58,9 +59,8 @@ class Save(SubCommand):
 
     def get_parser(self):
         p = ArgumentParser(self.description)
-        p.usage = "save [-h] [-f] [--metadata value [--metadata value ...]]"
+        p.usage = "save name [-h] [-f] [--metadata value [--metadata value ...]]"
         p.epilog = "See documentation for a list of required and optional metadata"
-        p.add_argument('name', help='The name that you want to upload the image as.')
         p.add_argument('-f', '--force', action='store_true', default=False,
                        help='Force uploading even if it overwrites an existing image')
         return p
@@ -83,17 +83,24 @@ class Save(SubCommand):
         except RepomanError, e:
             if e.status == 409 and not args.force:
                 print "An image with that name already exists."
-                if not yes_or_no('Do you want to overwrite? [yes]/[n]o'):
+                if not yes_or_no('Do you want to overwrite? [yes]/[n]o: '):
                     print "Aborting.  Please select a new image name or force overwrite"
                     sys.exit(1)
                 else:
                     print "Image will be overwritten."
                     try:
                         # update metedata here!
-                        image = repo.describe_image(kwargs.name)
+                        image = repo.describe_image(kwargs['name'])
                     except RepomanError, e:
                         print e
                         sys.exit(1)
+            elif e.status == 409 and args.force:
+                print "Image will be overwritten."
+                try:
+                    image = repo.describe_image(kwargs['name'])
+                except RepomanError, e:
+                    print e
+                    sys.exit(1)
             else:
                 print "[FAILED] Creating new image metadata.\n\t-%s" % e
                 print "Aborting snapshot."
@@ -104,7 +111,7 @@ class Save(SubCommand):
                                             config.snapshot,
                                             config.mountpoint,
                                             config.exclude_dirs)
-        image_utils.snapshot_system()
+        image_utils.create_snapshot()
 
         #upload
         name = image.get('name')
