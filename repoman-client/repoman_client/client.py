@@ -5,7 +5,7 @@ import httplib
 import urllib
 import socket
 import subprocess
-import ssl
+#import ssl
 import sys
 
 
@@ -80,10 +80,10 @@ class RepomanClient(object):
 #        except socket.error, e:
 #            print 'Unable to connect to server.  Is the server running?\n\t%s' % e
 #            sys.exit(1)
-        except ssl.SSLError, e:
-            print "An error has occured within open ssl."
-            print str(e)
-            sys.exit(1)
+#        except ssl.SSLError, e:
+#            print "An error has occured within open ssl."
+#            print str(e)
+#            sys.exit(1)
         except Exception, e:
             raise e
 
