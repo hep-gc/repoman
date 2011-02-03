@@ -6,11 +6,14 @@ import subprocess
 DEFAULT_CONFIG="""\
 # Configuration file for the repoman client scripts
 [Logger]
+# NOTE: Logging is currently not implimented.  enabling logging will not yield 
+#       any logs yet.
+#
 # enabled:          If True, then logs will be generated and placed in 'log_dir'
 # log_dir:          Name of directory that logs will be placed in.
 #                   If this is NOT an absolute path, then the directory is
 #                   assumed to reside in the base directory of this config file.
-#
+# 
 logging_enabled: true
 logging_dir: repoman_logs
 
@@ -43,6 +46,7 @@ user_proxy_cert:
 #                  Each directory must be the full path.
 #                  Each item in the list is seperated by a space.
 #
+lockfile: /tmp/repoman-sync.lock
 snapshot: /tmp/fscopy.img
 mountpoint: /tmp/fscopy
 exclude_dirs: /dev /mnt /lustre /proc /sys /tmp /etc/grid-security /root/.ssh
@@ -59,6 +63,7 @@ class Config(object):
                                  ('ThisImage', 'mountpoint'),
                                  ('ThisImage', 'snapshot'),
                                  ('ThisImage', 'exclude_dirs'),
+                                 ('ThisImage', 'lockfile'),
                                  ('Logger', 'logging_enabled'),
                                  ('Logger', 'logging_dir')]
 
