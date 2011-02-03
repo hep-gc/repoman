@@ -122,7 +122,7 @@ class ImageUtils(object):
         for i in create_dirs:
             if not path.exists(mountpoint+i):
             	if i == '/root/.ssh':
-            		mkdir(mountpoint+i, mode=0700)
+            		mkdir(mountpoint+i, 0700)
             	else:
                 	mkdir(mountpoint+i)
         excludes = str.rsplit(excl_dirs)
