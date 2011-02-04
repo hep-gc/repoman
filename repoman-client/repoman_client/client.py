@@ -37,6 +37,12 @@ class FormattingError(RepomanError):
         self.body = body
         self.resp = resp
         self.message = message
+        self.status = None
+        if resp:
+            try:
+                self.status = resp.status
+            except:
+                pass
 
     def __str__(self):
         return self.message
