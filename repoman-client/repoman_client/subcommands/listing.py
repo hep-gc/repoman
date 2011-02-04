@@ -10,7 +10,7 @@ import sys
 class ListUsers(SubCommand):
     command_group = "advanced"
     command = "list-users"
-    alias = None
+    alias = 'lu'
     description = 'List user accounts on repoman'
 
     def get_parser(self):
@@ -37,7 +37,7 @@ class ListUsers(SubCommand):
 class ListGroups(SubCommand):
     command_group = "advanced"
     command = "list-groups"
-    alias = None
+    alias = 'lg'
     description = 'List existing user groups on the repository'
 
     def get_parser(self):
@@ -69,7 +69,7 @@ class ListGroups(SubCommand):
 class ListImages(SubCommand):
     command_group = "advanced"
     command = 'list-images'
-    alias = None
+    alias = 'li'
     description = 'List a users images stored in the repository'
 
     def get_parser(self):
@@ -144,5 +144,5 @@ class List(ListImages):
     # Subclassed from ListImages because it's the same command.
     command_group = None
     command = "list"
-    alias = None
+
 

@@ -11,7 +11,7 @@ import sys
 class RemoveUser(SubCommand):
     command_group = "advanced"
     command = "remove-user"
-    alias = None
+    alias = 'ru'
     description = 'Remove an existing user from the repository'
 
     def get_parser(self):
@@ -42,7 +42,7 @@ class RemoveUser(SubCommand):
 class RemoveGroup(SubCommand):
     command_group = "advanced"
     command = "remove-group"
-    alias = None
+    alias = 'rg'
     description = 'Remove an existing group from the repository'
 
     def get_parser(self):
@@ -69,7 +69,7 @@ class RemoveGroup(SubCommand):
 class RemoveImage(SubCommand):
     command_group = "advanced"
     command = 'remove-image'
-    alias = None
+    alias = 'ri'
     description = 'Delete an image from the repository'
 
     def get_parser(self):
@@ -101,5 +101,5 @@ class Delete(RemoveImage):
     # subclass RemoveImage because they are the same command.
     command_group = None
     command = "delete"
-    alias = None
+    alias = 'del'
 

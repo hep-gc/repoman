@@ -7,7 +7,7 @@ from argparse import ArgumentParser
 class AddPermission(SubCommand):
     command_group = 'advanced'
     command = 'add-permissions'
-    alias = None
+    alias = 'ap'
     description = 'Add permissions to groups'
 
     def get_parser(self):
@@ -31,7 +31,7 @@ class AddPermission(SubCommand):
 class RemovePermission(SubCommand):
     command_group = 'advanced'
     command = 'remove-permissions'
-    alias = None
+    alias = 'rp'
     description = 'Remove specified permissions from group'
 
     def get_parser(self):

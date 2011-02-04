@@ -8,7 +8,7 @@ import sys
 class CreateUser(SubCommand):
     command_group = "advanced"
     command = "create-user"
-    alias = None
+    alias = 'cu'
     description = 'Create a new user account based on given information'
     parse_known_args = True
 
@@ -41,7 +41,7 @@ class CreateUser(SubCommand):
 class CreateGroup(SubCommand):
     command_group = "advanced"
     command = "create-group"
-    alias = None
+    alias = 'cg'
     description = 'Create a new group based on given information'
     parse_known_args = True
 
@@ -74,7 +74,7 @@ class CreateGroup(SubCommand):
 class CreateImage(SubCommand):
     command_group = "advanced"
     command = "create-image"
-    alias = None
+    alias = 'ci'
     description = 'Create a new image based on given information'
     parse_known_args = True
 

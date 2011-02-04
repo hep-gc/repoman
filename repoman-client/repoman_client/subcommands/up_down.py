@@ -10,7 +10,7 @@ import sys
 class UploadImage(SubCommand):
     command_group = 'advanced'
     command = 'upload-image'
-    alias = None
+    alias = 'up'
     description = 'Upload an image file to the repository at an existing location'
 
     def get_parser(self):
@@ -31,7 +31,7 @@ class UploadImage(SubCommand):
 class DownloadImage(SubCommand):
     command_group = 'advanced'
     command = 'download-image'
-    alias = None
+    alias = 'down'
     description = 'Download the specified image file'
 
     def get_parser(self):

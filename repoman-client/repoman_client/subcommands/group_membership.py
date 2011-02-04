@@ -7,7 +7,7 @@ from argparse import ArgumentParser
 class AddUserToGroup(SubCommand):
     command_group = 'advanced'
     command = 'add-users-to-group'
-    alias = None
+    alias = 'autg'
     description = 'Add make specifed users members of a group'
 
     def get_parser(self):
@@ -31,7 +31,7 @@ class AddUserToGroup(SubCommand):
 class RemoveUserFromGroup(SubCommand):
     command_group = 'advanced'
     command = 'remove-users-from-group'
-    alias = None
+    alias = 'rufg'
     description = 'Remove specifed users from group'
 
     def get_parser(self):

@@ -7,7 +7,7 @@ import sys
 class ShareImage(SubCommand):
     command_group = 'advanced'
     command = 'share-image'
-    alias = None
+    alias = 'si'
     description = 'Share an image with users or groups'
 
     def get_parser(self):
@@ -45,7 +45,7 @@ class ShareImage(SubCommand):
 class UnshareImage(SubCommand):
     command_group = 'advanced'
     command = 'unshare-image'
-    alias = None
+    alias = 'ui'
     description = 'Remove a share from an image'
 
     def get_parser(self):

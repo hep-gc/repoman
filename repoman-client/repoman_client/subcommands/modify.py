@@ -8,7 +8,7 @@ import sys
 class ModifyUser(SubCommand):
     command_group = "advanced"
     command = "modify-user"
-    alias = None
+    alias = 'mu'
     description = 'Modify an existing user with the given information'
     parse_known_args = True
 
@@ -42,7 +42,7 @@ class ModifyUser(SubCommand):
 class ModifyGroup(SubCommand):
     command_group = "advanced"
     command = "modify-group"
-    alias = None
+    alias = 'mg'
     description = 'Modify an existing group with the given information'
     parse_known_args = True
 
@@ -76,7 +76,7 @@ class ModifyGroup(SubCommand):
 class ModifyImage(SubCommand):
     command_group = "advanced"
     command = "modify-image"
-    alias = None
+    alias = 'mi'
     description = 'Modify an existing image with the given information'
     parse_known_args = True
 
@@ -109,7 +109,7 @@ class ModifyImage(SubCommand):
 
 class Rename(SubCommand):
     command = 'rename'
-    alias = None
+    alias = 'rn'
     description = "rename an existing image from 'old' to 'new'"
 
     def get_parser(self):

@@ -8,7 +8,7 @@ import sys
 class DescribeUser(SubCommand):
     command_group = "advanced"
     command = "describe-user"
-    alias = None
+    alias = "du"
     description = 'Display information about an existing user'
 
     def get_parser(self):
@@ -32,7 +32,7 @@ class DescribeUser(SubCommand):
 class DescribeGroup(SubCommand):
     command_group = "advanced"
     command = "describe-group"
-    alias = None
+    alias = "dg"
     description = 'Display information about an existing group'
 
     def get_parser(self):
@@ -55,7 +55,7 @@ class DescribeGroup(SubCommand):
 class DescribeImage(SubCommand):
     command_group = "advanced"
     command = "describe-image"
-    alias = None
+    alias = "di"
     description = 'Display information about an existing image'
 
     def get_parser(self):

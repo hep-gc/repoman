@@ -6,7 +6,7 @@ from argparse import ArgumentParser
 class MakeConfig(SubCommand):
     validate_config = False
     command = 'make-config'
-    alias = None
+    alias = 'mc'
     description = 'Generate a configuration file'
 
     def get_parser(self):

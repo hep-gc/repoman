@@ -67,6 +67,8 @@ class CommandGroup(object):
         if command not in self.commands:
             self.commands.append(command)
             self.command_lookup.update({command.command:command})
+            if command.alias:
+            	self.command_lookup.update({command.alias:command})
 
     def get_command(self, command):
         return self.command_lookup.get(command)
@@ -171,6 +173,8 @@ class RepomanCLI(object):
         if not group and command_class not in self.commands:
             self.commands.append(command_class)
             self.command_lookup.update({command_class.command:command_class})
+            if command_class.alias:
+            	self.command_lookup.update({command_class.alias:command_class})
         elif group:
             group = self._add_command_group(group)
             group.add_command(command_class)
