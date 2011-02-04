@@ -102,6 +102,7 @@ class GroupsController(BaseController):
 
         meta.Session.add(new_group)
         meta.Session.commit()
+        response.headers['content-type'] = app_globals.json_content_type
         return h.render_json(beautify.group(new_group))
 
     @authorize(HasPermission('group_delete'), auth_403)

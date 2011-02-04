@@ -76,6 +76,7 @@ class UsersController(BaseController):
         # Update the database
         meta.Session.add(new_user)
         meta.Session.commit()
+        response.headers['content-type'] = app_globals.json_content_type
         return h.render_json(beautify.user(new_user))
 
     #authorization is inside function
