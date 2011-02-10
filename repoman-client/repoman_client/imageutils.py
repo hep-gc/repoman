@@ -4,7 +4,7 @@ Created on Oct 4, 2010
 @author: fransham
 '''
 
-from os import makedirs,path,mkdir,chown
+from os import makedirs,path,mkdir,chmod
 import os
 from commands import getstatusoutput
 from subprocess import Popen, PIPE
@@ -126,7 +126,7 @@ class ImageUtils(object):
 		elif i == '/tmp':
 			# mkdir(mountpoint+i, 1777) dosn't seem to work... ?
 			mkdir(mountpoint+i)
-			chown(mountpoint+i, 1777)
+			chmod(mountpoint+i, 1777)
             	else:
                 	mkdir(mountpoint+i)
         excludes = str.rsplit(excl_dirs)
