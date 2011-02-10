@@ -4,7 +4,7 @@ Created on Oct 4, 2010
 @author: fransham
 '''
 
-from os import makedirs,path,mkdir
+from os import makedirs,path,mkdir,chown
 import os
 from commands import getstatusoutput
 from subprocess import Popen, PIPE
@@ -124,7 +124,9 @@ class ImageUtils(object):
             	if i == '/root/.ssh':
             		mkdir(mountpoint+i, 0700)
 		elif i == '/tmp':
-			mkdir(mountpoint+i, 1777)
+			# mkdir(mountpoint+i, 1777) dosn't seem to work... ?
+			mkdir(mountpoint+i)
+			chown(mountpoint+i, 1777)
             	else:
                 	mkdir(mountpoint+i)
         excludes = str.rsplit(excl_dirs)
