@@ -4,7 +4,6 @@ import os
 import argparse
 from repoman_client.__version__ import version
 from repoman_client.parsers import RepomanCLI
-from repoman_client.subcommands.config import MakeConfig
 from repoman_client.subcommands.up_down import Get, Save, UploadImage, DownloadImage
 from repoman_client.subcommands.modify import Rename, ModifyUser, ModifyGroup, ModifyImage
 from repoman_client.subcommands.remove import Delete, RemoveUser, RemoveGroup, RemoveImage
@@ -27,7 +26,6 @@ def main():
     # Subcommand groups are automatically created based on the 'command_group'
     # class attribute for each subcommand.  If 'command_group' is None, the
     # subcommand will be added to a generic group called 'subcommands'
-    main_parser.add_command(MakeConfig)
     main_parser.add_command(Get)
     main_parser.add_command(Save)
     main_parser.add_command(Rename)

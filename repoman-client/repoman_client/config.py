@@ -98,7 +98,8 @@ class Config(object):
         self.verbose = verbose
         if not self.config_file:
             print "No configuration file found."
-            sys.exit(1)
+            self.generate_config()
+            print "Generating new confi file at '%s'" % self.config_file
         self._validate_options()
         self._check_logging()
         self._check_proxy()
