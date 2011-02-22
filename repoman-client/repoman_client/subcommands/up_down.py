@@ -106,6 +106,12 @@ class Save(SubCommand):
                 print "Aborting snapshot."
                 sys.exit(1)
 
+        # Write metadata to filesystem for later use.
+        meta_file = open('/.image.metadata', 'w')
+        for k, v in image.iteritems():
+            meta_file.write("%s: %s\n" % (k, v))
+        meta_file.close()
+
         # snapshot here
         image_utils = imageutils.ImageUtils(config.lockfile,
                                             config.snapshot,
