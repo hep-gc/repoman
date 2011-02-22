@@ -53,12 +53,12 @@ class RawController(BaseController):
 
             file_path = path.join(app_globals.image_storage, image.path)
             try:
-            	content_length = os.path.getsize(file_path)
-            	response.headers['content-length'] = content_length
+            	content_length = path.getsize(file_path)
+            	response.headers['X-content-length'] = str(content_length)
             except:
             	abort(500, '500 Internal Error')
             	
-            etag_cache(image.path + '_' + str(image.version))
+            etag_cache(str(image.path) + '_' + str(image.version))
 
             image_file = open(file_path, 'rb')
             try:
