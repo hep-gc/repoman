@@ -11,7 +11,7 @@ A client to connect to the Repoman VM repository.
 
 This will create a configuration file in `~/.repoman/.repoman.conf`
 
-4.    Run repoman-client with the command `repoman`.
+3.    Run repoman-client with the command `repoman`.
 
 Repoman uses grid certificates to authenticate users with the server.
 Ensure that you have a valid, RFC-compliant grid proxy certificate before running repoman.
