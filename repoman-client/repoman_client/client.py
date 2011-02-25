@@ -6,7 +6,7 @@ import urllib
 import socket
 import subprocess
 #import ssl
-import sys
+import sys, os
 
 
 HEADERS = {"Content-type":"application/x-www-form-urlencoded", "Accept": "*"}
@@ -286,20 +286,28 @@ class RepomanClient(object):
         resp = self._delete('/api/images/%s/share/group/%s' % (image, group))
         return True
 
-    def upload_image(self, image, image_file):
+    def upload_image(self, image, image_file, gzip=False):
         resp = self._get('/api/images/%s' % image)
         if resp.status != 200:
             raise RepomanError('Image does not yet exist.  Create an image before uploading to it', resp)
 
         url = 'https://' + config.host + '/api/images/raw/%s' % image
         try:
+            if gzip:
+                print "Gzipping image before upload"
+                gzip_image = os.path.join(os.path.dirname(image_file), image)
+                gzip = subprocess.Popen("gzip --stdout %s > %s" % (image_file, gzip_image),
+                                        shell=True)
+                gzip.wait()
+                image_file = gzip_image 
+                
             args = ['curl',
                     '--cert', config.proxy,
                     '--insecure',
                     '-T', image_file, url]
             cmd = " ".join(args)
-            p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
-            for line in p.stdout.readlines():
+            curl = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+            for line in curl.stdout.readlines():
                 print line
         except Exception, e:
             print e

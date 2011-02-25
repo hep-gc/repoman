@@ -63,6 +63,8 @@ class Save(SubCommand):
         p.epilog = "See documentation for a list of required and optional metadata"
         p.add_argument('-f', '--force', action='store_true', default=False,
                        help='Force uploading even if it overwrites an existing image')
+        p.add_argument('--gzip', action='store_true', default=False,
+                       help='Upload the image compressed with gzip.')
         return p
 
     def __call__(self, args, extra_args=None):
@@ -75,6 +77,17 @@ class Save(SubCommand):
                 sys.exit(1)
         else:
             kwargs={}
+
+        # Check for proper Gzip extension (if needed)
+        if args.gzip:
+            name = kwargs.get('name') 
+            if name and name.endswith('.gz'):
+                pass
+            else:
+                kwargs.update({'name':name+'.gz'})
+                print ("WARNING: gzip option found, but your image name does not"
+                       " end in '.gz'.  Modifying image naem to enforce this.")
+                print "New image name: '%s'" % (name + '.gz')
 
         # this is a bit messy.  Maybe return conflict object from server?
         try:
@@ -123,7 +136,7 @@ class Save(SubCommand):
         name = image.get('name')
         print "Uploading snapshot"
         try:
-            repo.upload_image(name, config.snapshot)
+            repo.upload_image(name, config.snapshot, gzip=args.gzip)
         except RepomanError, e:
             print e
             sys.exit(1)
