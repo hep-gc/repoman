@@ -65,6 +65,7 @@ class Save(SubCommand):
                        help='Force uploading even if it overwrites an existing image')
         p.add_argument('--gzip', action='store_true', default=False,
                        help='Upload the image compressed with gzip.')
+        p.add_argument('--resize',help='create an image with a new size (in MB)')
         return p
 
     def __call__(self, args, extra_args=None):
@@ -86,7 +87,7 @@ class Save(SubCommand):
             else:
                 kwargs.update({'name':name+'.gz'})
                 print ("WARNING: gzip option found, but your image name does not"
-                       " end in '.gz'.  Modifying image naem to enforce this.")
+                       " end in '.gz'.  Modifying image name to enforce this.")
                 print "New image name: '%s'" % (name + '.gz')
 
         # this is a bit messy.  Maybe return conflict object from server?
@@ -129,7 +130,8 @@ class Save(SubCommand):
         image_utils = imageutils.ImageUtils(config.lockfile,
                                             config.snapshot,
                                             config.mountpoint,
-                                            config.exclude_dirs)
+                                            config.exclude_dirs,
+                                            imagesize=args.resize)
         image_utils.create_snapshot()
 
         #upload

@@ -12,23 +12,36 @@ import sys
 
 class ImageUtils(object):
 
-    def __init__(self, lockfile, snapshot, mountpoint, exclude_dirs):
+    def __init__(self, lockfile, snapshot, mountpoint, exclude_dirs,imagesize=0):
         self.lockfile = lockfile
         self.snapshot = snapshot
         self.mountpoint = mountpoint
         self.exclude_dirs = exclude_dirs
+        self.imagesize_request=imagesize
 
     def create_snapshot(self):
+        
         if not self.check_mounted(self.snapshot, self.mountpoint):
             print "Creating new Image"
             os.system("rm -rf %s %s" % (self.snapshot, self.mountpoint))
             self.create_local_bundle()
+            
         elif self.sync_is_running():
             print "Sync is already running...what?"
             self.create_local_bundle()
+            
+        elif self.imagesize_request:
+            print "Creating new Image"            
+            ret, mnt = getstatusoutput("umount "+self.mountpoint)
+            if ret:
+                raise MountError("umount ", "ERROR: Unmounting of image failed: "+mnt)
+            os.system("rm -rf %s %s" % (self.snapshot, self.mountpoint))
+            self.create_local_bundle() 
+                       
         else:
             print "Syncing image."
             self.sync_filesystem(self.mountpoint, self.exclude_dirs)
+            
         print "Snapshot process complete."
 
     def sync_is_running(self):
@@ -77,18 +90,25 @@ class ImageUtils(object):
         fs_bytes_used=fs_bytes_used.split()[9]
         image_dirsize = image_dirsize.split()[10]
 
-        if(int(image_dirsize) < int(fs_bytes_used)):
+        if self.imagesize_request:
+            size_to_create = str(int(self.imagesize_request)*1024) # convert from MB to KB
+        else:
+            size_to_create = fs_size
+                        
+        #do some checks on the requested size:
+        if(int(image_dirsize) < int(size_to_create)):
             raise MountError("df ", "ERROR: Not enough space on filesystem. \n" +
-                             "Check the path to your image ("+imagepath+") "+
-                             "in ~/.repoman-client and retry")
-        if(int(image_dirsize) < int(fs_size)):
-            print ("WARNING: the directory you have specified for your image copy"+
-                   "is smaller in size than the root directory.  Your new image"+
-                   "will have less free space.")
-            fs_size = fs_bytes_used
+                             "The requested imagesize was: "+size_to_create + " bytes." +
+                             " Check the path to your image ("+imagepath+") "+
+                             "in repoman.conf")
+              
+        if(int(size_to_create) < int(fs_size)):
+            print ("WARNING: the size you have requested for your new image ("+size_to_create+")"+
+                   " is smaller than the existing image. ("+fs_size+") Your new image"+
+                   " will have less free space. If you get errors following this warning, try increasing the image size.")
 
         print "creating image "+imagepath
-        ret4, dd = getstatusoutput("dd if=/dev/zero of="+imagepath+" count=0 bs=1k seek="+str(fs_size))
+        ret4, dd = getstatusoutput("dd if=/dev/zero of="+imagepath+" count=0 bs=1k seek="+size_to_create)
         if ret4:
             raise MountError("dd", "ERROR: problem creating image "+imagepath+": "+dd)
 
@@ -113,7 +133,7 @@ class ImageUtils(object):
 
     def check_mounted(self, imagepath, mountpoint):
         for line in open("/etc/mtab"):
-            if imagepath in line:
+            if ((imagepath in line) or (mountpoint in line)):
                 return True
         return False
 
@@ -123,14 +143,14 @@ class ImageUtils(object):
             if not path.exists(mountpoint+i):
             	if i == '/root/.ssh':
             		mkdir(mountpoint+i, 0700)
-		elif i == '/tmp':
-			# mkdir(mountpoint+i, 1777) dosn't seem to work... ?
-			mkdir(mountpoint+i)
-			chmod(mountpoint+i, 1777)
-            	else:
+                elif i == '/tmp':
+                    old = os.umask(00000)
+                    mkdir(mountpoint+i, 01777)
+                    old = os.umask(old)
+                else:
                 	mkdir(mountpoint+i)
         excludes = str.rsplit(excl_dirs)
-        cmd = "rsync -ax --delete"
+        cmd = "rsync -a --delete"
         for excl in excludes:
             cmd += " --exclude "+excl
         cmd += " / "+mountpoint
