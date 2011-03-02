@@ -4,8 +4,7 @@ from repoman_client.config import config
 from repoman_client.utils import yes_or_no
 from argparse import ArgumentParser
 import sys
-
-
+import logging
 
 
 class RemoveUser(SubCommand):
@@ -22,6 +21,9 @@ class RemoveUser(SubCommand):
         return p
 
     def __call__(self, args, extra_args=None):
+        log = logging.getLogger('RemoveUser')
+        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
+    
         repo = RepomanClient(config.host, config.port, config.proxy)
         if not args.force:
             print ("WARNING:\n"
@@ -53,6 +55,9 @@ class RemoveGroup(SubCommand):
         return p
 
     def __call__(self, args, extra_args=None):
+        log = logging.getLogger('RemoveGroup')
+        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
+    
         repo = RepomanClient(config.host, config.port, config.proxy)
         if not args.force:
             if not yes_or_no():
@@ -81,6 +86,9 @@ class RemoveImage(SubCommand):
         return p
 
     def __call__(self, args, extra_args=None):
+        log = logging.getLogger('RemoveImage')
+        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
+    
         repo = RepomanClient(config.host, config.port, config.proxy)
         if not args.force:
             print ("WARNING:\n"

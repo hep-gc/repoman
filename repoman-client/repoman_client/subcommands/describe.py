@@ -4,6 +4,7 @@ from repoman_client.subcommand import SubCommand
 from repoman_client import display
 from argparse import ArgumentParser
 import sys
+import logging
 
 class DescribeUser(SubCommand):
     command_group = "advanced"
@@ -19,6 +20,9 @@ class DescribeUser(SubCommand):
         return p
 
     def __call__(self, args, extra_args=None):
+        log = logging.getLogger('DescribeUser')
+        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
+    
         repo = RepomanClient(config.host, config.port, config.proxy)
         try:
             user = repo.describe_user(args.user)
@@ -43,6 +47,9 @@ class DescribeGroup(SubCommand):
         return p
 
     def __call__(self, args, extra_args=None):
+        log = logging.getLogger('DescribeGroup')
+        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
+        
         repo = RepomanClient(config.host, config.port, config.proxy)
         try:
             group = repo.describe_group(args.group)
@@ -66,6 +73,9 @@ class DescribeImage(SubCommand):
         return p
 
     def __call__(self, args, extra_args=None):
+        log = logging.getLogger('DescribeImage')
+        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
+    
         repo = RepomanClient(config.host, config.port, config.proxy)
         try:
             image = repo.describe_image(args.image)

@@ -4,6 +4,7 @@ from repoman_client.config import config
 from repoman_client.parsers import parse_unknown_args, ArgumentFormatError
 from argparse import ArgumentParser
 import sys
+import logging
 
 class ModifyUser(SubCommand):
     command_group = "advanced"
@@ -20,6 +21,9 @@ class ModifyUser(SubCommand):
         return p
 
     def __call__(self, args, extra_args=None):
+        log = logging.getLogger('ModifyUser')
+        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
+    
         repo = RepomanClient(config.host, config.port, config.proxy)
         if extra_args:
             try:
@@ -29,6 +33,8 @@ class ModifyUser(SubCommand):
                 sys.exit(1)
         else:
             kwargs={}
+            
+        log.debug("kwargs: '%s'" % kwargs)
 
         try:
             repo.modify_user(args.user, **kwargs)
@@ -54,6 +60,9 @@ class ModifyGroup(SubCommand):
         return p
 
     def __call__(self, args, extra_args=None):
+        log = logging.getLogger('ModifyGroup')
+        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
+    
         repo = RepomanClient(config.host, config.port, config.proxy)
         if extra_args:
             try:
@@ -63,6 +72,8 @@ class ModifyGroup(SubCommand):
                 sys.exit(1)
         else:
             kwargs={}
+
+        log.debug("kwargs: '%s'" % kwargs)
 
         try:
             repo.modify_group(args.group, **kwargs)
@@ -88,6 +99,9 @@ class ModifyImage(SubCommand):
         return p
 
     def __call__(self, args, extra_args=None):
+        log = logging.getLogger('ModifyImage')
+        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
+    
         repo = RepomanClient(config.host, config.port, config.proxy)
         if extra_args:
             try:
@@ -97,6 +111,8 @@ class ModifyImage(SubCommand):
                 sys.exit(1)
         else:
             kwargs={}
+            
+        log.debug("kwargs: '%s'" % kwargs)
 
         try:
             repo.modify_image(args.image, **kwargs)
@@ -119,9 +135,13 @@ class Rename(SubCommand):
         return p
 
     def __call__(self, args, extra_args=None):
+        log = logging.getLogger('Rename')
+        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
+        
         repo = RepomanClient(config.host, config.port, config.proxy)
 
         kwargs = {'name':args.new}
+        log.debug("kwargs: '%s'" % kwargs)
         try:
             repo.modify_image(args.old, **kwargs)
             print "[OK]     Renaming image."

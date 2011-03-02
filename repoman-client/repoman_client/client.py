@@ -6,7 +6,10 @@ import urllib
 import socket
 import subprocess
 #import ssl
-import sys, os
+import sys, os, time
+import logging
+
+log = logging.getLogger('client')
 
 
 HEADERS = {"Content-type":"application/x-www-form-urlencoded", "Accept": "*"}
@@ -63,8 +66,13 @@ class RepomanClient(object):
         self.PORT = port
         self.PROXY = proxy
         self._conn = httplib.HTTPSConnection(host, port, cert_file=proxy, key_file=proxy)
+        log.debug('Created Httpsconnection with... HOST:%s PORT:%s PROXY:%s' % 
+                  (self.HOST, self.PORT, self.PROXY))
 
     def _request(self, method, url, kwargs={}, headers=HEADERS):
+        log.debug("%s %s" % (method, url))
+        log.debug("kwargs: %s" % kwargs)
+        log.debug("headers: %s" % headers)
         try:
             if method == 'GET':
                 self._conn.request(method, url)
@@ -74,13 +82,17 @@ class RepomanClient(object):
                 params = urllib.urlencode(kwargs)
                 self._conn.request(method, url, params, headers)
             resp =  self._conn.getresponse()
+            log.debug("Server response code: %s" % resp.status)
             return self._check_response(resp)
-        except httplib.InvalidURL:
+        except httplib.InvalidURL, e:
+            log.error("%s" % e)
             print "Invlaid port number"
             sys.exit(1)
-        except httplib.HTTPException:
+        except httplib.HTTPException, e:
+            log.error("%s" % e)
             print 'httpexception'
         except socket.gaierror, e:
+            log.error("%s", e)
             print 'Unable to connect to server.  Check Host and port'
             sys.exit(1)
 #        except socket.error, e:
@@ -91,7 +103,8 @@ class RepomanClient(object):
 #            print str(e)
 #            sys.exit(1)
         except Exception, e:
-            raise e
+            log.debug("%s" % e)
+            print "Unknown error has occured.  chec the log file for details."
 
 
     def _check_response(self, resp):
@@ -128,6 +141,7 @@ class RepomanClient(object):
                        "-------- body ---------\n"
                        "%s\n-----------------------\n"
                        ) % (resp.status, resp.reason, resp.read())
+        log.error(message)
         raise RepomanError(message, resp)
 
     def _get(self, url):
@@ -141,6 +155,7 @@ class RepomanClient(object):
 
     def _json(self, resp):
         body = resp.read()
+        log.debug("Message body from server: '%s'" % body)
         try:
             return simplejson.loads(body)
         except:
@@ -287,44 +302,55 @@ class RepomanClient(object):
         return True
 
     def upload_image(self, image, image_file, gzip=False):
+        log.info("Checking to see if image slot exists on repository")
         resp = self._get('/api/images/%s' % image)
         if resp.status != 200:
+            log.info("Image slot does not yet exist.")
             raise RepomanError('Image does not yet exist.  Create an image before uploading to it', resp)
 
         url = 'https://' + config.host + '/api/images/raw/%s' % image
         try:
             if gzip:
+                log.info("Performing gzip on image prior to upload")
                 print "Gzipping image before upload"
                 gzip_image = os.path.join(os.path.dirname(image_file), image)
                 gzip = subprocess.Popen("gzip --stdout %s > %s" % (image_file, gzip_image),
                                         shell=True)
                 gzip.wait()
-                image_file = gzip_image 
+                image_file = gzip_image
+                log.info('Gzip complete')
                 
             args = ['curl',
                     '--cert', config.proxy,
                     '--insecure',
                     '-T', image_file, url]
             cmd = " ".join(args)
+            log.info("Running command: '%s'" % cmd)
             curl = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
             for line in curl.stdout.readlines():
                 print line
+            log.info("Command complete")
         except Exception, e:
+            log.error("%s" % e)
             print e
 
     def download_image(self, image, dest=None):
         if not dest:
             dest = './%s' % image
         url = 'https://' + config.host + '/api/images/raw/%s' % image
+        log.info("Downloading image From:'%s' To:'%s'" % (url, dest))
         try:
             args = ['curl',
                     '--cert', config.proxy,
                     '--insecure',
                     url, '>', dest]
             cmd = " ".join(args)
+            log.info("Running Command: '%s'" % cmd)
             p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
             for line in p.stdout.readlines():
                 print line
+            log.info("Command complete")
         except Exception, e:
+            log.error("%s" % e)
             print e
 

@@ -3,6 +3,7 @@ from repoman_client.client import RepomanClient, RepomanError
 from repoman_client.config import config
 from argparse import ArgumentParser
 import sys
+import logging
 
 class ShareImage(SubCommand):
     command_group = 'advanced'
@@ -19,6 +20,9 @@ class ShareImage(SubCommand):
         return p
 
     def __call__(self, args, extra_args=None):
+        log = logging.getLogger('ShareImage')
+        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
+    
         repo = RepomanClient(config.host, config.port, config.proxy)
         status = "Shared image: '%s' with: '%s'"
         if args.user:
@@ -32,6 +36,7 @@ class ShareImage(SubCommand):
         else:
             kwargs = {}
 
+        log.debug("kwargs: '%s'" % kwargs)
 
         try:
             func(args.image, **kwargs)
@@ -58,6 +63,9 @@ class UnshareImage(SubCommand):
         return p
 
     def __call__(self, args, extra_args=None):
+        log = logging.getLogger('UnshareImage')
+        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
+    
         repo = RepomanClient(config.host, config.port, config.proxy)
         status = "Unshared image: '%s' with: '%s'"
         if args.user:
@@ -70,6 +78,8 @@ class UnshareImage(SubCommand):
             status = status % (args.image, args.group)
         else:
             kwargs = {}
+        
+        log.debug("kwargs: '%s'" % kwargs)
 
         try:
             func(args.image, **kwargs)

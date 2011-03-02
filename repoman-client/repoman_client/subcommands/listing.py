@@ -5,7 +5,7 @@ from repoman_client import display
 import argparse
 from argparse import ArgumentParser
 import sys
-
+import logging
 
 class ListUsers(SubCommand):
     command_group = "advanced"
@@ -20,11 +20,16 @@ class ListUsers(SubCommand):
         return p
 
     def __call__(self, args, extra_args=None):
+        log = logging.getLogger('ListUsers')
+        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
+    
         repo = RepomanClient(config.host, config.port, config.proxy)
         if args.group:
             kwargs = {'group':args.group}
         else:
             kwargs = {}
+            
+        log.debug("kwargs: '%s'" % kwargs)
 
         try:
             users = repo.list_users(**kwargs)
@@ -48,6 +53,9 @@ class ListGroups(SubCommand):
         return p
 
     def __call__(self, args, extra_args=None):
+        log = logging.getLogger('ListGroups')
+        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
+    
         repo = RepomanClient(config.host, config.port, config.proxy)
         if args.all:
             kwargs = {'list_all':True}
@@ -55,6 +63,8 @@ class ListGroups(SubCommand):
             kwargs = {'user':args.user}
         else:
             kwargs = {}
+
+        log.debug("kwargs: '%s'" % kwargs)
 
         try:
             groups = repo.list_groups(**kwargs)
@@ -108,6 +118,9 @@ Example Usages:
         return p
 
     def __call__(self, args, extra_args=None):
+        log = logging.getLogger('ListImages')
+        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
+    
         #TODO: impliment sharedwith calls
         repo = RepomanClient(config.host, config.port, config.proxy)
         if args.all:
@@ -131,6 +144,9 @@ Example Usages:
             else:
                 func = repo.list_current_user_images
                 kwargs = {}
+
+        log.debug("function: '%s'" % func)
+        log.debug("kwargs: '%s'" % kwargs)
 
         try:
             images = func(**kwargs)

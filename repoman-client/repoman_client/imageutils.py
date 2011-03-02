@@ -9,10 +9,14 @@ import os
 from commands import getstatusoutput
 from subprocess import Popen, PIPE
 import sys
+import logging
+
+log = logging.getLogger('ImageUtils')
+
 
 class ImageUtils(object):
 
-    def __init__(self, lockfile, snapshot, mountpoint, exclude_dirs,imagesize=0):
+    def __init__(self, lockfile, snapshot, mountpoint, exclude_dirs, imagesize=0):
         self.lockfile = lockfile
         self.snapshot = snapshot
         self.mountpoint = mountpoint
@@ -22,27 +26,38 @@ class ImageUtils(object):
     def create_snapshot(self):
         
         if not self.check_mounted(self.snapshot, self.mountpoint):
-            print "Creating new Image"
-            os.system("rm -rf %s %s" % (self.snapshot, self.mountpoint))
+            message = "Creating new Image"
+            log.info(message)
+            print message
+            cmd = "rm -rf %s %s" % (self.snapshot, self.mountpoint)
+            log.debug("Running command: '%s'" % cmd)
+            os.system(cmd)
             self.create_local_bundle()
             
         elif self.sync_is_running():
-            print "Sync is already running...what?"
+            message = "Sync is already running...what?"
+            log.info(message)
+            print message
             self.create_local_bundle()
             
         elif self.imagesize_request:
-            print "Creating new Image"            
+            message = "Creating new Image"
+            log.info(message)
+            print message
             ret, mnt = getstatusoutput("umount "+self.mountpoint)
             if ret:
+                log.error("Unable to umount image at: '%s'" % self.mountpoint)
                 raise MountError("umount ", "ERROR: Unmounting of image failed: "+mnt)
             os.system("rm -rf %s %s" % (self.snapshot, self.mountpoint))
             self.create_local_bundle() 
                        
         else:
-            print "Syncing image."
+            message = "Syncing image."
+            log.info(message)
             self.sync_filesystem(self.mountpoint, self.exclude_dirs)
             
-        print "Snapshot process complete."
+        message = "Snapshot process complete."
+        log.info(message)
 
     def sync_is_running(self):
         if os.path.exists(self.lockfile):
@@ -52,7 +67,10 @@ class ImageUtils(object):
     def create_local_bundle(self):
         if self.sync_is_running():
             pid=open(self.lockfile,'r').read()
-            print "The local image creation is already in progress."
+            log.debug("pid found.  pid: %s" % pid)
+            message = "The local image creation is already in progress."
+            log.info(message)
+            print message
             print "If you're sure this is an error, cancel this script and delete: %s " % self.lockfile
             sys.exit(1)
             #os.system("renice -19 "+pid);
@@ -70,6 +88,7 @@ class ImageUtils(object):
                 self.sync_filesystem(self.mountpoint, self.exclude_dirs)
                 os.remove(self.lockfile)
             except MountError,e:
+                log.error("%s" % e)
                 print e.msg
                 os.remove(self.lockfile)
                 sys.exit(1)

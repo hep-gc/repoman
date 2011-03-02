@@ -2,6 +2,8 @@
 import sys
 import os
 import argparse
+import logging
+from datetime import date
 from repoman_client.__version__ import version
 from repoman_client.parsers import RepomanCLI
 from repoman_client.subcommands.up_down import Get, Save, UploadImage, DownloadImage
@@ -16,6 +18,18 @@ from repoman_client.subcommands.permissions import AddPermission, RemovePermissi
 from repoman_client.subcommands.diagnostic import Whoami, About
 from repoman_client.config import config
 
+
+if config.logging_enabled:
+    today = str(date.today())
+    logging.basicConfig(
+        filename=os.path.join(config.logging_dir, "repoman-client-%s.log" % today),
+        format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+        level=logging.DEBUG
+    )
+else:
+    logging.basicConfig(filename='/dev/null')
+
+log = logging.getLogger('repoman')
 
 def main():
 
@@ -72,5 +86,7 @@ def main():
 
 
 if __name__ == '__main__':
+    log.info("-------- new entry --------")
+    log.debug("%s" % sys.argv)
     main()
 
