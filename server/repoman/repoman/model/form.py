@@ -74,7 +74,12 @@ class ModifyUserForm(formencode.Schema):
 
     # What fields should be editable by the user?
     full_name = formencode.validators.String(if_missing=None)
-
+    cert_dn = formencode.All(formencode.validators.String(if_missing=None),
+                             UniqueCertDN())
+    email = formencode.All(formencode.validators.String(if_missing=None),
+                           formencode.validators.Email(),
+                           UniqueEmail())
+ 
 class NewUserForm(formencode.Schema):
     allow_extra_fields = True
     filter_extra_fields = True

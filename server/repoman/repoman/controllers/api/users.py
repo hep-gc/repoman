@@ -81,9 +81,7 @@ class UsersController(BaseController):
 
     #authorization is inside function
     def modify_user(self, user, format='json'):
-        inline_auth(AnyOf(AllOf(HasPermission('user_modify_self'), IsUser(user)),
-                          HasPermission('user_modify')),
-                          auth_403)
+        inline_auth(HasPermission('user_modify'), auth_403)
 
         params = validate_modify_user(request.params)
 
@@ -94,6 +92,8 @@ class UsersController(BaseController):
             for k,v in params.iteritems():
                 if v:
                     setattr(user, k, v)
+                    if k == 'cert_dn':
+                        user.certificate.client_dn = v
             meta.Session.commit()
         else:
             abort(404, '404 Not Found')
