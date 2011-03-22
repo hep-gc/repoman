@@ -6,6 +6,7 @@ import logging
 from datetime import date
 from repoman_client.__version__ import version
 from repoman_client.parsers import RepomanCLI
+from repoman_client.subcommands.config import MakeConfig
 from repoman_client.subcommands.up_down import Get, Save, UploadImage, DownloadImage
 from repoman_client.subcommands.modify import Rename, ModifyUser, ModifyGroup, ModifyImage
 from repoman_client.subcommands.remove import Delete, RemoveUser, RemoveGroup, RemoveImage
@@ -45,6 +46,7 @@ def main():
     main_parser.add_command(Rename)
     main_parser.add_command(Delete)
     main_parser.add_command(List)
+    main_parser.add_command(MakeConfig)
 
     main_parser.add_command(ListUsers)
     main_parser.add_command(ListGroups)
