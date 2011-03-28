@@ -99,12 +99,12 @@ class RepomanClient(object):
 #            print 'Unable to connect to server.  Is the server running?\n\t%s' % e
 #            sys.exit(1)
 #        except ssl.SSLError, e:
-#            print "An error has occured within open ssl."
+#            print "An error has occurred within open ssl."
 #            print str(e)
 #            sys.exit(1)
         except Exception, e:
-            log.debug("%s" % e)
-            print "Unknown error has occured.  chec the log file for details."
+            log.error("%s", e)
+            print "Unknown error has occurred.  Check the log file for details."
 
 
     def _check_response(self, resp):

@@ -106,6 +106,8 @@ class Save(SubCommand):
 
         # this is a bit messy.  Maybe return conflict object from server?
         try:
+            log.info("opening /.image.metadata file to store image metadata.")
+            meta_file = open('/.image.metadata', 'w')
             image = repo.create_image_metadata(**kwargs)
             print "[OK]     Creating new image meatadata."
         except RepomanError, e:
@@ -139,10 +141,13 @@ class Save(SubCommand):
                 print "[FAILED] Creating new image metadata.\n\t-%s" % e
                 print "Aborting snapshot."
                 sys.exit(1)
+        except IOError:
+            log.error("could not write to the root of the filesystem")
+            print "[Failed] could not write to /.image.metadata, are you root?"
+            sys.exit(1)
 
         # Write metadata to filesystem for later use.
-        log.info("writing image metadata to filesystem.")
-        meta_file = open('/.image.metadata', 'w')
+        log.info("writing image metadata to file system")
         for k, v in image.iteritems():
             meta_file.write("%s: %s\n" % (k, v))
         meta_file.close()
