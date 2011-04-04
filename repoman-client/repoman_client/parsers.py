@@ -2,6 +2,7 @@ from repoman_client.config import config
 import argparse
 import sys
 from pprint import pprint
+from repoman_client.utils import check_sudo
 
 __all__ = ['RepomanCLI']
 
@@ -201,6 +202,8 @@ class RepomanCLI(object):
                 extra = None
             if cmd.validate_config:
                 config.validate()
+            if cmd.require_sudo:
+                check_sudo(exit=True)
             cmd(args, extra)
             sys.exit(0)
         else:

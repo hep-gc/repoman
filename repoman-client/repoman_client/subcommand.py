@@ -33,6 +33,8 @@ class SubCommand(object):
                                 # will be allowed and passed to the __call__ method
     description = ""            # a description string that will show up in a
                                 # list of subcommands
+    require_sudo = False        # Will check to see that the user is sudo before
+                                # executing command.                                
 
     def get_parser(self):
         # Raise an exception to make sure people override this in the subclass

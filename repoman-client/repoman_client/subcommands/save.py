@@ -16,6 +16,7 @@ class Save(SubCommand):
     description = 'snapshot and upload current system'
     parse_known_args = True
     metadata_file = '/.image.metadata'
+    require_sudo = True
 
     def get_parser(self):
         p = ArgumentParser(self.description)
