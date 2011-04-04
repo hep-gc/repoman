@@ -49,7 +49,7 @@ user_proxy_cert:
 lockfile: /tmp/repoman-sync.lock
 snapshot: /tmp/fscopy.img
 mountpoint: /tmp/fscopy
-exclude_dirs: /dev /mnt /lustre /proc /sys /tmp /etc/grid-security /root/.ssh
+exclude_dirs: /dev /mnt /lustre /proc /sys /tmp /root/.ssh
 """
 
 

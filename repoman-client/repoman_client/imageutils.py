@@ -74,9 +74,11 @@ class ImageUtils(object):
     def mkfs(self, path, fs_type='ext3', label='/'):
         cmd = "/sbin/mkfs -t %s -F -L %s %s" % (fs_type, label, path)
         log.debug("Creating file system: '%s'" % cmd)
-        if subprocess.Popen(cmd, shell=True).wait():
+        null_f = open('/dev/null', 'w')
+        if subprocess.Popen(cmd, shell=True, stdout=null_f).wait():
             log.error("Unable to create filesystem")
             raise ImageUtilError("Error creating filesystem.")
+        null_f.close()
             
     def mount_image(self):
         if self.check_mounted():
@@ -158,11 +160,11 @@ class ImageUtils(object):
         self.dd_sparse(imagepath, size)
         self.mkfs(imagepath)
     
-    def sync_fs(self, rsync_flags=[]):
+    def sync_fs(self, rsync_flags=''):
         #TODO: add progress bar into rsync somehow
         log.info("Starting Sync Process")
         exclude_list =  "--exclude " + " --exclude ".join(self.excludes)
-        cmd = "rsync -a --sparse --progress --stats --delete %s / %s" % (exclude_list, self.mountpoint)
+        cmd = "rsync -a --sparse %s --delete %s / %s" % (rsync_flags, exclude_list, self.mountpoint)
         log.debug("%s" % cmd)
         p = subprocess.Popen(cmd, shell=True).wait()
         log.info("Sync Complete")
@@ -171,20 +173,20 @@ class ImageUtils(object):
         for item in self.excludes:
             self.recreate(item, self.mountpoint)
         
-    def snapshot_system(self, start_fresh=False):
+    def snapshot_system(self, start_fresh=False, rsync_flags=''):
         log.debug("Obtaining lock")
         if not self.obtain_lock():
             log.error("Unable to obtain lock")
             raise ImageUtilError("Unable to obtain lock")
         try:
-            self._snapshot_system(start_fresh)
+            self._snapshot_system(start_fresh, rsync_flags)
         finally:
             log.debug("Releasing lock")
             self.destroy_lock()
             log.info("Unmounting Image")
             self.umount_image()
         
-    def _snapshot_system(self, start_fresh=False):
+    def _snapshot_system(self, start_fresh=False, rsync_flags=''):
         exists = self.image_exists()
         if not exists:
             log.info("No existing image found, creating a new one")
@@ -215,4 +217,4 @@ class ImageUtils(object):
         log.info("Mounting image")
         self.mount_image()
         log.info("Syncing file system")
-        self.sync_fs()
+        self.sync_fs(rsync_flags)
