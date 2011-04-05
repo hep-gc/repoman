@@ -29,7 +29,9 @@ class Save(SubCommand):
         p.add_argument('--resize', type=int, default=0,
                        help='create an image with a new size (in MB)')
         p.add_argument('--verbose', action='store_true', default=False,
-                       help='display verbose output during snapshot')                       
+                       help='display verbose output during snapshot')         
+        p.add_argument('--clean', action='store_true', default=False,
+                       help='Remove any existing local snapshots before creating a new one.')
         return p
 
     def write_metadata(self, metadata, metafile):
@@ -114,13 +116,9 @@ class Save(SubCommand):
             print "[Failed] could not write to %s, are you root?" % self.metadata_file
             sys.exit(1)
             
-        extra_flags = ''
-        if args.verbose:
-            extra_flags = '--progress --stats'
-            
         try:
             print "Starting the snapshot process.  Please be patient, this will take a while."
-            image_utils.snapshot_system(rsync_flags=extra_flags)
+            image_utils.snapshot_system(verbose=args.verbose, clean=args.clean)
         except ImageUtilError, e:
             print e
             log.error("An error occured during the snapshot process")

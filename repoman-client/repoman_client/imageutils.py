@@ -63,9 +63,11 @@ class ImageUtils(object):
         cmd = ("dd if=/dev/zero of=%s count=0 bs=1 seek=%s" 
                % (path, size_bytes))
         log.debug("Creating sparse file: '%s'" % cmd)
-        if subprocess.Popen(cmd, shell=True).wait():
+        null_f = open('/dev/null', 'w')
+        if subprocess.Popen(cmd, shell=True, stdout=null_f, stderr=null_f).wait():
             log.error("Unable to create sparse file")
             raise ImageUtilError("Error creating sparse file")
+        null_f.close()
     
     def detect_fs_type(self, path):
         #TODO: fixme
@@ -75,7 +77,7 @@ class ImageUtils(object):
         cmd = "/sbin/mkfs -t %s -F -L %s %s" % (fs_type, label, path)
         log.debug("Creating file system: '%s'" % cmd)
         null_f = open('/dev/null', 'w')
-        if subprocess.Popen(cmd, shell=True, stdout=null_f).wait():
+        if subprocess.Popen(cmd, shell=True, stdout=null_f, stderr=null_f).wait():
             log.error("Unable to create filesystem")
             raise ImageUtilError("Error creating filesystem.")
         null_f.close()
@@ -160,11 +162,14 @@ class ImageUtils(object):
         self.dd_sparse(imagepath, size)
         self.mkfs(imagepath)
     
-    def sync_fs(self, rsync_flags=''):
+    def sync_fs(self, verbose):
         #TODO: add progress bar into rsync somehow
         log.info("Starting Sync Process")
         exclude_list =  "--exclude " + " --exclude ".join(self.excludes)
-        cmd = "rsync -a --sparse %s --delete %s / %s" % (rsync_flags, exclude_list, self.mountpoint)
+        flags = ''
+        if verbose:
+            flags += '--stats --progress ' 
+        cmd = "rsync -a --sparse %s --delete %s / %s" % (flags, exclude_list, self.mountpoint)
         log.debug("%s" % cmd)
         p = subprocess.Popen(cmd, shell=True).wait()
         log.info("Sync Complete")
@@ -173,22 +178,32 @@ class ImageUtils(object):
         for item in self.excludes:
             self.recreate(item, self.mountpoint)
         
-    def snapshot_system(self, start_fresh=False, rsync_flags=''):
+    def snapshot_system(self, start_fresh=False, verbose=False, clean=False):
+        if verbose:
+            ch = logging.StreamHandler()
+            ch.setLevel(logging.INFO)
+            formatter = logging.Formatter("%(levelname)s - %(message)s")
+            ch.setFormatter(formatter)
+            log.addHandler(ch)
+
         log.debug("Obtaining lock")
         if not self.obtain_lock():
             log.error("Unable to obtain lock")
             raise ImageUtilError("Unable to obtain lock")
         try:
-            self._snapshot_system(start_fresh, rsync_flags)
+            self._snapshot_system(start_fresh, verbose, clean)
         finally:
             log.debug("Releasing lock")
             self.destroy_lock()
             log.info("Unmounting Image")
             self.umount_image()
         
-    def _snapshot_system(self, start_fresh=False, rsync_flags=''):
+    def _snapshot_system(self, start_fresh=False, verbose=False, clean=False):
         exists = self.image_exists()
-        if not exists:
+        if clean:
+            log.info("Cleaning existing snapshot first.")
+            start_fresh=True
+        elif not exists:
             log.info("No existing image found, creating a new one")
             start_fresh=True
         elif exists:
@@ -217,4 +232,4 @@ class ImageUtils(object):
         log.info("Mounting image")
         self.mount_image()
         log.info("Syncing file system")
-        self.sync_fs(rsync_flags)
+        self.sync_fs(verbose)
