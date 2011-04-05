@@ -30,7 +30,12 @@ repository_port: 443
 
 [User]
 # user_proxy_cert: Full path to an RFC compliant proxy certificate.
-#                  If not specified, this will default to /tmp/x509up_u`id -u`
+#                  Order of proxy certificate precidence:
+#                       1. command line '--proxy' argument
+#                       2. value in this file
+#                       3. $X509_USER_PROXY
+#                       4. /tmp/x509up_u`id -u` 
+                        Note: number-4 will respect $SUDO_UID if available
 #
 user_proxy_cert:
 
@@ -68,14 +73,19 @@ class Config(object):
                                  ('Logger', 'logging_dir')]
 
         self._config_locations = ['$REPOMAN_CLIENT_CONFIG',
-                                  '$HOME/.repoman/repoman.conf',
-                                  '~/.repoman/repoman.conf']
+                                  '$HOME/.repoman/repoman.conf']
+        
+        user_id = os.environ.get('SUDO_UID')
+        if not user_id:
+            user_id = os.getuid()
 
         if config_file:
             self._config_locations.insert(0, config_file)
 
         self._default_config_dir = os.path.expanduser('~/.repoman')
-        self._default_proxy = "/tmp/x509up_u%s" % os.getuid()
+        self._default_proxy = os.environ.get('X509_USER_PROXY')
+        if not self._default_proxy:
+            self._default_proxy = "/tmp/x509up_u%s" % user_id
 
         #Read the config file if possible
         self._read_config()
