@@ -84,6 +84,8 @@ class RepomanClient(object):
             resp =  self._conn.getresponse()
             log.debug("Server response code: %s" % resp.status)
             return self._check_response(resp)
+        except RepomanError, e:
+            raise(e)
         except httplib.InvalidURL, e:
             log.error("%s" % e)
             print "Invlaid port number"
@@ -193,7 +195,6 @@ class RepomanClient(object):
             # list the group membership of `user`
             resp = self._get('/api/users/%s/groups' % user)
         return self._parse_response(resp)
-
 
     def list_all_images(self):
         resp = self._get('/api/images')
