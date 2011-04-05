@@ -172,6 +172,9 @@ class ImageUtils(object):
         cmd = "rsync -a --sparse %s --delete %s / %s" % (flags, exclude_list, self.mountpoint)
         log.debug("%s" % cmd)
         p = subprocess.Popen(cmd, shell=True).wait()
+        if p:
+            log.error("Rsync encountered an issue. return code: '%s'" % p)
+            raise ImageUtilError("Rsync failed.  Aborting.")
         log.info("Sync Complete")
         
         # Recread all excluded files with correct permissions
