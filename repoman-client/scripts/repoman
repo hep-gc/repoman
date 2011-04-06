@@ -20,18 +20,13 @@ from repoman_client.subcommands.diagnostic import Whoami, About
 from repoman_client.subcommands.save import Save
 from repoman_client.config import config
 
-
-if config.logging_enabled:
-    today = str(date.today())
-    logging.basicConfig(
-        filename=os.path.join(config.logging_dir, "repoman-client-%s.log" % today),
-        format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
-        level=logging.DEBUG
-    )
-else:
-    logging.basicConfig(filename='/dev/null')
-
-log = logging.getLogger('repoman')
+def touch_file(path):
+    """Create specified path if it does not exists, and modify ownership."""
+    if not os.path.exists(log_filename):
+        uid = os.environ.get('SUDO_UID', os.getuid())
+        gid = os.environ.get('SUDO_GID', os.getgid())
+        open(log_filename, 'w').close()
+        os.chown(log_filename, int(uid), int(gid))
 
 def main():
 
@@ -87,6 +82,20 @@ def main():
     # Execute Main Parser
     main_parser()
 
+
+
+if config.logging_enabled:
+    today = str(date.today())
+    log_filename = os.path.join(config.logging_dir, "repoman-client-%s.log" % today)
+    touch_file(log_filename)
+    logging.basicConfig(
+        filename=log_filename,
+        format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+        level=logging.DEBUG)
+else:
+    logging.basicConfig(filename='/dev/null')
+
+log = logging.getLogger('repoman')
 
 if __name__ == '__main__':
     log.info("-------- new entry --------")

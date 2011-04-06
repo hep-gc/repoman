@@ -151,6 +151,9 @@ class Config(object):
         if not os.path.isdir(self.logging_dir):
             try:
                 os.mkdir(self.logging_dir)
+                uid = os.environ.get('SUDO_UID', os.getuid())
+                gid = os.environ.get('SUDO_GID', os.getgid())
+                os.chown(self.logging_dir, int(uid), int(gid))
             except:
                 self._errors_found = True
                 self._error_messages.append("Logging dir does not exist and I am unable to create it.")
