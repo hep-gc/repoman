@@ -22,7 +22,7 @@ from repoman_client.config import config
 
 def touch_file(path):
     """Create specified path if it does not exists, and modify ownership."""
-    if not os.path.exists(log_filename):
+    if not os.path.exists(path):
         uid = os.environ.get('SUDO_UID', os.getuid())
         gid = os.environ.get('SUDO_GID', os.getgid())
         open(log_filename, 'w').close()
