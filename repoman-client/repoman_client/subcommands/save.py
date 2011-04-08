@@ -127,7 +127,7 @@ class Save(SubCommand):
             
         if not exists:
             try:
-                repo.create_image_metadata(**kwargs)
+                image = repo.create_image_metadata(**kwargs)
                 print "[OK]    Creating image metadata on server."
             except RepomanError, e:
                 log.error("Error while creating image slot on server")
