@@ -105,7 +105,7 @@ class Save(SubCommand):
         image_utils = ImageUtils(config.lockfile,
                                  config.snapshot,
                                  config.mountpoint,
-                                 config.required_sysdirs.split(),
+                                 config.sysdirs_emptied.split(),
                                  config.exclude_dirs.split(),
                                  size=args.resize*1024*1024)
         

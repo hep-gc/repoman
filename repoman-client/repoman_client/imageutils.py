@@ -12,11 +12,11 @@ class ImageUtilError(Exception):
 
 
 class ImageUtils(object):
-    def __init__(self, lockfile, imagepath, mountpoint, required_sysdirs, excludes, size=None):
+    def __init__(self, lockfile, imagepath, mountpoint, sysdirs_emptied, excludes, size=None):
         self.lockfile = lockfile
         self.imagepath = imagepath
         self.mountpoint = mountpoint
-        self.required_sysdirs = required_sysdirs
+        self.sysdirs_emptied = sysdirs_emptied
         self.excludes = excludes
         self.imagesize = size
         
@@ -38,8 +38,6 @@ class ImageUtils(object):
     # destination if it is present in the origin.
     # If the file or directory does not exist in the origin, then
     # this method does nothing.
-    # If the file or directory already exists in the destination, then
-    # this method does nothing.
     #
     def recreate(self, origin, dest_root):
         if not os.path.exists(origin):
@@ -47,7 +45,7 @@ class ImageUtils(object):
         stats = self.stat(origin)
         dest = os.path.join(dest_root, origin.lstrip('/'))
         if os.path.exists(dest):
-            return
+            self.destroy_files(dest)
         if os.path.isdir(origin):
             os.mkdir(dest)
         elif os.path.isfile(origin):
@@ -175,6 +173,7 @@ class ImageUtils(object):
         #TODO: add progress bar into rsync somehow
         log.info("Starting Sync Process")
         exclude_list =  "--exclude " + " --exclude ".join(self.excludes)
+        exclude_list += "--exclude " + " --exclude ".join(self.sysdirs_emptied)
         flags = ''
         if verbose:
             flags += '--stats --progress ' 
@@ -187,7 +186,7 @@ class ImageUtils(object):
         log.info("Sync Complete")
         
         # Recreate all required sysdirs with correct permissions, where needed.
-        for item in self.required_sysdirs:
+        for item in self.sysdirs_emptied:
             self.recreate(item, self.mountpoint)
         
     def snapshot_system(self, start_fresh=False, verbose=False, clean=False):
