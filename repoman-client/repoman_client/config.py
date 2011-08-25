@@ -46,15 +46,30 @@ user_proxy_cert:
 #
 # mountpoint:      Full path that 'snapshot' will be mounted at. (ie, /tmp/fscopy)
 #
+# required_sysdirs:  A list of system directories which must exist in the snapshot
+#                    for the system to function correctly.  If any of these
+#                    directories are deleted via the exclude_dirs variable, then
+#                    they will automatically be recreated (empty), with their original
+#                    ownership and permissions.  If the directory already exist in the
+#                    snapshot, then it will be left untouched.
+#                    Each directory must be the full path.
+#                    Each item in the list is seperated by a space.
+#                    Note: Expressions containing wildcards (*) are not supported.
+#
+#
 # exclude_dirs:    A list of directories that will be excluded when creating the
 #                  snapshot of the running system.
 #                  Each directory must be the full path.
 #                  Each item in the list is seperated by a space.
+#                  Wildcards (*) are supported.
+#                  Note: use '/mydir' to exclude a directory completely, while '/mydir/*' to exclude the content
+#                        of a directory but still create an empty '/mydir' directory in the snapshot.
 #
 lockfile: /tmp/repoman-sync.lock
 snapshot: /tmp/fscopy.img
 mountpoint: /tmp/fscopy
-exclude_dirs: /dev /mnt /lustre /proc /sys /tmp /root/.ssh
+required_sysdirs: /dev /mnt /proc /sys /tmp
+exclude_dirs: /dev/* /mnt/* /lustre/* /proc/* /sys/* /tmp/* /root/.ssh
 """
 
 
@@ -68,6 +83,7 @@ class Config(object):
                                  ('ThisImage', 'mountpoint'),
                                  ('ThisImage', 'snapshot'),
                                  ('ThisImage', 'exclude_dirs'),
+                                 ('ThisImage', 'required_sysdirs'),
                                  ('ThisImage', 'lockfile'),
                                  ('Logger', 'logging_enabled'),
                                  ('Logger', 'logging_dir')]

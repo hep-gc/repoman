@@ -12,10 +12,11 @@ class ImageUtilError(Exception):
 
 
 class ImageUtils(object):
-    def __init__(self, lockfile, imagepath, mountpoint, excludes, size=None):
+    def __init__(self, lockfile, imagepath, mountpoint, required_sysdirs, excludes, size=None):
         self.lockfile = lockfile
         self.imagepath = imagepath
         self.mountpoint = mountpoint
+        self.required_sysdirs = required_sysdirs
         self.excludes = excludes
         self.imagesize = size
         
@@ -32,13 +33,21 @@ class ImageUtils(object):
                 'mode':stats.st_mode,
                 'size':stats.st_size}
                 
+    #
+    # This method is used to recreate a file or directory on the
+    # destination if it is present in the origin.
+    # If the file or directory does not exist in the origin, then
+    # this method does nothing.
+    # If the file or directory already exists in the destination, then
+    # this method does nothing.
+    #
     def recreate(self, origin, dest_root):
         if not os.path.exists(origin):
             return
         stats = self.stat(origin)
         dest = os.path.join(dest_root, origin.lstrip('/'))
         if os.path.exists(dest):
-            self.destroy_files(dest)
+            return
         if os.path.isdir(origin):
             os.mkdir(dest)
         elif os.path.isfile(origin):
@@ -177,8 +186,8 @@ class ImageUtils(object):
             raise ImageUtilError("Rsync failed.  Aborting.")
         log.info("Sync Complete")
         
-        # Recread all excluded files with correct permissions
-        for item in self.excludes:
+        # Recreate all required sysdirs with correct permissions, where needed.
+        for item in self.required_sysdirs:
             self.recreate(item, self.mountpoint)
         
     def snapshot_system(self, start_fresh=False, verbose=False, clean=False):
