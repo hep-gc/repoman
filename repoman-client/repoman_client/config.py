@@ -65,7 +65,7 @@ user_proxy_cert:
 lockfile: /tmp/repoman-sync.lock
 snapshot: /tmp/fscopy.img
 mountpoint: /tmp/fscopy
-required_sysdirs: /dev /mnt /proc /sys /tmp
+sysdirs_emptied: /dev /mnt /proc /sys /tmp
 exclude_dirs: /lustre/* /root/.ssh
 """
 
