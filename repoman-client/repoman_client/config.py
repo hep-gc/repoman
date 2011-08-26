@@ -35,7 +35,7 @@ repository_port: 443
 #                       2. value in this file
 #                       3. $X509_USER_PROXY
 #                       4. /tmp/x509up_u`id -u` 
-                        Note: number-4 will respect $SUDO_UID if available
+#                       Note: number-4 will respect $SUDO_UID if available
 #
 user_proxy_cert:
 
@@ -48,7 +48,7 @@ user_proxy_cert:
 #
 # sysdirs_emptied:   A list of system directories which must exist in the snapshot
 #                    for the system to function correctly, but emptied during the snapshot
-                     process.
+#                    process.
 #                    Each directory must be the full path.
 #                    Each item in the list is seperated by a space.
 #                    Note: Expressions containing wildcards (*) are not supported.
