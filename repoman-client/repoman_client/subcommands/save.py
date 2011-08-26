@@ -13,7 +13,7 @@ import logging
 class Save(SubCommand):
     command = 'save'
     alias = None
-    description = 'snapshot and upload current system'
+    description = 'Snapshot and upload current system'
     parse_known_args = True
     metadata_file = '/.image.metadata'
     require_sudo = True
@@ -27,9 +27,9 @@ class Save(SubCommand):
         p.add_argument('--gzip', action='store_true', default=False,
                        help='Upload the image compressed with gzip.')
         p.add_argument('--resize', type=int, default=0,
-                       help='create an image with a new size (in MB)')
+                       help='Create an image with a new size (in MB)')
         p.add_argument('--verbose', action='store_true', default=False,
-                       help='display verbose output during snapshot')         
+                       help='Display verbose output during snapshot')         
         p.add_argument('--clean', action='store_true', default=False,
                        help='Remove any existing local snapshots before creating a new one.')
         return p

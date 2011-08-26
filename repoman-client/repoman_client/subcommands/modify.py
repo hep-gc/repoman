@@ -126,7 +126,7 @@ class ModifyImage(SubCommand):
 class Rename(SubCommand):
     command = 'rename'
     alias = 'rn'
-    description = "rename an existing image from 'old' to 'new'"
+    description = "Rename an existing image from 'old' to 'new'"
 
     def get_parser(self):
         p = ArgumentParser(self.description)
