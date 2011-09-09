@@ -24,15 +24,15 @@ def display_group(group, long=False):
         print group
 
 def display_user_list(users, long=False):
-    for user in users:
+    for user in sorted(users):
         display_user(user, long)
 
 def display_image_list(images, long=False):
-    for image in images:
+    for image in sorted(images):
         display_image(image, long)
 
 def display_group_list(groups, long=False):
-    for group in groups:
+    for group in sorted(groups):
         display_group(group, long)
 
 
