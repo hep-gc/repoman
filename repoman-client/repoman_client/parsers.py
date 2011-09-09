@@ -87,10 +87,8 @@ class RepomanCLI(object):
 
     def __call__(self):
         (args, extra) = self.parse_known_args()
-        if args.help_all:
+        if args.help:
             self.print_help(long=True)
-        elif args.help:
-            self.print_help(long=False)
 
         if not args.subcommand:
             self.parser.error('Specify a subcommand to run, or run --help')
@@ -109,7 +107,7 @@ class RepomanCLI(object):
         p = argparse.ArgumentParser(add_help=False)
         p.add_argument('subcommand', metavar='SUBCOMMAND', nargs='?')
         p.add_argument('-h', '--help', action='store_true', default=False, help='Show this help screen, or command-specific help when preceded by a subcommand')
-        p.add_argument('--help-all', action='store_true', default=False, help='Show more detailed help, including a list of advanced subcommands')
+        #p.add_argument('--help-all', action='store_true', default=False, help='Show more detailed help, including a list of advanced subcommands')
         p.add_argument('--version', action='version', version='%s' % self.version, help='Show program\'s version number and exit')
         p.add_argument('-H', '--host', help='Override host setting')
         p.add_argument('-P', '--port', type=int, help='Override port setting for host')
