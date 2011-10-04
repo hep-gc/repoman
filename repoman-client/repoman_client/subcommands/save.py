@@ -14,14 +14,14 @@ class Save(SubCommand):
     command = 'save'
     alias = None
     description = 'Snapshot and upload current system'
-    parse_known_args = True
+    parse_known_args = False
     metadata_file = '/.image.metadata'
     require_sudo = True
 
     def get_parser(self):
         p = ArgumentParser(self.description)
-        p.usage = "save name [-h] [-f] [--metadata value [--metadata value ...]]"
-        p.epilog = "See documentation for a list of required and optional metadata"
+        p.usage = "save name [-h] [-f] [--gzip] [--resize RESIZE] [--verbose] [--clean]"
+        p.add_argument('name', help='the name of the new image')
         p.add_argument('-f', '--force', action='store_true', default=False,
                        help='Force uploading even if it overwrites an existing image')
         p.add_argument('--gzip', action='store_true', default=False,
@@ -46,37 +46,25 @@ class Save(SubCommand):
         log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
         
         repo = RepomanClient(config.host, config.port, config.proxy)
-        if extra_args:
-            try:
-                kwargs = parse_unknown_args(extra_args)
-            except ArgumentFormatError, e:
-                print e.message
-                sys.exit(1)
-        else:
-            kwargs={}
-            
-        log.debug("kwargs: '%s'" % kwargs)
+        kwargs={}
 
-        if not kwargs.get('name'):
-            log.error("Aborting due to insufficient metadata")
-            print "You need to specify '--name IMAGE-NAME' at a minimum."
-            sys.exit(1)
-
+        name = args.name
         # Check for proper Gzip extension (if needed)
         if args.gzip:
-            name = kwargs.get('name') 
             if name and name.endswith('.gz'):
                 pass
             else:
                 log.info("Enforcing '.gz' extension.")
-                kwargs.update({'name':name+'.gz'})
+                name += '.gz'
                 print ("WARNING: gzip option found, but your image name does not"
                        " end in '.gz'.  Modifying image name to enforce this.")
-                print "New image name: '%s'" % (name + '.gz')
+                print "New image name: '%s'" % (name)
+
+        kwargs['name'] = name
 
         exists = False
         try:
-            image = repo.describe_image(kwargs['name'])
+            image = repo.describe_image(name)
             if image:
                 log.info("Found existing image")
                 exists = True
