@@ -17,7 +17,12 @@ class ImageUtils(object):
         self.imagepath = imagepath
         self.mountpoint = mountpoint
         self.sysdirs_emptied = sysdirs_emptied
-        self.excludes = excludes
+        # Add double quotes around excludes.
+        # We do this so that the shell interpreter does not expand
+        # any pattern (such as '*') while doing the rsync.
+        self.excludes = []
+        for exclude in excludes:
+            self.excludes.append('"%s"' % (exclude))
         self.imagesize = size
         
     def statvfs(self, path='/'):
@@ -172,8 +177,11 @@ class ImageUtils(object):
     def sync_fs(self, verbose):
         #TODO: add progress bar into rsync somehow
         log.info("Starting Sync Process")
-        exclude_list =  "--exclude " + " --exclude ".join(self.excludes)
-        exclude_list += "--exclude " + " --exclude ".join(self.sysdirs_emptied)
+        exclude_list = ""
+        if self.excludes != None and len(self.excludes) > 0:
+            exclude_list =  "--exclude " + " --exclude ".join(self.excludes)
+        if self.sysdirs_emptied != None and len(self.sysdirs_emptied) > 0:
+            exclude_list += " --exclude " + " --exclude ".join(self.sysdirs_emptied)
         flags = ''
         if verbose:
             flags += '--stats --progress ' 
