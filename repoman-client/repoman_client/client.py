@@ -114,7 +114,7 @@ class RepomanClient(object):
             return resp
         elif resp.status == httplib.BAD_REQUEST:
             # 400
-            message = "Invalid request."
+            message = resp.read()
             # parse body for reason and display to user.
         elif resp.status == httplib.FORBIDDEN:
             # 403
