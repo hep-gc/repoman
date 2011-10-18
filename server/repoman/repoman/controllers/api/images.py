@@ -88,7 +88,7 @@ class ImagesController(BaseController):
                                .filter(User.user_name==share_with)\
                                .first()
             if not user:
-                abort(400, '400 Bad Request')
+                abort(400, '400 Bad Request - user %s does not exist' % (user))
             if user in image.shared.users:
                 return
             else:
