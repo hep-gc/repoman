@@ -63,6 +63,7 @@ class ImagesController(BaseController):
                 image.checksum.cvalue = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_HASH')
                 image.size = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_LENGTH')
                 image.raw_uploaded = True
+                image.uploaded = datetime.utcfromtimestamp(time())
                 image.path = file_name
                 image.version += 1
                 image.modified = datetime.utcfromtimestamp(time())
@@ -331,7 +332,7 @@ class ImagesController(BaseController):
 
         new_image.owner = user
         new_image.uuid = uuid
-        new_image.uploaded = current_time
+        new_image.uploaded = None
         new_image.modified = current_time
         new_image.path = file_name
         new_image.raw_uploaded = False
