@@ -243,6 +243,11 @@ class ImagesController(BaseController):
 
         if image:
             inline_auth(AnyOf(OwnsImage(image), HasPermission('image_modify')), auth_403)
+            # Make sure all given attributes exist in the image object.
+            for k,v in request.params.iteritems():
+                if not hasattr(image, k):
+                    abort(400, 'The "%s" image metadata does not exist.  Please check your syntax and try again.' % (k))
+
             for k,v in params.iteritems():
                 if v:
                     setattr(image, k, v)
