@@ -7,6 +7,7 @@ from repoman_client.imageutils import ImageUtils, ImageUtilError
 from argparse import ArgumentParser
 import sys
 import logging
+import re
 
 
 
@@ -20,7 +21,7 @@ class Save(SubCommand):
 
     def get_parser(self):
         p = ArgumentParser(self.description)
-        p.usage = "save name [-h] [-f] [--gzip] [--resize RESIZE] [--verbose] [--clean]"
+        p.usage = "save name [-h] [-f] [--gzip] [--resize RESIZE] [--verbose] [--clean] [--comment COMMENT]"
         p.add_argument('name', help='the name of the new image')
         p.add_argument('-f', '--force', action='store_true', default=False,
                        help='Force uploading even if it overwrites an existing image')
@@ -32,6 +33,7 @@ class Save(SubCommand):
                        help='Display verbose output during snapshot')         
         p.add_argument('--clean', action='store_true', default=False,
                        help='Remove any existing local snapshots before creating a new one.')
+        p.add_argument('--comment', help='Add/Replace the image comment at the end of the description.')
         return p
 
     def write_metadata(self, metadata, metafile):
@@ -134,3 +136,37 @@ class Save(SubCommand):
             log.error(e)
             print e
             sys.exit(1)
+
+        if args.comment:
+            try:
+                image = repo.describe_image(name)
+                if image:
+                    # Here we will search for an existing comment and replace it
+                    # with the new comment (if it exist).  If it does not exist,
+                    # then a new comment will be added at the end of the existing
+                    # description.
+                    comment_re = '\[\[Comment: .+\]\]'
+                    comment_string = '[[Comment: %s]]' % (args.comment)
+                    old_description = image.get('description')
+                    new_description = ''
+                    if image.get('description') is None:
+                        new_description = comment_string
+                    elif re.search(comment_re, old_description):
+                        new_description = re.sub(comment_re, comment_string, old_description)
+                    else:
+                        new_description = '%s %s' % (old_description, comment_string)
+                    kwargs = {'description':new_description}
+                    try:
+                        repo.modify_image(image.get('name'), **kwargs)
+                    except RepomanError, e:
+                        print "Failed to add/update image save comment.\n\t-%s" % e
+                        sys.exit(1)
+
+            except RepomanError,e:
+                if e.status == 404:
+                    log.debug("Did not find the image to update the save commant.  This might be caused by someone else who deleted the image just before we were able to update the comment.")
+                else:
+                    log.error("Unexpected response occurred when testing if image exists.")
+                    log.error("%s" % e)
+                    print "Unexpected response from server.  Image save comment not updated."
+            
