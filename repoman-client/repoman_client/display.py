@@ -38,11 +38,22 @@ def display_group_list(groups, long=False):
 
 # detailed descriptions of user/groups/images
 def describe_user(user, long=False):
-    pprint(user)
+    _pprint_dict(user)
 
 def describe_group(group, long=False):
-    pprint(group)
+    _pprint_dict(group)
 
 def describe_image(image, long=False):
-    pprint(image)
+    _pprint_dict(image)
+
+def _pprint_dict(d):
+    # find max key width
+    max_key_width = 0
+    for key in d.keys():
+        if len(key) > max_key_width:
+            max_key_width = len(key)
+    format_string = '%%%ds : %%s' % (max_key_width)
+    for key in sorted(d.keys()):
+        print format_string % (key, d[key])
+
 

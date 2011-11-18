@@ -79,7 +79,7 @@ class DescribeImage(SubCommand):
         repo = RepomanClient(config.host, config.port, config.proxy)
         try:
             image = repo.describe_image(args.image)
-            display.describe_user(image, long=args.long)
+            display.describe_image(image, long=args.long)
         except RepomanError, e:
             print e
             sys.exit(1)

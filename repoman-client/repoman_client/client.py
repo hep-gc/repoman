@@ -114,7 +114,7 @@ class RepomanClient(object):
             return resp
         elif resp.status == httplib.BAD_REQUEST:
             # 400
-            message = "Invalid request."
+            message = resp.read()
             # parse body for reason and display to user.
         elif resp.status == httplib.FORBIDDEN:
             # 403
@@ -338,6 +338,12 @@ class RepomanClient(object):
     def download_image(self, image, dest=None):
         if not dest:
             dest = './%s' % image
+
+        # Check to see if requested image existing in the repo.
+        # This will raise an exception if it does not.
+        log.info("Checking to see if image slot exists on repository before download")
+        resp = self._get('/api/images/%s' % image)
+
         url = 'https://' + config.host + '/api/images/raw/%s' % image
         log.info("Downloading image From:'%s' To:'%s'" % (url, dest))
         try:
