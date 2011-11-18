@@ -129,8 +129,7 @@ class ModifyImage(SubCommand):
             repo.modify_image(args.image, **kwargs)
             print "[OK]     Modifying image."
         except RepomanError, e:
-            print "[FAILED] Modifying image.\n\t-The image you are trying to modify does not exist in the repository"
-            log.debug(e.message) 
+            print "[FAILED] Modifying image.\n\t-%s" % e
             sys.exit(1)
 
 
