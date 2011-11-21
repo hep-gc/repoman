@@ -22,7 +22,7 @@ See these files for documentation of the server side
 * `server/HOWTO.markdown`   - some quick examples
 
 ## Client Documentation
-see `repoclient/README` for a description of the client side
+see `repoman-client/README.markdown` for a description of the client side
 
 ## License
 
