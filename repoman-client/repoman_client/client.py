@@ -95,7 +95,7 @@ class RepomanClient(object):
             print 'httpexception'
         except socket.gaierror, e:
             log.error("%s", e)
-            print 'Unable to connect to server.  Check Host and port'
+            print 'Unable to connect to server.  Check Host and port \n\t\t %s' % e
             sys.exit(1)
 #        except socket.error, e:
 #            print 'Unable to connect to server.  Is the server running?\n\t%s' % e
@@ -106,7 +106,8 @@ class RepomanClient(object):
 #            sys.exit(1)
         except Exception, e:
             log.error("%s", e)
-            print "Unknown error has occurred.  Check the log file for details."
+            print "Unknown error has occurred. \n\t\t %s" % e
+            sys.exit(1)
 
 
     def _check_response(self, resp):

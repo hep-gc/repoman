@@ -102,6 +102,7 @@ class Config(object):
 
         #Read the config file if possible
         self._read_config()
+        self._validate_options()
         self._check_logging()
 
     #short cut properties
@@ -183,8 +184,8 @@ class Config(object):
     def _validate_options(self):
         for option in self.required_options:
             if not getattr(self, option[1], None):
-                self._errors_found = True
-                self._error_messages.append("You must set the '%s' config value in '%s'" % (option[1], self.config_file))
+                print "You must set the '%s' config value in '%s'" % (option[1], self.config_file)
+                sys.exit(1)
 
     def _get_config_file(self):
         for cfg in self._config_locations:
@@ -200,21 +201,22 @@ class Config(object):
         config = ConfigParser.ConfigParser()
         try:
             config.read(config_file)
-        except ConfigParser.MissingSectionHeaderError:
-            self._errors_found = True
-            self._error_messages.append("The specified config file is poorly formatted.")
-        except Exception:
-            self._errors_found = True
-            self._error_messages.append("Unable to open config file")
+        except Exception, e:
+            print str(e)
+            sys.exit(1)
 
         for option in self.required_options:
-            if config.has_option(option[0], option[1]):
-                value = config.get(option[0], option[1])
-                if value.isdigit():
-                    value = int(value)
-                setattr(self, option[1], value)
+            if config.has_section(option[0]):
+                if config.has_option(option[0], option[1]):
+                    value = config.get(option[0], option[1])
+                    if value.isdigit():
+                        value = int(value)
+                    setattr(self, option[1], value)
+                else:
+                    setattr(self, option[1], None)
             else:
-                setattr(self, option[1], None)
+                print "Missing the '[%s]' section header in %s file" % (option[0],self.config_file)
+                sys.exit(1)
 
         if not self.user_proxy_cert:
             self.user_proxy_cert = self._default_proxy
