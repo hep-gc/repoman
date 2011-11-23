@@ -249,7 +249,7 @@ class ImagesController(BaseController):
                     abort(400, 'The "%s" image metadata does not exist.  Please check your syntax and try again.' % (k))
 
             for k,v in params.iteritems():
-                if v:
+                if v != None:
                     setattr(image, k, v)
             image.modified = datetime.utcfromtimestamp(time())
             meta.Session.commit()

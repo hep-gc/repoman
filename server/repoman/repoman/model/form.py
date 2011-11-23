@@ -180,8 +180,8 @@ class NewImageForm(formencode.Schema):
     expires = formencode.validators.String(if_missing=None)
 
     #expires = formencode.validators.DateTime???
-    read_only = formencode.validators.Bool(if_missing=False)
-    unauthenticated_access = formencode.validators.Bool(if_missing=False)
+    read_only = formencode.validators.StringBool(if_missing=False)
+    unauthenticated_access = formencode.validators.StringBool(if_missing=False)
 
 class ModifyImageForm(formencode.Schema):
     allow_extra_fields = True
@@ -198,8 +198,8 @@ class ModifyImageForm(formencode.Schema):
     expires = formencode.validators.String(if_missing=None)
 
     #expires = formencode.validators.DateTime???
-    read_only = formencode.validators.Bool(if_missing=None)
-    unauthenticated_access = formencode.validators.Bool(if_missing=None)
+    read_only = formencode.validators.StringBool(if_missing=None)
+    unauthenticated_access = formencode.validators.StringBool(if_missing=None)
 
 def validate_raw_image(params):
     schema = NewImageForm()
