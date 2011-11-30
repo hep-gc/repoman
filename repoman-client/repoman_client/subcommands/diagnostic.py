@@ -1,9 +1,10 @@
 from repoman_client.subcommand import SubCommand
-from repoman_client.client import RepomanClient
+from repoman_client.client import RepomanClient, RepomanError
 from repoman_client.config import config
 from repoman_client import display
 from repoman_client.__version__ import version
 from argparse import ArgumentParser
+import sys
 
 class Whoami(SubCommand):
     command_group = 'advanced'
@@ -17,8 +18,12 @@ class Whoami(SubCommand):
 
     def __call__(self, args, extra_args=None):
         repo = RepomanClient(config.host, config.port, config.proxy)
-        me = repo.whoami()
-        display.display_user(me)
+        try:
+            me = repo.whoami()
+            print me.get('user_name')
+        except RepomanError, e:
+            print e
+            sys.exit(1)
 
 
 

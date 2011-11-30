@@ -1,29 +1,16 @@
 from repoman_client.subcommand import SubCommand
 from repoman_client.client import RepomanClient, RepomanError
 from repoman_client.config import config
+from repoman_client.utils import yes_or_no
 from argparse import ArgumentParser
 import sys
-
-def yes_or_no():
-    answer = raw_input("Confirm deletion [yes]/[n]o: ")
-    attempts = 1
-    while answer in ['y', 'ye']:
-        if attempts >= 3:
-            break
-        answer = raw_input("Type the full word 'yes' to confirm deletion: ")
-        attempts = attempts + 1
-
-    if answer.lower() in ['yes']:
-        return True
-    else:
-        return False
-
+import logging
 
 
 class RemoveUser(SubCommand):
     command_group = "advanced"
     command = "remove-user"
-    alias = None
+    alias = 'ru'
     description = 'Remove an existing user from the repository'
 
     def get_parser(self):
@@ -34,6 +21,9 @@ class RemoveUser(SubCommand):
         return p
 
     def __call__(self, args, extra_args=None):
+        log = logging.getLogger('RemoveUser')
+        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
+    
         repo = RepomanClient(config.host, config.port, config.proxy)
         if not args.force:
             print ("WARNING:\n"
@@ -54,7 +44,7 @@ class RemoveUser(SubCommand):
 class RemoveGroup(SubCommand):
     command_group = "advanced"
     command = "remove-group"
-    alias = None
+    alias = 'rg'
     description = 'Remove an existing group from the repository'
 
     def get_parser(self):
@@ -65,6 +55,9 @@ class RemoveGroup(SubCommand):
         return p
 
     def __call__(self, args, extra_args=None):
+        log = logging.getLogger('RemoveGroup')
+        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
+    
         repo = RepomanClient(config.host, config.port, config.proxy)
         if not args.force:
             if not yes_or_no():
@@ -81,7 +74,7 @@ class RemoveGroup(SubCommand):
 class RemoveImage(SubCommand):
     command_group = "advanced"
     command = 'remove-image'
-    alias = None
+    alias = 'ri'
     description = 'Delete an image from the repository'
 
     def get_parser(self):
@@ -93,6 +86,9 @@ class RemoveImage(SubCommand):
         return p
 
     def __call__(self, args, extra_args=None):
+        log = logging.getLogger('RemoveImage')
+        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
+    
         repo = RepomanClient(config.host, config.port, config.proxy)
         if not args.force:
             print ("WARNING:\n"
@@ -113,5 +109,5 @@ class Delete(RemoveImage):
     # subclass RemoveImage because they are the same command.
     command_group = None
     command = "delete"
-    alias = None
+    alias = 'del'
 

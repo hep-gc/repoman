@@ -76,13 +76,12 @@ class UsersController(BaseController):
         # Update the database
         meta.Session.add(new_user)
         meta.Session.commit()
+        response.headers['content-type'] = app_globals.json_content_type
         return h.render_json(beautify.user(new_user))
 
     #authorization is inside function
     def modify_user(self, user, format='json'):
-        inline_auth(AnyOf(AllOf(HasPermission('user_modify_self'), IsUser(user)),
-                          HasPermission('user_modify')),
-                          auth_403)
+        inline_auth(HasPermission('user_modify'), auth_403)
 
         params = validate_modify_user(request.params)
 
@@ -93,6 +92,8 @@ class UsersController(BaseController):
             for k,v in params.iteritems():
                 if v:
                     setattr(user, k, v)
+                    if k == 'cert_dn':
+                        user.certificate.client_dn = v
             meta.Session.commit()
         else:
             abort(404, '404 Not Found')

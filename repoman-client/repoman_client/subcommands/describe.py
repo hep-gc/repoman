@@ -4,11 +4,12 @@ from repoman_client.subcommand import SubCommand
 from repoman_client import display
 from argparse import ArgumentParser
 import sys
+import logging
 
 class DescribeUser(SubCommand):
     command_group = "advanced"
     command = "describe-user"
-    alias = None
+    alias = "du"
     description = 'Display information about an existing user'
 
     def get_parser(self):
@@ -19,6 +20,9 @@ class DescribeUser(SubCommand):
         return p
 
     def __call__(self, args, extra_args=None):
+        log = logging.getLogger('DescribeUser')
+        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
+    
         repo = RepomanClient(config.host, config.port, config.proxy)
         try:
             user = repo.describe_user(args.user)
@@ -32,7 +36,7 @@ class DescribeUser(SubCommand):
 class DescribeGroup(SubCommand):
     command_group = "advanced"
     command = "describe-group"
-    alias = None
+    alias = "dg"
     description = 'Display information about an existing group'
 
     def get_parser(self):
@@ -43,6 +47,9 @@ class DescribeGroup(SubCommand):
         return p
 
     def __call__(self, args, extra_args=None):
+        log = logging.getLogger('DescribeGroup')
+        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
+        
         repo = RepomanClient(config.host, config.port, config.proxy)
         try:
             group = repo.describe_group(args.group)
@@ -55,7 +62,7 @@ class DescribeGroup(SubCommand):
 class DescribeImage(SubCommand):
     command_group = "advanced"
     command = "describe-image"
-    alias = None
+    alias = "di"
     description = 'Display information about an existing image'
 
     def get_parser(self):
@@ -66,10 +73,13 @@ class DescribeImage(SubCommand):
         return p
 
     def __call__(self, args, extra_args=None):
+        log = logging.getLogger('DescribeImage')
+        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
+    
         repo = RepomanClient(config.host, config.port, config.proxy)
         try:
             image = repo.describe_image(args.image)
-            display.describe_user(image, long=args.long)
+            display.describe_image(image, long=args.long)
         except RepomanError, e:
             print e
             sys.exit(1)

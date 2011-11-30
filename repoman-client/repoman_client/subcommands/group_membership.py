@@ -2,12 +2,13 @@ from repoman_client.subcommand import SubCommand
 from repoman_client.client import RepomanClient, RepomanError
 from repoman_client.config import config
 from argparse import ArgumentParser
+import logging
 
 
-class AddUser(SubCommand):
+class AddUserToGroup(SubCommand):
     command_group = 'advanced'
     command = 'add-users-to-group'
-    alias = None
+    alias = 'autg'
     description = 'Add make specifed users members of a group'
 
     def get_parser(self):
@@ -17,6 +18,9 @@ class AddUser(SubCommand):
         return p
 
     def __call__(self, args, extra_args=None):
+        log = logging.getLogger('AddUserToGroup')
+        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
+        
         repo = RepomanClient(config.host, config.port, config.proxy)
         for user in args.users:
             status = "Adding user: `%s` to group: '%s'\t\t" % (user, args.group)
@@ -28,10 +32,10 @@ class AddUser(SubCommand):
 
 
 
-class RemoveUser(SubCommand):
+class RemoveUserFromGroup(SubCommand):
     command_group = 'advanced'
     command = 'remove-users-from-group'
-    alias = None
+    alias = 'rufg'
     description = 'Remove specifed users from group'
 
     def get_parser(self):
@@ -41,6 +45,9 @@ class RemoveUser(SubCommand):
         return p
 
     def __call__(self, args, extra_args=None):
+        log = logging.getLogger('RemoveUserFromGroup')
+        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
+        
         repo = RepomanClient(config.host, config.port, config.proxy)
         for user in args.users:
             status = "Removing user: `%s` from  group: '%s'\t\t" % (user, args.group)

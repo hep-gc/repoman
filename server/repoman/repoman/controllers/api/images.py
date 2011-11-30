@@ -63,6 +63,7 @@ class ImagesController(BaseController):
                 image.checksum.cvalue = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_HASH')
                 image.size = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_LENGTH')
                 image.raw_uploaded = True
+                image.uploaded = datetime.utcfromtimestamp(time())
                 image.path = file_name
                 image.version += 1
                 image.modified = datetime.utcfromtimestamp(time())
@@ -87,7 +88,7 @@ class ImagesController(BaseController):
                                .filter(User.user_name==share_with)\
                                .first()
             if not user:
-                abort(400, '400 Bad Request')
+                abort(400, 'The user you are trying to share the image with does not exist.')
             if user in image.shared.users:
                 return
             else:
@@ -242,8 +243,13 @@ class ImagesController(BaseController):
 
         if image:
             inline_auth(AnyOf(OwnsImage(image), HasPermission('image_modify')), auth_403)
+            # Make sure all given attributes exist in the image object.
+            for k,v in request.params.iteritems():
+                if not hasattr(image, k):
+                    abort(400, 'The "%s" image metadata does not exist.  Please check your syntax and try again.' % (k))
+
             for k,v in params.iteritems():
-                if v:
+                if v != None:
                     setattr(image, k, v)
             image.modified = datetime.utcfromtimestamp(time())
             meta.Session.commit()
@@ -331,7 +337,7 @@ class ImagesController(BaseController):
 
         new_image.owner = user
         new_image.uuid = uuid
-        new_image.uploaded = current_time
+        new_image.uploaded = None
         new_image.modified = current_time
         new_image.path = file_name
         new_image.raw_uploaded = False
@@ -339,6 +345,7 @@ class ImagesController(BaseController):
         meta.Session.add(new_image)
         meta.Session.commit()
 
+        response.headers['content-type'] = app_globals.json_content_type
         response.headers['Location'] = url('raw_by_user',
                                            user=user.user_name,
                                            image=new_image.name)

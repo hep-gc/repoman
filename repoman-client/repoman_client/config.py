@@ -1,15 +1,19 @@
 import ConfigParser
 import os
 import sys
+import subprocess
 
 DEFAULT_CONFIG="""\
 # Configuration file for the repoman client scripts
 [Logger]
+# NOTE: Logging is currently not implimented.  enabling logging will not yield 
+#       any logs yet.
+#
 # enabled:          If True, then logs will be generated and placed in 'log_dir'
 # log_dir:          Name of directory that logs will be placed in.
 #                   If this is NOT an absolute path, then the directory is
 #                   assumed to reside in the base directory of this config file.
-#
+# 
 logging_enabled: true
 logging_dir: repoman_logs
 
@@ -26,7 +30,12 @@ repository_port: 443
 
 [User]
 # user_proxy_cert: Full path to an RFC compliant proxy certificate.
-#                  If not specified, this will default to /tmp/x509up_u`id -u`
+#                  Order of proxy certificate precidence:
+#                       1. command line '--proxy' argument
+#                       2. value in this file
+#                       3. $X509_USER_PROXY
+#                       4. /tmp/x509up_u`id -u` 
+#                       Note: number-4 will respect $SUDO_UID if available
 #
 user_proxy_cert:
 
@@ -37,14 +46,27 @@ user_proxy_cert:
 #
 # mountpoint:      Full path that 'snapshot' will be mounted at. (ie, /tmp/fscopy)
 #
+# sysdirs_emptied:   A list of system directories which must exist in the snapshot
+#                    for the system to function correctly, but emptied during the snapshot
+#                    process.
+#                    Each directory must be the full path.
+#                    Each item in the list is seperated by a space.
+#                    Note: Expressions containing wildcards (*) are not supported.
+#
+#
 # exclude_dirs:    A list of directories that will be excluded when creating the
 #                  snapshot of the running system.
 #                  Each directory must be the full path.
 #                  Each item in the list is seperated by a space.
+#                  Wildcards (*) are supported.
+#                  Note: use '/mydir' to exclude a directory completely, while '/mydir/*' to exclude the content
+#                        of a directory but still create an empty '/mydir' directory in the snapshot.
 #
+lockfile: /tmp/repoman-sync.lock
 snapshot: /tmp/fscopy.img
 mountpoint: /tmp/fscopy
-exclude_dirs: /dev /mnt /lustre /proc /sys /tmp /etc/grid-security /root/.ssh
+sysdirs_emptied: /dev /mnt /proc /sys /tmp
+exclude_dirs: /lustre/* /root/.ssh
 """
 
 
@@ -58,21 +80,29 @@ class Config(object):
                                  ('ThisImage', 'mountpoint'),
                                  ('ThisImage', 'snapshot'),
                                  ('ThisImage', 'exclude_dirs'),
+                                 ('ThisImage', 'sysdirs_emptied'),
+                                 ('ThisImage', 'lockfile'),
                                  ('Logger', 'logging_enabled'),
                                  ('Logger', 'logging_dir')]
 
         self._config_locations = ['$REPOMAN_CLIENT_CONFIG',
-                                  '$HOME/.repoman/repoman.conf',
-                                  '~/.repoman/repoman.conf']
+                                  '$HOME/.repoman/repoman.conf']
+        
+        user_id = os.environ.get('SUDO_UID')
+        if not user_id:
+            user_id = os.getuid()
 
         if config_file:
             self._config_locations.insert(0, config_file)
 
         self._default_config_dir = os.path.expanduser('~/.repoman')
-        self._default_proxy = "/tmp/x509up_u%s" % os.getuid()
+        self._default_proxy = os.environ.get('X509_USER_PROXY')
+        if not self._default_proxy:
+            self._default_proxy = "/tmp/x509up_u%s" % user_id
 
         #Read the config file if possible
         self._read_config()
+        self._validate_options()
         self._check_logging()
 
     #short cut properties
@@ -92,7 +122,9 @@ class Config(object):
         self.verbose = verbose
         if not self.config_file:
             print "No configuration file found."
-            sys.exit(1)
+            self.generate_config()
+            print "Generating new config file at '%s'" % self.config_file
+            self._read_config()
         self._validate_options()
         self._check_logging()
         self._check_proxy()
@@ -133,6 +165,9 @@ class Config(object):
         if not os.path.isdir(self.logging_dir):
             try:
                 os.mkdir(self.logging_dir)
+                uid = os.environ.get('SUDO_UID', os.getuid())
+                gid = os.environ.get('SUDO_GID', os.getgid())
+                os.chown(self.logging_dir, int(uid), int(gid))
             except:
                 self._errors_found = True
                 self._error_messages.append("Logging dir does not exist and I am unable to create it.")
@@ -149,8 +184,8 @@ class Config(object):
     def _validate_options(self):
         for option in self.required_options:
             if not getattr(self, option[1], None):
-                self._errors_found = True
-                self._error_messages.append("You must set the '%s' config value in '%s'" % (option[1], self.config_file))
+                print "You must set the '%s' config value in '%s'" % (option[1], self.config_file)
+                sys.exit(1)
 
     def _get_config_file(self):
         for cfg in self._config_locations:
@@ -166,27 +201,38 @@ class Config(object):
         config = ConfigParser.ConfigParser()
         try:
             config.read(config_file)
-        except ConfigParser.MissingSectionHeaderError:
-            self._errors_found = True
-            self._error_messages.append("The specified config file is poorly formatted.")
-        except Exception:
-            self._errors_found = True
-            self._error_messages.append("Unable to open config file")
+        except Exception, e:
+            print str(e)
+            sys.exit(1)
 
         for option in self.required_options:
-            if config.has_option(option[0], option[1]):
-                value = config.get(option[0], option[1])
-                if value.isdigit():
-                    value = int(value)
-                setattr(self, option[1], value)
+            if config.has_section(option[0]):
+                if config.has_option(option[0], option[1]):
+                    value = config.get(option[0], option[1])
+                    if value.isdigit():
+                        value = int(value)
+                    setattr(self, option[1], value)
+                else:
+                    setattr(self, option[1], None)
             else:
-                setattr(self, option[1], None)
+                print "Missing the '[%s]' section header in %s file" % (option[0],self.config_file)
+                sys.exit(1)
 
         if not self.user_proxy_cert:
             self.user_proxy_cert = self._default_proxy
 
     def _check_proxy(self):
-        pass
+        if not os.path.isfile(self.user_proxy_cert):
+            self._errors_found = True
+            self._error_messages.append("The proxy certificate: '%s' does not exist.\nGenerate a new cert or manually specify with '--proxy'" % self.user_proxy_cert)
+            return
+
+        # Test expiration
+        cmd = "openssl x509 -in %s -noout -checkend 0" % self.user_proxy_cert
+        retcode = subprocess.call(cmd, shell=True)
+        if retcode:
+            self._errors_found = True
+            self._error_messages.append("The proxy certificate: '%s' is expired" % self.user_proxy_cert)
 
 
 config = Config()

@@ -3,11 +3,13 @@ from repoman_client.client import RepomanClient, RepomanError
 from repoman_client.config import config
 from repoman_client.subcommand import SubCommand
 from argparse import ArgumentParser
+import logging
+
 
 class AddPermission(SubCommand):
     command_group = 'advanced'
     command = 'add-permissions'
-    alias = None
+    alias = 'ap'
     description = 'Add permissions to groups'
 
     def get_parser(self):
@@ -18,10 +20,14 @@ class AddPermission(SubCommand):
         return p
 
     def __call__(self, args, extra_args=None):
+        log = logging.getLogger('AddPermission')
+        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
+    
         repo = RepomanClient(config.host, config.port, config.proxy)
         for p in args.permissions:
             status = "Adding permission: '%s' to group: '%s'" % (p, args.group)
             try:
+                log.debug(status)
                 repo.add_permission(args.group, p)
                 print "[OK]     %s" % status
             except RepomanError, e:
@@ -31,7 +37,7 @@ class AddPermission(SubCommand):
 class RemovePermission(SubCommand):
     command_group = 'advanced'
     command = 'remove-permissions'
-    alias = None
+    alias = 'rp'
     description = 'Remove specified permissions from group'
 
     def get_parser(self):
@@ -42,10 +48,14 @@ class RemovePermission(SubCommand):
         return p
 
     def __call__(self, args, extra_args=None):
+        log = logging.getLogger('RemovePermission')
+        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
+    
         repo = RepomanClient(config.host, config.port, config.proxy)
         for p in args.permissions:
             status = "Removing permission: '%s' from group: '%s'" % (p, args.group)
             try:
+                log.debug(status)
                 repo.remove_permission(args.group, p)
                 print "[OK]     %s" % status
             except RepomanError, e:

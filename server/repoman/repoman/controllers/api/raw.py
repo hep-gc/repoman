@@ -1,7 +1,7 @@
 import logging
 
 from pylons import request, response, session, tmpl_context as c, url
-from pylons.controllers.util import abort, redirect
+from pylons.controllers.util import abort, redirect, etag_cache
 
 from repoman.lib.base import BaseController, render
 
@@ -52,6 +52,14 @@ class RawController(BaseController):
                                   auth_403)
 
             file_path = path.join(app_globals.image_storage, image.path)
+            try:
+            	content_length = path.getsize(file_path)
+            	response.headers['X-content-length'] = str(content_length)
+            except:
+            	abort(500, '500 Internal Error')
+            	
+            etag_cache(str(image.path) + '_' + str(image.version))
+
             image_file = open(file_path, 'rb')
             try:
                 return h.stream_img(image_file)

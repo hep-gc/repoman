@@ -2,6 +2,7 @@ from repoman_client.config import config
 import argparse
 import sys
 from pprint import pprint
+from repoman_client.utils import check_sudo
 
 __all__ = ['RepomanCLI']
 
@@ -67,6 +68,8 @@ class CommandGroup(object):
         if command not in self.commands:
             self.commands.append(command)
             self.command_lookup.update({command.command:command})
+            if command.alias:
+            	self.command_lookup.update({command.alias:command})
 
     def get_command(self, command):
         return self.command_lookup.get(command)
@@ -84,10 +87,8 @@ class RepomanCLI(object):
 
     def __call__(self):
         (args, extra) = self.parse_known_args()
-        if args.help_all:
+        if args.help:
             self.print_help(long=True)
-        elif args.help:
-            self.print_help(long=False)
 
         if not args.subcommand:
             self.parser.error('Specify a subcommand to run, or run --help')
@@ -105,9 +106,9 @@ class RepomanCLI(object):
     def get_parser(self):
         p = argparse.ArgumentParser(add_help=False)
         p.add_argument('subcommand', metavar='SUBCOMMAND', nargs='?')
-        p.add_argument('-h', '--help', action='store_true', default=False)
-        p.add_argument('--help-all', action='store_true', default=False)
-        p.add_argument('--version', action='version', version='%s' % self.version)
+        p.add_argument('-h', '--help', action='store_true', default=False, help='Show this help screen, or command-specific help when preceded by a subcommand')
+        #p.add_argument('--help-all', action='store_true', default=False, help='Show more detailed help, including a list of advanced subcommands')
+        p.add_argument('--version', action='version', version='%s' % self.version, help='Show program\'s version number and exit')
         p.add_argument('-H', '--host', help='Override host setting')
         p.add_argument('-P', '--port', type=int, help='Override port setting for host')
         p.add_argument('--proxy', help='Override default proxy certificate')
@@ -171,6 +172,8 @@ class RepomanCLI(object):
         if not group and command_class not in self.commands:
             self.commands.append(command_class)
             self.command_lookup.update({command_class.command:command_class})
+            if command_class.alias:
+            	self.command_lookup.update({command_class.alias:command_class})
         elif group:
             group = self._add_command_group(group)
             group.add_command(command_class)
@@ -187,8 +190,6 @@ class RepomanCLI(object):
     def dispatch(self, command, args):
         cmd = self.lookup_command(command)
         if cmd:
-            if cmd.validate_config:
-                config.validate()
             cmd = cmd()
             cmd_parser = cmd.get_parser()
             cmd_parser.prog = command
@@ -197,6 +198,10 @@ class RepomanCLI(object):
             else:
                 args = cmd_parser.parse_args(args)
                 extra = None
+            if cmd.validate_config:
+                config.validate()
+            if cmd.require_sudo:
+                check_sudo(exit=True)
             cmd(args, extra)
             sys.exit(0)
         else:

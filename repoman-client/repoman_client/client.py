@@ -1,11 +1,15 @@
 from repoman_client.config import config
+from repoman_client import imageutils
 import simplejson
 import httplib
 import urllib
 import socket
 import subprocess
-import ssl
-import sys
+#import ssl
+import sys, os, time
+import logging
+
+log = logging.getLogger('client')
 
 
 HEADERS = {"Content-type":"application/x-www-form-urlencoded", "Accept": "*"}
@@ -16,6 +20,12 @@ class RepomanError(Exception):
         self.resp = resp            # Origonal response
         self.message = message      # User friendly message
         self.exit = True            # Should the client abort on this error?
+        self.status = None
+        if resp:
+            try:
+                self.status = resp.status
+            except:
+                pass
 
     def __str__(self):
         return self.message
@@ -30,6 +40,12 @@ class FormattingError(RepomanError):
         self.body = body
         self.resp = resp
         self.message = message
+        self.status = None
+        if resp:
+            try:
+                self.status = resp.status
+            except:
+                pass
 
     def __str__(self):
         return self.message
@@ -49,9 +65,14 @@ class RepomanClient(object):
         self.HOST = host
         self.PORT = port
         self.PROXY = proxy
-        self._conn = httplib.HTTPSConnection(host, port, cert_file=proxy)
+        self._conn = httplib.HTTPSConnection(host, port, cert_file=proxy, key_file=proxy)
+        log.debug('Created Httpsconnection with... HOST:%s PORT:%s PROXY:%s' % 
+                  (self.HOST, self.PORT, self.PROXY))
 
     def _request(self, method, url, kwargs={}, headers=HEADERS):
+        log.debug("%s %s" % (method, url))
+        log.debug("kwargs: %s" % kwargs)
+        log.debug("headers: %s" % headers)
         try:
             if method == 'GET':
                 self._conn.request(method, url)
@@ -61,21 +82,32 @@ class RepomanClient(object):
                 params = urllib.urlencode(kwargs)
                 self._conn.request(method, url, params, headers)
             resp =  self._conn.getresponse()
+            log.debug("Server response code: %s" % resp.status)
             return self._check_response(resp)
-        except httplib.InvalidURL:
+        except RepomanError, e:
+            raise(e)
+        except httplib.InvalidURL, e:
+            log.error("%s" % e)
             print "Invlaid port number"
             sys.exit(1)
-        except httplib.HTTPException:
+        except httplib.HTTPException, e:
+            log.error("%s" % e)
             print 'httpexception'
         except socket.gaierror, e:
-            print 'Unable to connect to server.  Check Host and port'
+            log.error("%s", e)
+            print 'Unable to connect to server.  Check Host and port \n\t\t %s' % e
             sys.exit(1)
-        except ssl.SSLError, e:
-            print "An error has occured within open ssl."
-            print str(e)
-            sys.exit(1)
+#        except socket.error, e:
+#            print 'Unable to connect to server.  Is the server running?\n\t%s' % e
+#            sys.exit(1)
+#        except ssl.SSLError, e:
+#            print "An error has occurred within open ssl."
+#            print str(e)
+#            sys.exit(1)
         except Exception, e:
-            raise e
+            log.error("%s", e)
+            print "Unknown error has occurred. \n\t\t %s" % e
+            sys.exit(1)
 
 
     def _check_response(self, resp):
@@ -83,7 +115,7 @@ class RepomanClient(object):
             return resp
         elif resp.status == httplib.BAD_REQUEST:
             # 400
-            message = "Invalid request."
+            message = resp.read()
             # parse body for reason and display to user.
         elif resp.status == httplib.FORBIDDEN:
             # 403
@@ -112,6 +144,7 @@ class RepomanClient(object):
                        "-------- body ---------\n"
                        "%s\n-----------------------\n"
                        ) % (resp.status, resp.reason, resp.read())
+        log.error(message)
         raise RepomanError(message, resp)
 
     def _get(self, url):
@@ -125,6 +158,7 @@ class RepomanClient(object):
 
     def _json(self, resp):
         body = resp.read()
+        log.debug("Message body from server: '%s'" % body)
         try:
             return simplejson.loads(body)
         except:
@@ -163,20 +197,31 @@ class RepomanClient(object):
             resp = self._get('/api/users/%s/groups' % user)
         return self._parse_response(resp)
 
-    def list_images(self, user=None, group=None, list_all=False):
-        if list_all:
-            # List all images
-            resp = self._get('/api/images')
-        elif not group and not user:
-            # List my images
-            resp = self.whoami()
-            return resp.get('images')
-        elif group and not user:
-            # List images shared with `group`
-            resp = self._get('/api/groups/%s/images' % group)
-        elif user and not group:
-            resp = self._get('/api/users/%s/images' % user)
+    def list_all_images(self):
+        resp = self._get('/api/images')
         return self._parse_response(resp)
+
+    def list_current_user_images(self):
+        resp = self.whoami()
+        return resp.get('images')
+
+    def list_user_images(self, user):
+        resp = self._get('/api/users/%s/images' % user)
+        return self._parse_response(resp)
+
+    def list_images_shared_with_group(self, group):
+        resp = self._get('/api/groups/%s/shared' % group)
+        return self._parse_response(resp)
+
+    def list_images_shared_with_user(self, user=None):
+        if user:
+            resp = self._get('/api/users/%s/shared' % user)
+            return self._parse_response(resp)
+        else:
+            # Two calls, grrr...
+            user = self.whoami().get('user_name')
+            resp = self._get('/api/users/%s/shared' % user)
+            return self._parse_response(resp)
 
     def describe_user(self, user):
         resp = self._get('/api/users/%s' % user)
@@ -200,7 +245,7 @@ class RepomanClient(object):
 
     def create_image_metadata(self, **kwargs):
         resp = self._post('/api/images', kwargs)
-        return True
+        return self._parse_response(resp)
 
     def remove_user(self, user):
         resp = self._delete('/api/users/%s' % user)
@@ -258,37 +303,62 @@ class RepomanClient(object):
         resp = self._delete('/api/images/%s/share/group/%s' % (image, group))
         return True
 
-    def upload_image(self, image, image_file):
+    def upload_image(self, image, image_file, gzip=False):
+        log.info("Checking to see if image slot exists on repository")
         resp = self._get('/api/images/%s' % image)
         if resp.status != 200:
+            log.info("Image slot does not yet exist.")
             raise RepomanError('Image does not yet exist.  Create an image before uploading to it', resp)
 
         url = 'https://' + config.host + '/api/images/raw/%s' % image
         try:
+            if gzip:
+                log.info("Performing gzip on image prior to upload")
+                print "Gzipping image before upload"
+                gzip_image = os.path.join(os.path.dirname(image_file), image)
+                gzip = subprocess.Popen("gzip --stdout %s > %s" % (image_file, gzip_image),
+                                        shell=True)
+                gzip.wait()
+                image_file = gzip_image
+                log.info('Gzip complete')
+                
             args = ['curl',
                     '--cert', config.proxy,
                     '--insecure',
                     '-T', image_file, url]
             cmd = " ".join(args)
-            p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
-            for line in p.stdout.readlines():
+            log.info("Running command: '%s'" % cmd)
+            curl = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+            for line in curl.stdout.readlines():
                 print line
+            log.info("Command complete")
         except Exception, e:
+            log.error("%s" % e)
             print e
 
     def download_image(self, image, dest=None):
         if not dest:
             dest = './%s' % image
+
+        # Check to see if requested image existing in the repo.
+        # This will raise an exception if it does not.
+        log.info("Checking to see if image slot exists on repository before download")
+        resp = self._get('/api/images/%s' % image)
+
         url = 'https://' + config.host + '/api/images/raw/%s' % image
+        log.info("Downloading image From:'%s' To:'%s'" % (url, dest))
         try:
             args = ['curl',
                     '--cert', config.proxy,
                     '--insecure',
                     url, '>', dest]
             cmd = " ".join(args)
+            log.info("Running Command: '%s'" % cmd)
             p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
             for line in p.stdout.readlines():
                 print line
+            log.info("Command complete")
         except Exception, e:
+            log.error("%s" % e)
             print e
 

@@ -5,12 +5,12 @@ from repoman_client import display
 import argparse
 from argparse import ArgumentParser
 import sys
-
+import logging
 
 class ListUsers(SubCommand):
     command_group = "advanced"
     command = "list-users"
-    alias = None
+    alias = 'lu'
     description = 'List user accounts on repoman'
 
     def get_parser(self):
@@ -20,11 +20,16 @@ class ListUsers(SubCommand):
         return p
 
     def __call__(self, args, extra_args=None):
+        log = logging.getLogger('ListUsers')
+        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
+    
         repo = RepomanClient(config.host, config.port, config.proxy)
         if args.group:
             kwargs = {'group':args.group}
         else:
             kwargs = {}
+            
+        log.debug("kwargs: '%s'" % kwargs)
 
         try:
             users = repo.list_users(**kwargs)
@@ -37,7 +42,7 @@ class ListUsers(SubCommand):
 class ListGroups(SubCommand):
     command_group = "advanced"
     command = "list-groups"
-    alias = None
+    alias = 'lg'
     description = 'List existing user groups on the repository'
 
     def get_parser(self):
@@ -48,6 +53,9 @@ class ListGroups(SubCommand):
         return p
 
     def __call__(self, args, extra_args=None):
+        log = logging.getLogger('ListGroups')
+        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
+    
         repo = RepomanClient(config.host, config.port, config.proxy)
         if args.all:
             kwargs = {'list_all':True}
@@ -55,6 +63,8 @@ class ListGroups(SubCommand):
             kwargs = {'user':args.user}
         else:
             kwargs = {}
+
+        log.debug("kwargs: '%s'" % kwargs)
 
         try:
             groups = repo.list_groups(**kwargs)
@@ -69,7 +79,7 @@ class ListGroups(SubCommand):
 class ListImages(SubCommand):
     command_group = "advanced"
     command = 'list-images'
-    alias = None
+    alias = 'li'
     description = 'List a users images stored in the repository'
 
     def get_parser(self):
@@ -108,25 +118,38 @@ Example Usages:
         return p
 
     def __call__(self, args, extra_args=None):
+        log = logging.getLogger('ListImages')
+        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
+    
         #TODO: impliment sharedwith calls
         repo = RepomanClient(config.host, config.port, config.proxy)
         if args.all:
-            kwargs = {'list_all':True}
+            func = repo.list_all_images
+            kwargs = {}
         elif args.group and not args.user:
+            func = repo.list_images_shared_with_group
             kwargs = {'group':args.group}
         elif args.user and not args.group:
             if args.sharedwith:
-                pass
+                func = repo.list_images_shared_with_user
+                kwargs = {'user':args.user}
             else:
+                func = repo.list_user_images
                 kwargs = {'user':args.user}
         else:
             if args.sharedwith:
-                pass
+                # shared with you
+                func = repo.list_images_shared_with_user
+                kwargs = {}
             else:
+                func = repo.list_current_user_images
                 kwargs = {}
 
+        log.debug("function: '%s'" % func)
+        log.debug("kwargs: '%s'" % kwargs)
+
         try:
-            images = repo.list_images(**kwargs)
+            images = func(**kwargs)
             display.display_image_list(images, long=args.long)
         except RepomanError, e:
             print e.message
@@ -137,5 +160,5 @@ class List(ListImages):
     # Subclassed from ListImages because it's the same command.
     command_group = None
     command = "list"
-    alias = None
+
 

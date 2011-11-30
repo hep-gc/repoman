@@ -4,8 +4,7 @@ import sys
 
 
 class SubCommand(object):
-    """A baseclass that all subcommands must be subclassed from in order for
-    automagic subcommand import to work.
+    """A baseclass that all subcommands must be subclassed from.
 
     required methods:
         get_parser(self)
@@ -33,6 +32,8 @@ class SubCommand(object):
                                 # will be allowed and passed to the __call__ method
     description = ""            # a description string that will show up in a
                                 # list of subcommands
+    require_sudo = False        # Will check to see that the user is sudo before
+                                # executing command.                                
 
     def get_parser(self):
         # Raise an exception to make sure people override this in the subclass
@@ -41,30 +42,3 @@ class SubCommand(object):
     def __call__(self, args, extra_args=None):
         # Raise an exception to make sure people override this in the subclass
         raise Exception("You need to override the '__call__' class method")
-
-
-
-#def automagic_command_import(path):
-#    _excludes = ['__init__.py']
-#    subcommands = []
-
-#    for f in os.listdir(path):
-#        print f
-#        if f.endswith('.py') and f not in _excludes:
-#            toplevel = f.rsplit('.py')[0]
-#            try:
-#                module = __import__(path+'/'+toplevel, level=0) #filename imports not allowed
-#            except Exception, e:
-#                print e
-#                continue
-
-#            for c in dir(module):
-#                print "\t%s%s" % (module, c)
-#                try:
-#                    cmd = getattr(module, c, None)
-#                    if issubclass(cmd, SubCommand) and cmd is not SubCommand:
-#                        subcommands.append(cmd)
-#                except:
-#                    pass
-#    return subcommands
-

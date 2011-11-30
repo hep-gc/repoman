@@ -2,7 +2,6 @@
 # Project imports
 from repoman.model import meta
 from repoman.model.certificate import Certificate
-#from repoman.lib.errors.server import invalid_config_value
 
 # Standard imports
 from time import strptime, gmtime
