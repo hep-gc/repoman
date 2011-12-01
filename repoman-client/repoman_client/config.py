@@ -144,6 +144,7 @@ class Config(object):
 
         try:
             config_file = os.path.join(self._default_config_dir, 'repoman.conf')
+            print "Generating new config file %s ... " % (config_file)
             config = open(config_file, 'w')
             config.write(DEFAULT_CONFIG)
             self.config_file = config_file
@@ -193,8 +194,11 @@ class Config(object):
             if os.path.isfile(cfg):
                 self.config_file = cfg
                 return cfg
-        self.config_file = None
-        return ''
+        # If we get here, this means that no config file could be found.
+        # Let's create one for the user...
+        print "No configuration file found."
+        self.generate_config()
+        return self.config_file
 
     def _read_config(self):
         config_file = self._get_config_file()
