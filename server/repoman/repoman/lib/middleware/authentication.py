@@ -76,8 +76,6 @@ class UserAuthentication(object):
             ssl = self.get_ssl_from_environ(environ)
         elif self.deploy_type == 'proxy':
             ssl = self.get_ssl_from_headers(environ)
-        else:
-            invalid_config_value('deploy_type', self.deploy_type)
 
         return self.authorize(ssl, environ, start_response)
 
