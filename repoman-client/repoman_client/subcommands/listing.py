@@ -15,7 +15,7 @@ class ListUsers(SubCommand):
 
     def get_parser(self):
         p = ArgumentParser(self.description)
-        p.add_argument('-l', '--long', help='display extra information')
+        p.add_argument('-l', '--long', action='store_true', default=False, help='display extra information')
         p.add_argument('-g', '--group', help='only display users in GROUP')
         return p
 
@@ -47,7 +47,7 @@ class ListGroups(SubCommand):
 
     def get_parser(self):
         p = ArgumentParser(self.description)
-        p.add_argument('-l', '--long', help='display extra information')
+        p.add_argument('-l', '--long', action='store_true', default=False, help='display extra information')
         p.add_argument('-a', '--all', help='Display all groups', action='store_true')
         p.add_argument('-u', '--user', help='display group membership for USER')
         return p
