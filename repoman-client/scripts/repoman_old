@@ -1,0 +1,104 @@
+#!/usr/bin/env python
+import sys
+import os
+import argparse
+import logging
+from datetime import date
+from repoman_client.__version__ import version
+from repoman_client.parsers import RepomanCLI
+from repoman_client.subcommands.config import MakeConfig
+from repoman_client.subcommands.up_down import Get, UploadImage, DownloadImage
+from repoman_client.subcommands.modify import Rename, ModifyUser, ModifyGroup, ModifyImage
+from repoman_client.subcommands.remove import Delete, RemoveUser, RemoveGroup, RemoveImage
+from repoman_client.subcommands.listing import List, ListUsers, ListGroups, ListImages
+from repoman_client.subcommands.describe import DescribeUser, DescribeGroup, DescribeImage
+from repoman_client.subcommands.create import CreateUser, CreateGroup, CreateImage
+from repoman_client.subcommands.sharing import ShareImage, UnshareImage
+from repoman_client.subcommands.group_membership import AddUserToGroup, RemoveUserFromGroup
+from repoman_client.subcommands.permissions import AddPermission, RemovePermission
+from repoman_client.subcommands.diagnostic import Whoami, About
+from repoman_client.subcommands.save import Save
+from repoman_client.config import config
+
+def touch_file(path):
+    """Create specified path if it does not exists, and modify ownership."""
+    if not os.path.exists(path):
+        uid = os.environ.get('SUDO_UID', os.getuid())
+        gid = os.environ.get('SUDO_GID', os.getgid())
+        open(log_filename, 'w').close()
+        os.chown(log_filename, int(uid), int(gid))
+
+def main():
+
+    # The main dispatcher.
+    main_parser = RepomanCLI(version=version)
+
+    # Subcommands are added in the order that help will be generated.
+    # Subcommand groups are automatically created based on the 'command_group'
+    # class attribute for each subcommand.  If 'command_group' is None, the
+    # subcommand will be added to a generic group called 'subcommands'
+    main_parser.add_command(Get)
+    main_parser.add_command(Save)
+    main_parser.add_command(Rename)
+    main_parser.add_command(Delete)
+    main_parser.add_command(List)
+    main_parser.add_command(MakeConfig)
+
+    main_parser.add_command(ListUsers)
+    main_parser.add_command(ListGroups)
+    main_parser.add_command(ListImages)
+
+    main_parser.add_command(DescribeUser)
+    main_parser.add_command(DescribeGroup)
+    main_parser.add_command(DescribeImage)
+
+    main_parser.add_command(CreateUser)
+    main_parser.add_command(CreateGroup)
+    main_parser.add_command(CreateImage)
+
+    main_parser.add_command(ModifyUser)
+    main_parser.add_command(ModifyGroup)
+    main_parser.add_command(ModifyImage)
+
+    main_parser.add_command(RemoveUser)
+    main_parser.add_command(RemoveGroup)
+    main_parser.add_command(RemoveImage)
+
+    main_parser.add_command(ShareImage)
+    main_parser.add_command(UnshareImage)
+
+    main_parser.add_command(AddUserToGroup)
+    main_parser.add_command(RemoveUserFromGroup)
+
+    main_parser.add_command(AddPermission)
+    main_parser.add_command(RemovePermission)
+
+    main_parser.add_command(UploadImage)
+    main_parser.add_command(DownloadImage)
+
+    main_parser.add_command(Whoami)
+    main_parser.add_command(About)
+
+    # Execute Main Parser
+    main_parser()
+
+
+
+if config.logging_enabled:
+    today = str(date.today())
+    log_filename = os.path.join(config.logging_dir, "repoman-client-%s.log" % today)
+    touch_file(log_filename)
+    logging.basicConfig(
+        filename=log_filename,
+        format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+        level=logging.DEBUG)
+else:
+    logging.basicConfig(filename='/dev/null')
+
+log = logging.getLogger('repoman')
+
+if __name__ == '__main__':
+    log.info("-------- new entry --------")
+    log.debug("%s" % sys.argv)
+    main()
+
