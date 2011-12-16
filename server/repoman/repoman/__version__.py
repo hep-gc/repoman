@@ -1,6 +1,6 @@
 major = '0.2'
-minor = '1'
-tag = 'rc5'
+minor = '2'
+tag = None
 revision = ''
 version = major
 
