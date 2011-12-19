@@ -101,16 +101,16 @@ Specifying a subcommand displays information specific to that subcommand.
 Before other repoman subcommands can be used, a configuration file must be created. The following subcommand will create the
 configuration file for you.
 .TP
-\fB{mc|make-config}\fP [{--exclude|-e} \fIpaths\fP]
+\fB{mc|make-config}\fP [{-E|--system-excludes} \fIsystem_paths\fP] [{-e|--user-excludes} \fIuser_paths\fP]
 .TP
-{-E|--system-excludes} \fIpaths\fP
+{-E|--system-excludes} \fIsystem_paths\fP
 Blank separated list of paths to be excluded from a snapshot of the
 operating system during a \fBrepoman save-image\fP. A directory path specification ending in \'/*\' will cause the directory
 to be created in the saved image, but none of it's contents to be copied to the saved image.
 Defaults to \'/cvmfs/* /dev/* /mnt/* /proc/* /root/.ssh /sys/* /tmp/*\'.
 See note under \fBuser-excludes\fP.
 .TP
-{-e|--user-excludes} \fIpaths\fP
+{-e|--user-excludes} \fIuser_paths\fP
 Blank separated list of paths to be excluded from a snapshot of the
 operating system during a \fBrepoman save-image\fP. A directory path specification ending in \'/*\' will cause the directory
 to be created in the saved image, but none of it's contents to be copied to the saved image.
