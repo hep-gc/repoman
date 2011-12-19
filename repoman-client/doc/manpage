@@ -66,9 +66,9 @@ other repoman commands. It must be unique to the owner's domain and can only con
 repoman \- a command to interact with repoman Virtual Machine (VM) image repositories
 .SH SYNOPSIS
 
-\fBrepoman\fP {help|--help} [\fIsubcommand\fP]
+\fBrepoman\fP help [\fIsubcommand\fP]
 
-\fBrepoman\fP [{--host|-H} \fIhost\fP] [{--port|-p} \fIport\fP] [{--proxy|-P} \fIpath\fP] \fIsubcommand\fP
+\fBrepoman\fP [options] \fIsubcommand\fP
 
 .SH DESCRIPTION
 Repoman is the name given to both a user command and a server software package that provides Virtual Machine (VM) image
