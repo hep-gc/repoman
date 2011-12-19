@@ -68,8 +68,6 @@ repoman \- a command to interact with repoman Virtual Machine (VM) image reposit
 
 \fBrepoman\fP {help|--help} [\fIsubcommand\fP]
 
-\fBrepoman\fP {version|--version}
-
 \fBrepoman\fP [{--host|-H} \fIhost\fP] [{--port|-p} \fIport\fP] [{--proxy|-P} \fIpath\fP] \fIsubcommand\fP
 
 .SH DESCRIPTION
