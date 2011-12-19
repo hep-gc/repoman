@@ -76,47 +76,41 @@ repository management over the web (HTTP/HTTPS). This man page describes the com
 allowing you to create, manage, and delete Virtual Machine images.
 .SS Options
 .TP
-\fB{help|--help}\fP [\fIsubcommand\fP]
-Show the help dialog. If no subcommand is specified, a general overview of all the commands is displayed. Specifying the subcommand displays
-information specific to that subcommand.
-.TP
-\fB{version|--version}
-Display the repoman version and exit.
-.TP
-\fB{--host|-H}\fP \fIhost\fP
-Override the host setting with \fIhost\fB.
+\fB{-r|--repository}\fP \fIfully_qualified_host_name\fP
+Override the configuration file default \fIrepository\fP setting with \fIfully_qualified_host_name\fP.
+For example: "vmrepo.example.ca".
 .TP
 \fB{-p|--port}\fP \fIport\fP
-Override the port setting for the host with \fIport\fP.
+Override the configuration file default \fIport\fP setting with \fIport\fP.
+Defaults to 443, the default port for a repoman server.
 .TP
 \fB{-P|--proxy}\fP \fIpath\fP
-Override the default proxy certificate with the proxy certificate located at \fIpath\fP.
+Override the configuration file default proxy certificate path with \fIpath\fP.
+Defaults to "/tmp/x509up_uNNNN", where "NNNN" is your effective UID.
 .TP
 \fIsubcommand\fP
 See the following sections for possible subcommands and subcommand parameters.
+
+.SH HELP SUBCOMMAND
+.TP
+\fBhelp\fP [\fIsubcommand\fP]
+Show the help dialog. If no subcommand is specified, a general overview of all subcommands is displayed.
+Specifying a subcommand displays information specific to that subcommand.
+
 .SH CONFIGURATION SUBCOMMAND
 Before other repoman subcommands can be used, a configuration file must be created. The following subcommand will create the
 configuration file for you.
 .TP
-\fB{make-config|mc}\fP \fIhost\fP [{--port|-p} \fIport\fP] [{--proxy|-P} \fIpath\fP] [{--exclude|-e} \fIpaths\fP] [{--emptied|-E} \fIpaths\fP]
+\fB{mc|make-config}\fP [{--exclude|-e} \fIpaths\fP]
 .TP
-\fIhost\fP
-The fully qualified domain name (FQDN) of the repoman image repository server to be managed. For example: vmrepo.example.ca
-.TP
-{--port|-p} \fIport\fP
-Used to specify the port that the repoman server listens on. Defaults to 443, the default port for a repoman server.
-.TP
-{--proxy|-P} \fIpatpath\fP
-The location of your proxy credential to be used when communicating with the repoman server. Defaults to /tmp/x509up_uNNNN, where NNNN is your effective UID.
-.TP
-{--system-excludes|-E} \fIpaths\fP
+{-E|--system-excludes} \fIpaths\fP
 Blank separated list of paths to be excluded from a snapshot of the
 operating system during a \fBrepoman save-image\fP. A directory path specification ending in \'/*\' will cause the directory
 to be created in the saved image, but none of it's contents to be copied to the saved image.
 Defaults to \'/cvmfs/* /dev/* /mnt/* /proc/* /root/.ssh /sys/* /tmp/*\'.
 See note under \fBuser-excludes\fP.
 .TP
-{--user-excludes|-e} \fIpaths\fP
+{-e|--user-excludes} \fIpaths\fP
 Blank separated list of paths to be excluded from a snapshot of the
 operating system during a \fBrepoman save-image\fP. A directory path specification ending in \'/*\' will cause the directory
 to be created in the saved image, but none of it's contents to be copied to the saved image.
@@ -124,6 +118,7 @@ Defaults to an empty list.
 \fBNote:\fP The \fBsystem-excludes\fP and \fBuser-excludes\fP parameters perform precisely the same function. However, because certain specifications
 are required to create a functional image, these specifications are established by default in the \fBsystem-excludes\fP parameter. It is recommended
 that other exclusions be made by modifying the \fBuser-excludes\fP parameter only.
+
 .SH IMAGE MANIPULATION SUBCOMMANDS
 A VM image is a file containing a bootable copy of a configured operating system. In a repoman VM repository, an image is identified
 by the owning user and a name unique within the owner's domain. In addition to the image itself, the repoman repository maintains
