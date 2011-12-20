@@ -1,90 +1,28 @@
 #!/usr/bin/env python
+import sys
 import argparse
-
-
+from repoman_client.parsers import repoman_cli
+from repoman_client.subcommands.help import Help
+from repoman_client.subcommands.version import Version
 from repoman_client.subcommands.config import MakeConfig
 
-# This global variable acts as a container of parsers.
-# That way, we can refer back to them in order to print
-# the correct subcommand help when the 'help' command
-# is issued.  It is a requirement to have such a container because
-# there is no way to iterate through the parsers from the
-# classes/methods of the argparse library.
-#
-# (An OO method, using a singleton container object would be
-# more elegant, accessible from everywhere, and would get rid of 
-# this global variable.)
-parsers = {}
+# Add all subcommands here:
+repoman_cli.add_subcommand(Help())
+repoman_cli.add_subcommand(Version())
+repoman_cli.add_subcommand(MakeConfig())
 
-p  = argparse.ArgumentParser(add_help=False)
-p.add_argument('-h', '--host')
-p.add_argument('-p', '--port')
-p.add_argument('-P', '--proxy')
+# Ask the parser and subparsers to parse the command line arguments.
+args = repoman_cli.get_parser().parse_args()
 
-sp = p.add_subparsers(dest='subcommand')
+# Run the subcommand function
+args.func(args)
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#
-#                                     Help Subcommand                                 #
-#
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# We're done!
+sys.exit(0)
 
-# Subcommand: help
-# Simply call the correct parser's print_help() method,
-# or print an error message if help for the given command
-# could not be found. (i.e., the command does not exist)
-def help(args):
-    global parsers
-    if args.helpcommand in parsers:
-        parsers[args.helpcommand].print_help()
-    else:
-        print 'No help available for the %s command' % (args.helpcommand)
-
-
-# Definition of the help command.  Does not do much other than
-# calling the help() function defined above.
-# If we go with an OO way, then this would be put in a seperate
-# subcommand class.
-p_help = sp.add_parser('help', add_help=False)
-p_help.add_argument('helpcommand', nargs='?')
-p_help.set_defaults(func=help)
-
-
-
-
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#
-#                                Configuration Subcommand                             #
-#
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-# Subcommand: make-config
-p_make_config = sp.add_parser('make-config', 
-                              help = 'Create a repoman client configuration file under your home directory.')
-p_make_config.add_argument('repository', 
-                           help = 'The fully qualified domain name (FQDN) of the repoman image repository server to be managed.')
-p_make_config.add_argument('-p', '--port', 
-                           help = 'Used to specify the port that the repoman server listens on.')
-p_make_config.add_argument('-P', '--proxy', 
-                           help = 'The location of your proxy credential to be used when communicating with the repoman server.')
-p_make_config.add_argument('-E', '--system_excludes', 
-                           help = 'bla bla bla')
-p_make_config.add_argument('-e', '--excludes', 
-                           help = 'bla bla bla')
-p_make_config.set_defaults(func=MakeConfig())
-# Don't forget to add it to the parsers container, else the 'help' command won't be
-# able to find it.
-# Note the duplication of the 'make-config' command string.
-# (Putting the command name in it's implementation class would remove the
-# duplication.)
-parsers['make-config'] = p_make_config
-
-# I haven't found a way to code command aliases elegantely yet... 
-#p_mc = sp.add_parser('mc', add_help=False, parents=[p_make_config])
-#p_mc.set_defaults(func=mc)
-
-
+# If we decide to go with this OO approach, the rest of this file will have to
+# be moved to individual subcommand classes.  See MakeConfig and Help for
+# examples.
 
 
 
