@@ -18,7 +18,7 @@
 \fB{-h|--hypervisor}\fP \fIvalue\fP
 \- The hypervisor. Ex: xen, kvm, etc.
 ..
-.de image_newname
+.de image_new_name
 \fB{-n|--new_name}\fP \fIvalue\fP
 \- The new name of the image-slot on the repository. This will be used to reference the image when running
 other repoman commands. It must be unique to the owner's domain and can only contain ([a-Z][0-9][_][-]) characters.
@@ -190,7 +190,6 @@ Download an image from the repository to the specified path.
 The image to download. Use \fBrepoman list-images\fP to see possible values.
 
 
-\# xxx
 .TP
 \fB{li|list-images}\fP [-a|--all] [{-g|--group} \fIgroup\fP] [-l|--long] [{-s|--sharedwith}] [-U|--url] [{-u|--user} \fIuser\fP]]
 List images stored in the repository.
@@ -240,27 +239,27 @@ Examples:
         \- has the same effect as the previous example
 
 .TP
-\fB{modify-image|mi}\fP [\fIuser\fP/]\fIimage\fP [--newname \fIvalue\fP] [--description \fIvalue\fP] [--os_variant \fIvalue\fP] [--os_arch \fIvalue\fP] [--os_type \fIvalue\fP] [--hypervisor \fIvalue\fP] [--unauthenticated_access {\fBtrue\fP|\fBfalse\fP}]
-
+\fB{mi|modify-image}\fP [{-a|--unauthenticated_access} {\fItrue\fP|\fIfalse\fP}] [{-d|--description} \fIvalue\fP] [--hypervisor \fIvalue\fP] [{-n|--new-name} \fIvalue\fP] [{-o|--owner} \fIuser\fP}] [--os_variant \fIvalue\fP] [--os_arch \fIvalue\fP] [--os_type \fIvalue\fP] \fIimage\fP
 Modify an image with the given information.
 
-\fIuser\fP \- The image's owner. This may be omitted if you own the image.
-
-\fIimage\fP \- The image to modify. Use \fBrepoman list-images\fP to see possible values. 
-
-.image_name
+.image_access
 
 .image_description
 
-.image_os_variant
+.image_hypervisor
+
+.image_new_name
+
+.image_owner
 
 .image_os_arch
 
 .image_os_type
 
-.image_hypervisor
+.image_os_variant
 
-.image_unauthenticated_access
+.image_image
+The name of the image to modify. Use repoman list-images to see possible values.
 
 
 Example:
@@ -269,58 +268,66 @@ Example:
     - renames myImage to myNewImage and updates the description 
 
 .TP
-\fB{put-image|pi}\fP \fIfile\fP [\fIuser\fP/]\fIimage\fP
+\fB{pi|put-image}\fP [{-o|--owner} \fIuser\fP}] \fIfile\fP \fIimage\fP
 Upload an image file from local disc space to the repoman repository to a an existing repoman image-slot.
+
+.image_owner
 
 \fIfile\fP \- The local image file to upload to the repository.
 
-\fIuser\fP \- The image's owner. This may be omitted if you own the image-slot.
-
-\fIimage\fP \- The repoman image-slot to upload to. Use \fBrepoman list-images\fP to see possible values.
+.image_image
+The repoman image-slot to upload to. Use \fBrepoman list-images\fP to see possible values.
 
 .TP
-\fB{remove-image|ri}\fP [\fIuser\fP/]\fIimage\fP [--force|-f]
+\fB{ri|remove-image}\fP [--force|-f] [{-o|--owner} \fIuser\fP}] \fIimage\fP
 Delete the specified image from the repository.
-
-\fIuser\fP \- The image's owner. This may be omitted if you own the image.
-
-\fIimage\fP \- The image to delete. Use \fBrepoman list-images\fP to see possible values. 
 
 \fB{--force|-f}\fP \- Delete image without confirmation.
 
+.image_owner
+
+.image_image
+The image to delete. Use \fBrepoman list-images\fP to see possible values. 
+
+
+\# xxx
 .TP
-\fB{save-image|si}\fP \fIuser\fP/]\fIimage\fP [--force|-f] [--gzip] [--resize \fISIZE\fP] [--verbose] [--clean] [--description \fIvalue\fP] [--os_variant \fIvalue\fP] [--os_arch \fIvalue\fP] [--os_type \fIvalue\fP] [--hypervisor \fIvalue\fP] [--unauthenticated_access {\fBtrue\fP|\fBfalse\fP}]
-Takes a snapshot of your running system's filesystem (except directories listed under \fIexclude_dirs\fP in repoman.conf). If \fIname\fP
-is not in your user's domain, an image-slot entry is created with the supplied metadata information. If \fIname\fP does exist, the image-slot is updated with any
-given metadata. Finally, the snapshot is uploaded to the image-slot on the repoman repository.
+\fB{si|save-image}\fP [{-a|--unauthenticated_access} {\fBtrue\fP|\fBfalse\fP}] [--clean] [{-d|--description} \fIvalue\fP] [{-f|--force}] [--gzip] [{-h|--hypervisor \fIvalue\fP}] [--os_variant \fIvalue\fP] [--os_arch \fIvalue\fP] [--os_type \fIvalue\fP] [--resize \fISIZE\fP] [--verbose] \fIimage\fP
+Takes a snapshot of your running system's filesystem (except directories listed under \fIexclude_dirs\fP in repoman.conf).
+If \fIname\fP is not in your user's domain, an image-slot entry is created with the supplied metadata information.
+If \fIname\fP does exist, the image-slot is updated with any given metadata.
+Finally, the snapshot is uploaded to the image-slot on the repoman repository.
 
-\fIuser\fP \- The image's owner. This may be omitted if you own the image or are creating an image under your own users's domain.
-
-\fIimage\fP \- The name of the newly created or existing image-slot on the repository. This will be used to reference the image when running
-other repoman commands. It can only contain ([a-Z][0-9][_][-]) characters.
-
-\fB{--force|-f}\fP \- Force uploading even if it overwrites an existing image.
-
-\fB--gzip\fP \- Upload the image compressed with gzip.
-
-\fB--resize\fP \fISIZE\fP \- Create an image with a size of \fISIZE\fP MB. The size selected must be big enough to contain the entire filesystem image.
-If the size specified is not big enough, repoman will issue an error mesage and exit.
-
-\fB--verbose\fP \- Display verbose output during snapshot.
+.image_access
 
 \fB--clean\fP \- Remove any existing local snapshots before creating a new one.
 
 .image_description
 
-.image_os_variant
+\fB{-f|--force}\fP \- Force uploading even if it overwrites an existing image.
+
+\fB--gzip\fP \- Upload the image compressed with gzip.
+
+.image_hypervisor
+
+.image_owner
 
 .image_os_arch
 
 .image_os_type
 
-.image_hypervisor
+.image_os_variant
 
-.image_unauthenticated_access
+\fB--resize\fP \fISIZE\fP \- Create an image with a size of \fISIZE\fP MB.
+The size selected must be big enough to contain the entire filesystem image.
+If the size specified is not big enough, repoman will issue an error mesage and exit.
+
+\fB--verbose\fP \- Display verbose output during snapshot.
+
+.image_image
+The name of the newly created or existing image-slot on the repository.
+This will be used to reference the image when running other repoman commands.
+It can only contain ([a-Z][0-9][_][-]) characters.
 
 .TP
 \fB{share-image-with-groups|sig}\fP [\fIuser\fP/]\fIimage\fP \fIgroup\fP [\fIgroup\fP ...]
