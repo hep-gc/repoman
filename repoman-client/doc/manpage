@@ -50,17 +50,17 @@ If omitted, the image is downloaded to a file with the same name as the image in
 ..
 
 \######## USER METADATA ###########
-.de user_user_name
-\fB--newname\fP \fIname\fP \- The unique username of the user.
-..
-.de user_full_name
-\fB--full_name\fP \fIname\fP \- The full name of the user.
+.de user_client_dn
+\fB{-c|--client_dn}\fP \fIdn\fP \- The Distinguished Name (DN) of the certificate which is owned by the user.
 ..
 .de user_email
-\fB--email\fP \fIaddress\fP \- The email address of the user.
+\fB{-e|--email}\fP \fIaddress\fP \- The email address of the user.
 ..
-.de user_client_dn
-\fB--client_dn\fP \fIdn\fP \- The Distinguished Name (DN) of the certificate which is owned by the user.
+.de user_full_name
+\fB{-f|--full_name}\fP \fIname\fP \- The full name of the user.
+..
+.de user_new_name
+\fB{-n|--new_name}\fP \fIuser\fP \- The new unique username for the user.
 ..
 \######## GROUP METADATA #########
 .de group_name
@@ -328,7 +328,6 @@ The name of the newly created or existing image-slot on the repository.
 This will be used to reference the image when running other repoman commands.
 It can only contain ([a-Z][0-9][_][-]) characters.
 
-\# xxx
 .TP
 \fB{sig|share-image-with-groups}\fP [{-o|--owner} \fIuser\fP] \fIimage\fP \fIgroup\fP [\fIgroup\fP ...]
 Share an image with one or more groups.
@@ -370,31 +369,35 @@ Unshare an image with one or more users.
 \fIuser\fP \- The name of the users(s) to unshare the image with. Use \fBrepoman describe-image\fP to see possible values.
 
 .SH USER MANIPULATION SUBCOMMANDS
-Each user of a repoman image repository must be registered. The repoman user ID is associated with a user's x509 credentials and is used to uniquely
-identify images within the repository.
+Each user of a repoman image repository must be registered.
+The repoman user ID is associated with a user's x509 credentials and is used to uniquely identify images within the repository.
+
+\# xxx
 .TP
-\fB{create-user|cu}\fP \fIuser\fP \fIclient_dn\fP [--full_name \fIname\fP] [--email \fIaddress\fP]
+\fB{cu|create-user}\fP [{-e|--email} \fIaddress\fP] [{-f|--full_name} \fIname\fP] \fIuser\fP \fIclient_dn\fP
 Create a new repoman user based on given information.
+
+.user_email
+
+.user_full_name
 
 \fIuser\fP \- The name of the newly created user. Must be unique and only contain characters ([a-Z][0-9][_][-]).
 
 \fIclient_dn\fP \- The Distinguished Name (DN, looks like: \fB\'/C=CA/O=Grid/OU=dept.org.ca/CN=John Doe\'\fP) of the certificate owned by the user and issued by a certificate authority, for example GridCanada.ca.
 
-.user_full_name
-
-.user_email
-
 .TP
-\fB{describe-user|du}\fP \fIuser\fP
+\fB{du|describe-user}\fP \fIuser\fP
 Display information about a repoman user.
 
 \fIuser\fP \- The user to describe. Use \fBrepoman list-users\fP to see possible values.
 
 .TP
-\fB{list-users|lu}\fP [--long|-l] [{--group|-g} \fIgroup\fP]
+\fB{lu|list-users}\fP [{--group|-g} \fIgroup\fP] [--long|-l]
 List repoman users.
 
-\fB{--long|-l}\fP \- Display a table with extra information. Example:
+\fB{-g|--group}\fP \fIgroup\fP \- Only display users the belong to the group \fIgroup\fP
+
+\fB{-l|--long}\fP \- Display a table with extra information. Example:
 .TS
 tab(~);
 l l l l l.
@@ -403,21 +406,21 @@ Username~Full Name~Client DN
 jdoe~John Doe~/C=CA/O=Grid/OU=dept.org.ca/CN=John Doe
 .TE
 
-\fB{--group|-g}\fP \fIgroup\fP \- Only display users the belong to the group \fIgroup\fP
-
 .TP
-\fB{modify-user|mu}\fP \fIuser\fP [--newname \fIname\fP] [--full_name \fIname\fP] [--email \fIaddress\fP] [--client_dn \fIdn\fP]
+\fB{mu|modify-user}\fP [{-c|--client_dn} \fIdn\fP] [{-e|--email} \fIaddress\fP] [{-f|--full_name} \fIname\fP] [{-n|--new_name} \fIname\fP] \fIuser\fP
 Modify a repoman user with the given metadata information.
 
 \fIuser\fP - The user you want to modify. See \fBrepoman list-users\fP to see possible values.
 
-.user_user_name
-
-.user_full_name
+.user_client_dn
 
 .user_email
 
-.user_client_dn
+.user_full_name
+
+.user_new_name
+
+\fIuser\fP \- The name of the user to be modified.
 
 Example:
 
@@ -425,16 +428,17 @@ Example:
     - renames a repoman user and updates their email address.
 
 .TP
-\fB{remove-user|ru}\fP \fIuser\fP [--force|-f]
+\fB{ru|remove-user}\fP [{-f|--force}] \fIuser\fP
 Remove a repoman user. \fBNote:\fP All images owned by \fIuser\fP will be deleted.
 
-\fIuser\fP \- The user to delete. Use \fBrepoman list-users\fP to see possible values.
+\fB{-f|--force}\fP \- Delete user without confirmation.
 
-\fB{--force|-f}\fP \- Delete user without confirmation.
+\fIuser\fP \- The user to delete. Use \fBrepoman list-users\fP to see possible values.
 
 .SH GROUP MANIPULATION SUBCOMMANDS
 Repoman facilitates the concept of user groups for the purpose of sharing images. The following section details
 subcommands to create, maintain, and destroy user groups.
+
 .TP
 \fB{add-permissions-to-group|apg}\fP \fIgroup\fP \fIpermission\fP [\fIpermission\fP ...]
 Add specified permissions to a group.
@@ -577,11 +581,13 @@ The ability to modify any\fB???\fP of a user's attributes.
 .TP
 \fBuser_modify_self\fP
 The ability to modify your own attributes.
+
 .SH FILES
 .TP
 ~/.repoman/repoman.conf
 This is a per-user configuration file. It can be created and maintained manually with your favorite text editor, or
 via use of the \fBmake-config\fP subcommand.
+
 .SH AUTHORS
 Andre Charbonneau
 
