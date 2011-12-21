@@ -12,16 +12,10 @@ class MakeConfig(SubCommand):
         SubCommand.__init__(self)
 
     def init_arg_parser(self):
-        self.get_arg_parser().add_argument('repository', 
-                                   help = 'The fully qualified domain name (FQDN) of the repoman image repository server to be managed.')
-        self.get_arg_parser().add_argument('-p', '--port', 
-                                   help = 'Used to specify the port that the repoman server listens on.')
-        self.get_arg_parser().add_argument('-P', '--proxy', 
-                                   help = 'The location of your proxy credential to be used when communicating with the repoman server.')
-        self.get_arg_parser().add_argument('-E', '--system_excludes', 
-                                   help = 'bla bla bla')
-        self.get_arg_parser().add_argument('-e', '--excludes', 
-                                   help = 'bla bla bla')
+        self.get_arg_parser().add_argument('-E', '--system_excludes', metavar='system_paths',
+                                   help = 'Blank separated list of paths to be excluded from a snapshot of the operating system during a "repoman save-image".  A directory path specification ending in "/*" will cause the directory to be created in the saved image, but none of it\'s contents to be copied to the saved image.  Defaults to "/cvmfs/* /dev/* /mnt/* /proc/* /root/.ssh /sys/* /tmp/*".')
+        self.get_arg_parser().add_argument('-e', '--user-excludes', metavar='user_paths',
+                                   help = 'Blank separated list of paths to be excluded from a snapshot of the operating system during a "repoman save-image".  A directory path specification ending in "/*" will cause the directory to be created in the saved image, but none of it\'s contents to be copied to the saved image.  Defaults to an empty list.')
         self.get_arg_parser().set_defaults(func=self)
 
 
