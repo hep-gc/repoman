@@ -11,11 +11,10 @@ class Help(SubCommand):
     def __init__(self):
         SubCommand.__init__(self)
 
-    def init_parser(self):
-        self.parser.add_argument('helpcommand', nargs='?')
-        self.parser.set_defaults(func=self)
+    def init_arg_parser(self):
+        self.get_arg_parser().add_argument('helpcommand', nargs='?')
+        self.get_arg_parser().set_defaults(func=self)
 
     def __call__(self, args):
-        print args
         repoman_cli.print_help(args.helpcommand)
 

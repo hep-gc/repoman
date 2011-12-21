@@ -11,18 +11,18 @@ class MakeConfig(SubCommand):
     def __init__(self):
         SubCommand.__init__(self)
 
-    def init_parser(self):
-        self.parser.add_argument('repository', 
+    def init_arg_parser(self):
+        self.get_arg_parser().add_argument('repository', 
                                    help = 'The fully qualified domain name (FQDN) of the repoman image repository server to be managed.')
-        self.parser.add_argument('-p', '--port', 
+        self.get_arg_parser().add_argument('-p', '--port', 
                                    help = 'Used to specify the port that the repoman server listens on.')
-        self.parser.add_argument('-P', '--proxy', 
+        self.get_arg_parser().add_argument('-P', '--proxy', 
                                    help = 'The location of your proxy credential to be used when communicating with the repoman server.')
-        self.parser.add_argument('-E', '--system_excludes', 
+        self.get_arg_parser().add_argument('-E', '--system_excludes', 
                                    help = 'bla bla bla')
-        self.parser.add_argument('-e', '--excludes', 
+        self.get_arg_parser().add_argument('-e', '--excludes', 
                                    help = 'bla bla bla')
-        self.parser.set_defaults(func=self)
+        self.get_arg_parser().set_defaults(func=self)
 
 
 

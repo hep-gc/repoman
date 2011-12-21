@@ -24,20 +24,23 @@ class SubCommand(object):
                                 # before the subcommand is run.
                                 # If the subcommand depends on configuration values
                                 # this should remain True.
-    parser = None;
+    arg_parser = None;
 
     def __init__(self):
-        self.parser = repoman_cli.get_subparser().add_parser(self.command, help = self.description)
-        self.init_parser()
+        self.arg_parser = repoman_cli.get_sub_arg_parser().add_parser(self.command, help = self.description)
+        self.init_arg_parser()
 
-    def init_parser(self):
+    def init_arg_parser(self):
         # Raise an exception to make sure people override this in the subclass
-        raise Exception("You need to override the 'init_parser' class method")
+        raise Exception("You need to override the 'init_arg_parser' class method")
+
+    def get_arg_parser(self):
+        return self.arg_parser
 
     def __call__(self, args):
         # Raise an exception to make sure people override this in the subclass
         raise Exception("You need to override the '__call__' class method")
 
     def print_help(self):
-        self.parser.print_help()
+        self.arg_parser.print_help()
 

@@ -1,38 +1,47 @@
-from repoman_client.config import config
-from repoman_client.__version__ import version
 import argparse
-import sys
-
-__all__ = ['RepomanCLI']
 
 
 class RepomanCLI(object):
     def __init__(self):
-        self.version = version
-        self.parser = None
-        self.subparser = None
+        self.arg_parser = None
+        self.sub_arg_parser = None
         self.subcommands = {}
-        self._init_parser()
+        self._init_arg_parser()
 
-    def _init_parser(self):
-        self.parser = argparse.ArgumentParser(add_help=False)
-        self.parser.add_argument('-h', '--host')
-        self.parser.add_argument('-p', '--port')
-        self.parser.add_argument('-P', '--proxy')
-        self.subparser = self.parser.add_subparsers(dest='subcommand')
+
+    # This method will initialize the base command-line argument arg_parser and create
+    # a sub_arg_parser instance ready to be populated with subcommands.
+    #
+    # It should only be called via the construtor of this class.
+    def _init_arg_parser(self):
+        self.arg_parser = argparse.ArgumentParser(add_help=False)
+
+        self.arg_parser.add_argument('-r', '--repository', help = 'The repoman repository server to connect to.  Overrides the "repository" setting in the configuration file.')
+        self.arg_parser.add_argument('-p', '--port', help = 'The repoman repository server port to connect to.  Overrides the "port" setting in the configuration file.  Defaults to 443.')
+        self.arg_parser.add_argument('-P', '--proxy', help = 'The path to your proxy certificate to be used for authentication.  Overrides the "proxy" setting in the configuration file.  Defaults to "/tmp/x509up_uNNNN", where "NNNN" is your effective UID.')
+
+        self.sub_arg_parser = self.arg_parser.add_subparsers(dest='subcommand')
+
         
-    def get_parser(self):
-        return self.parser
+    def get_arg_parser(self):
+        return self.arg_parser
 
-    def get_subparser(self):
-        return self.subparser
 
+    def get_sub_arg_parser(self):
+        return self.sub_arg_parser
+
+
+    # Prints the help of either the main arg_parser (if subcommand is None), or for a subcommand.
     def print_help(self, subcommand):
         if subcommand == None:
-            self.parser.print_help()
+            self.arg_parser.print_help()
         elif subcommand in self.subcommands:
             self.subcommands[subcommand].print_help()
+        else:
+            print 'No help available for "%s".' % (subcommand)
 
+
+    # Call this method to add a subcommand to the main arg_parser.
     def add_subcommand(self, subcommand):
         self.subcommands[subcommand.command] = subcommand
 

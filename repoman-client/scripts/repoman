@@ -12,7 +12,7 @@ repoman_cli.add_subcommand(Version())
 repoman_cli.add_subcommand(MakeConfig())
 
 # Ask the parser and subparsers to parse the command line arguments.
-args = repoman_cli.get_parser().parse_args()
+args = repoman_cli.get_arg_parser().parse_args()
 
 # Run the subcommand function
 args.func(args)
