@@ -8,26 +8,22 @@ import logging
 import ConfigParser
 
 class DescribeUser(SubCommand):
-    command_group = "advanced"
     command = "describe-user"
     alias = "du"
-    description = 'Display information about an existing user'
+    description = 'Display information about a repoman user'
 
-    def get_parser(self):
-        p = ArgumentParser(self.description)
-        p.add_argument('user', help='User to describe')
-        p.add_argument('-l', '--long', action='store_true', default=False,
-                       help='Display a long description of USER')
-        return p
+    def __init__(self):
+        SubCommand.__init__(self)
 
-    def __call__(self, args, extra_args=None):
-        log = logging.getLogger('DescribeUser')
-        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
-    
+    def init_arg_parser(self):
+        self.get_arg_parser().add_argument('user', help = 'The user to describe.  Use "repoman list-users" to see possible values.')
+        self.get_arg_parser().set_defaults(func=self)
+        
+    def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)
         try:
             user = repo.describe_user(args.user)
-            display.describe_user(user, long=args.long)
+            display.describe_user(user, long=True)
         except RepomanError, e:
             print e
             sys.exit(1)

@@ -6,6 +6,7 @@ from repoman_client.subcommands.help import Help
 from repoman_client.subcommands.version import Version
 from repoman_client.subcommands.config import MakeConfig
 from repoman_client.subcommands.describe import DescribeImage
+from repoman_client.subcommands.describe import DescribeUser
 from repoman_client.subcommands.diagnostic import Whoami
 from repoman_client.subcommands.diagnostic import About
 
@@ -13,6 +14,7 @@ from repoman_client.subcommands.diagnostic import About
 repoman_cli.add_subcommand(Help())
 repoman_cli.add_subcommand(Version())
 repoman_cli.add_subcommand(MakeConfig())
+repoman_cli.add_subcommand(DescribeUser())
 repoman_cli.add_subcommand(DescribeImage())
 repoman_cli.add_subcommand(Whoami())
 repoman_cli.add_subcommand(About())
@@ -193,13 +195,6 @@ p_create_user.add_argument('-e', '--email')
 p_cu = sp.add_parser('cu', add_help=False, parents=[p_create_user])
 #p_cu.set_defaults(func=cu)
 
-# Subcommand: describe-user
-p_describe_user = sp.add_parser('describe-user', add_help=False)
-p_describe_user.add_argument('user')
-#p_describe_user.set_defaults(func=du)
-
-p_du = sp.add_parser('du', add_help=False, parents=[p_describe_user])
-#p_du.set_defaults(func=du)
 
 # Subcommand: list-users
 p_list_users = sp.add_parser('list-users', add_help=False)
