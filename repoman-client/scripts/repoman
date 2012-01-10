@@ -11,6 +11,7 @@ from repoman_client.subcommands.describe import DescribeGroup
 from repoman_client.subcommands.diagnostic import Whoami
 from repoman_client.subcommands.diagnostic import About
 from repoman_client.subcommands.create import CreateImage
+from repoman_client.subcommands.create import CreateUser
 
 # Add all subcommands here:
 repoman_cli.add_subcommand(Help())
@@ -22,6 +23,7 @@ repoman_cli.add_subcommand(DescribeGroup())
 repoman_cli.add_subcommand(Whoami())
 repoman_cli.add_subcommand(About())
 repoman_cli.add_subcommand(CreateImage())
+repoman_cli.add_subcommand(CreateUser())
 
 # Ask the parser and subparsers to parse the command line arguments.
 args = repoman_cli.get_arg_parser().parse_args()
@@ -172,18 +174,6 @@ p_uiu = sp.add_parser('uiu', add_help=False, parents=[p_unshare_image_from_users
 #                             User Manipulation Subcommands                           #
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-# Subcommand: create-user
-p_create_user = sp.add_parser('create-user', add_help=False)
-p_create_user.add_argument('user')
-p_create_user.add_argument('client_dn')
-p_create_user.add_argument('-f', '--full_name')
-p_create_user.add_argument('-e', '--email')
-#p_create_user.set_defaults(func=cu)
-
-p_cu = sp.add_parser('cu', add_help=False, parents=[p_create_user])
-#p_cu.set_defaults(func=cu)
-
 
 # Subcommand: list-users
 p_list_users = sp.add_parser('list-users', add_help=False)
