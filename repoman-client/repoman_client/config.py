@@ -64,7 +64,7 @@ snapshot: %(snapshot)s
 #
 mountpoint: %(mountpoint)s
 
-system_exludes: %(system_excludes)s
+system_excludes: %(system_excludes)s
 user_excludes: %(user_excludes)s
 """
 
@@ -89,6 +89,8 @@ class Config(object):
         # The internal configuration value container.  In this case, we use
         # a ConfigParser object.
         self._config = None
+
+        self.files_parsed = None
 
         # The possible paths of configuration files.
         # These path can include env variables.
@@ -130,7 +132,7 @@ class Config(object):
     def _read_config(self):
         self._config = ConfigParser.ConfigParser()
         try:
-            files_parsed = self._config.read([self._global_config_file,
+            self.files_parsed = self._config.read([self._global_config_file,
                                               self._config_env_var,
                                               self._user_config_file])
         except Exception as e:
@@ -198,6 +200,8 @@ class Config(object):
         return self._config.get('ThisImage', 'user_excludes')
 
 
+    def files_parsed(self):
+        return self.files_parsed
 
 
     # This method will generate the default config and try to write it

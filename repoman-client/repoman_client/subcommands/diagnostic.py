@@ -29,34 +29,37 @@ class Whoami(SubCommand):
 
 
 class About(SubCommand):
-    validate_config = False
-    command_group = 'advanced'
     command = 'about'
     alias = None
-    description = 'Display information about this program.'
+    description = 'Display the repoman client version and configuration information.'
 
-    def get_parser(self):
-        p = ArgumentParser(self.description)
-        return p
+    def __init__(self):
+        SubCommand.__init__(self)
 
-    def __call__(self, args, extra_args=None):
-        keys = {'config_file':config.config_file,
-                'host':config.repository_host,
-                'port':config.repository_port,
-                'proxy':config.user_proxy_cert,
+    def init_arg_parser(self):
+        self.get_arg_parser().set_defaults(func=self)
+
+    def __call__(self, args):
+        keys = {'config_file':config.files_parsed,
+                'host':config.host,
+                'port':config.port,
+                'proxy':config.proxy,
                 'snapshot':config.snapshot,
                 'mountpoint':config.mountpoint,
-                'exclude':config.exclude_dirs,
+                'system_excludes':config.system_excludes,
+                'user_excludes':config.user_excludes,
                 'version':version}
         print """\
-version:    %(version)s
+client version:          %(version)s
+
 configuration:
-    config_file in use: %(config_file)s
-    repository_host:    %(host)s
-    repository_port:    %(port)s
-    user_proxy_cert:    %(proxy)s
-    snapshot:           %(snapshot)s
-    mountpoint:         %(mountpoint)s
-    exclude_dirs:       %(exclude)s
+    config files in use: %(config_file)s
+    repository_host:     %(host)s
+    repository_port:     %(port)s
+    user_proxy_cert:     %(proxy)s
+    snapshot:            %(snapshot)s
+    mountpoint:          %(mountpoint)s
+    system_excludes:     %(system_excludes)s
+    user_excludes:       %(user_excludes)s
 """ % keys
 
