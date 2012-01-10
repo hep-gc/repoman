@@ -10,6 +10,7 @@ from repoman_client.subcommands.describe import DescribeUser
 from repoman_client.subcommands.describe import DescribeGroup
 from repoman_client.subcommands.diagnostic import Whoami
 from repoman_client.subcommands.diagnostic import About
+from repoman_client.subcommands.create import CreateImage
 
 # Add all subcommands here:
 repoman_cli.add_subcommand(Help())
@@ -20,6 +21,7 @@ repoman_cli.add_subcommand(DescribeImage())
 repoman_cli.add_subcommand(DescribeGroup())
 repoman_cli.add_subcommand(Whoami())
 repoman_cli.add_subcommand(About())
+repoman_cli.add_subcommand(CreateImage())
 
 # Ask the parser and subparsers to parse the command line arguments.
 args = repoman_cli.get_arg_parser().parse_args()
@@ -44,21 +46,6 @@ sys.exit(0)
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-# Subcommand: create-image
-p_create_image = sp.add_parser('create-image', add_help=False)
-p_create_image.add_argument('image') 
-p_create_image.add_argument('-o', '--owner')
-p_create_image.add_argument('-f', '--file')
-p_create_image.add_argument('-d', '--description')
-p_create_image.add_argument('--os_variant')
-p_create_image.add_argument('--os_arch')
-p_create_image.add_argument('--os_type')
-p_create_image.add_argument('--hypervisor')
-p_create_image.add_argument('-a', '--unauthenticated_access', choices=['True', 'False'])
-#p_create_image.set_defaults(func=ci)
-
-p_ci = sp.add_parser('ci', add_help=False, parents=[p_create_image])
-#p_ci.set_defaults(func=ci)
 
 
 # Subcommand: get-image
