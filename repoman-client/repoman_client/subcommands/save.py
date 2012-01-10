@@ -95,8 +95,8 @@ class Save(SubCommand):
         image_utils = ImageUtils(config.lockfile,
                                  config.snapshot,
                                  config.mountpoint,
-                                 config.sysdirs_emptied.split(),
-                                 config.exclude_dirs.split(),
+                                 config.system_excludes.split(),
+                                 config.user_excludes.split(),
                                  size=args.resize*1024*1024)
         
         try:

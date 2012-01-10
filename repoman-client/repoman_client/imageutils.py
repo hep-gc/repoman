@@ -12,17 +12,12 @@ class ImageUtilError(Exception):
 
 
 class ImageUtils(object):
-    def __init__(self, lockfile, imagepath, mountpoint, sysdirs_emptied, excludes, size=None):
+    def __init__(self, lockfile, imagepath, mountpoint, system_excludes, user_excludes, size=None):
         self.lockfile = lockfile
         self.imagepath = imagepath
         self.mountpoint = mountpoint
-        self.sysdirs_emptied = sysdirs_emptied
-        # Add double quotes around excludes.
-        # We do this so that the shell interpreter does not expand
-        # any pattern (such as '*') while doing the rsync.
-        self.excludes = []
-        for exclude in excludes:
-            self.excludes.append('"%s"' % (exclude))
+        self.system_excludes = system_excludes
+        self.user_excludes = user_excludes
         self.imagesize = size
         
     def statvfs(self, path='/'):
@@ -177,11 +172,15 @@ class ImageUtils(object):
     def sync_fs(self, verbose):
         #TODO: add progress bar into rsync somehow
         log.info("Starting Sync Process")
+
         exclude_list = ""
-        if self.excludes != None and len(self.excludes) > 0:
-            exclude_list =  "--exclude " + " --exclude ".join(self.excludes)
-        if self.sysdirs_emptied != None and len(self.sysdirs_emptied) > 0:
-            exclude_list += " --exclude " + " --exclude ".join(self.sysdirs_emptied)
+        if self.system_excludes != None and len(self.system_excludes) > 0:
+            for exclude_item in self.system_excludes:
+                exclude_list += '--exclude "%s"' % (exclude_item)
+        if self.user_excludes != None and len(self.user_excludes) > 0:
+            for exclude_item in self.user_excludes:
+                exclude_list += '--exclude "%s"' % (exclude_item)
+
         flags = ''
         if verbose:
             flags += '--stats --progress ' 
@@ -192,10 +191,6 @@ class ImageUtils(object):
             log.error("Rsync encountered an issue. return code: '%s'" % p)
             raise ImageUtilError("Rsync failed.  Aborting.")
         log.info("Sync Complete")
-        
-        # Recreate all required sysdirs with correct permissions, where needed.
-        for item in self.sysdirs_emptied:
-            self.recreate(item, self.mountpoint)
         
     def snapshot_system(self, start_fresh=False, verbose=False, clean=False):
         if verbose:
