@@ -5,11 +5,13 @@ from repoman_client.parsers import repoman_cli
 from repoman_client.subcommands.help import Help
 from repoman_client.subcommands.version import Version
 from repoman_client.subcommands.config import MakeConfig
+from repoman_client.subcommands.describe import DescribeImage
 
 # Add all subcommands here:
 repoman_cli.add_subcommand(Help())
 repoman_cli.add_subcommand(Version())
 repoman_cli.add_subcommand(MakeConfig())
+repoman_cli.add_subcommand(DescribeImage())
 
 # Ask the parser and subparsers to parse the command line arguments.
 args = repoman_cli.get_arg_parser().parse_args()
@@ -50,14 +52,6 @@ p_create_image.add_argument('-a', '--unauthenticated_access', choices=['True', '
 p_ci = sp.add_parser('ci', add_help=False, parents=[p_create_image])
 #p_ci.set_defaults(func=ci)
 
-# Subcommand: describe-image
-p_describe_image = sp.add_parser('describe-image', add_help=False)
-p_describe_image.add_argument('image') 
-p_describe_image.add_argument('-o', '--owner')
-#p_describe_image.set_defaults(func=di)
-
-p_di = sp.add_parser('di', add_help=False, parents=[p_describe_image])
-#p_di.set_defaults(func=di)
 
 # Subcommand: get-image
 p_get_image = sp.add_parser('get-image', add_help=False)

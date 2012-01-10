@@ -5,6 +5,7 @@ from repoman_client import display
 from argparse import ArgumentParser
 import sys
 import logging
+import ConfigParser
 
 class DescribeUser(SubCommand):
     command_group = "advanced"
@@ -60,26 +61,26 @@ class DescribeGroup(SubCommand):
 
 
 class DescribeImage(SubCommand):
-    command_group = "advanced"
     command = "describe-image"
     alias = "di"
-    description = 'Display information about an existing image'
+    description = 'Display information about an image'
 
-    def get_parser(self):
-        p = ArgumentParser(self.description)
-        p.add_argument('image', help='Image to describe')
-        p.add_argument('-l', '--long', action='store_true', default=False,
-                       help='Display a long description of IMAGE')
-        return p
+    def __init__(self):
+        SubCommand.__init__(self)
 
-    def __call__(self, args, extra_args=None):
-        log = logging.getLogger('DescribeImage')
-        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
-    
+    def init_arg_parser(self):
+        self.get_arg_parser().add_argument('image', help='The image to describe.  Use repoman list-images to see possible values.')
+        self.get_arg_parser().add_argument('-o', '--owner', help='The owner of the named image.  The default is the ID of the current repoman user which can be determined with the "repoman whoami" command.')
+        self.get_arg_parser().set_defaults(func=self)
+
+    def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)
         try:
-            image = repo.describe_image(args.image)
-            display.describe_image(image, long=args.long)
+            image_path = args.image
+            if args.owner:
+                image_path = args.owner + '/' + args.image
+            image = repo.describe_image(image_path)
+            display.describe_image(image, long=True)
         except RepomanError, e:
             print e
             sys.exit(1)

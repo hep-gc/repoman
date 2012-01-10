@@ -28,7 +28,7 @@ port: %(port)d
 #                       4. /tmp/x509up_u`id -u` 
 #                       Note: Item 4 above will respect $SUDO_UID if available
 #
-proxy_cert: %(proxy_cert)s
+#proxy_cert: %(proxy_cert)s
 
 
 [Logger]
@@ -146,11 +146,18 @@ class Config(object):
     # shortcut properties
     @property
     def host(self):
-        return self._config.get('Repository', 'repository')
+        if self._config.has_option('Repository', 'repository'):
+            return self._config.get('Repository', 'repository')
+        else:
+            print 'Missing repository entry in repoman configuration.'
+            sys.exit(1)
 
     @property
     def port(self):
-        return self._config.getint('Repository', 'port')
+        if self._config.has_option('Repository', 'port'):
+            return self._config.getint('Repository', 'port')
+        else:
+            return config_defaults['port']
 
     @property
     def proxy(self):

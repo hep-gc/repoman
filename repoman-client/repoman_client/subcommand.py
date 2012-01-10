@@ -1,5 +1,6 @@
 import os
 import sys
+import logging
 
 # Import the RepomanCLI singleton instance:
 from repoman_client.parsers import repoman_cli
@@ -29,6 +30,10 @@ class SubCommand(object):
     def __init__(self):
         self.arg_parser = repoman_cli.get_sub_arg_parser().add_parser(self.command, help = self.description)
         self.init_arg_parser()
+        if self.alias:
+            alias_sp = repoman_cli.get_sub_arg_parser().add_parser(self.alias, 
+                                                                   add_help=False, 
+                                                                   parents=[self.arg_parser])
 
     def init_arg_parser(self):
         # Raise an exception to make sure people override this in the subclass
