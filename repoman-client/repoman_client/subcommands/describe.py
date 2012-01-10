@@ -31,26 +31,22 @@ class DescribeUser(SubCommand):
 
 
 class DescribeGroup(SubCommand):
-    command_group = "advanced"
     command = "describe-group"
     alias = "dg"
-    description = 'Display information about an existing group'
+    description = 'Display information about a group.'
 
-    def get_parser(self):
-        p = ArgumentParser(self.description)
-        p.add_argument('group', help='Group to describe')
-        p.add_argument('-l', '--long', action='store_true', default=False,
-                       help='Display a long description of GROUP')
-        return p
+    def __init__(self):
+        SubCommand.__init__(self)
+
+    def init_arg_parser(self):
+        self.get_arg_parser().add_argument('group', help='The group to describe.  Use "repoman list-groups" to see possible values.')
+        self.get_arg_parser().set_defaults(func=self)
 
     def __call__(self, args, extra_args=None):
-        log = logging.getLogger('DescribeGroup')
-        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
-        
         repo = RepomanClient(config.host, config.port, config.proxy)
         try:
             group = repo.describe_group(args.group)
-            display.describe_group(group, long=args.long)
+            display.describe_group(group, long=True)
         except RepomanError, e:
             print e
             sys.exit(1)
