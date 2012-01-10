@@ -325,19 +325,6 @@ p_rug = sp.add_parser('rug', add_help=False, parents=[p_remove_users_from_group]
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-# Subcommand: about
-p_about = sp.add_parser('about', add_help=False)
-#about.set_defaults(func=about)
-
-# Subcommand: version
-p_version = sp.add_parser('version', add_help=False)
-#version.set_defaults(func=version)
-
-# Subcommand: whoami
-p_whoami = sp.add_parser('whoami', add_help=False)
-#p_whoami.set_defaults(func=whoami)
-
-
 
 args = p.parse_args()
 args.func(args)

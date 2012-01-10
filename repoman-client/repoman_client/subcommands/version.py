@@ -3,6 +3,7 @@ import sys
 from repoman_client.subcommand import SubCommand
 from argparse import ArgumentParser
 from repoman_client.parsers import repoman_cli
+from repoman_client.__version__ import version
 
 class Version(SubCommand):
     validate_config = False
@@ -16,6 +17,6 @@ class Version(SubCommand):
         self.get_arg_parser().set_defaults(func=self)
 
     def __call__(self, args):
-        print '1.0'
+        print version
         sys.exit(0)
 
