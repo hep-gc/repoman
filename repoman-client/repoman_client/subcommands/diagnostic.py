@@ -9,7 +9,7 @@ import sys
 class Whoami(SubCommand):
     command = 'whoami'
     alias = None
-    description = 'Display information about the current user (ie, you)'
+    description = 'Display information about the current user (ie, you).'
 
     def __init__(self):
         SubCommand.__init__(self)

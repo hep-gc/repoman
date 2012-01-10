@@ -10,7 +10,7 @@ import ConfigParser
 class DescribeUser(SubCommand):
     command = "describe-user"
     alias = "du"
-    description = 'Display information about a repoman user'
+    description = 'Display information about a repoman user.'
 
     def __init__(self):
         SubCommand.__init__(self)
@@ -55,7 +55,7 @@ class DescribeGroup(SubCommand):
 class DescribeImage(SubCommand):
     command = "describe-image"
     alias = "di"
-    description = 'Display information about an image'
+    description = 'Display information about an image.'
 
     def __init__(self):
         SubCommand.__init__(self)
