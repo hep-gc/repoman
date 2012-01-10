@@ -6,12 +6,14 @@ from repoman_client.subcommands.help import Help
 from repoman_client.subcommands.version import Version
 from repoman_client.subcommands.config import MakeConfig
 from repoman_client.subcommands.describe import DescribeImage
+from repoman_client.subcommands.diagnostic import Whoami
 
 # Add all subcommands here:
 repoman_cli.add_subcommand(Help())
 repoman_cli.add_subcommand(Version())
 repoman_cli.add_subcommand(MakeConfig())
 repoman_cli.add_subcommand(DescribeImage())
+repoman_cli.add_subcommand(Whoami())
 
 # Ask the parser and subparsers to parse the command line arguments.
 args = repoman_cli.get_arg_parser().parse_args()

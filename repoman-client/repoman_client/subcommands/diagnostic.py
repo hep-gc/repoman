@@ -7,16 +7,17 @@ from argparse import ArgumentParser
 import sys
 
 class Whoami(SubCommand):
-    command_group = 'advanced'
     command = 'whoami'
     alias = None
     description = 'Display information about the current user (ie, you)'
 
-    def get_parser(self):
-        p = ArgumentParser(self.description)
-        return p
+    def __init__(self):
+        SubCommand.__init__(self)
 
-    def __call__(self, args, extra_args=None):
+    def init_arg_parser(self):
+        self.get_arg_parser().set_defaults(func=self)
+
+    def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)
         try:
             me = repo.whoami()
