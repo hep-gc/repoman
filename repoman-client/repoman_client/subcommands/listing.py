@@ -37,22 +37,20 @@ class ListUsers(SubCommand):
 
 
 class ListGroups(SubCommand):
-    command_group = "advanced"
     command = "list-groups"
     alias = 'lg'
-    description = 'List existing user groups on the repository'
+    description = 'List user groups on the repoman repository.'
 
-    def get_parser(self):
-        p = ArgumentParser(self.description)
-        p.add_argument('-l', '--long', action='store_true', default=False, help='display extra information')
-        p.add_argument('-a', '--all', help='Display all groups', action='store_true')
-        p.add_argument('-u', '--user', help='display group membership for USER')
-        return p
+    def __init__(self):
+        SubCommand.__init__(self)
 
-    def __call__(self, args, extra_args=None):
-        log = logging.getLogger('ListGroups')
-        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
-    
+    def init_arg_parser(self):
+        self.get_arg_parser().add_argument('-l', '--long', action = 'store_true', default = False, help = 'Display extra information in a table.')
+        self.get_arg_parser().add_argument('-a', '--all', action = 'store_true', default = False, help = 'Display all groups.')
+        self.get_arg_parser().add_argument('-u', '--user', metavar = 'user', help = 'Display group membership for the given user.')
+        self.get_arg_parser().set_defaults(func=self)
+
+    def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)
         if args.all:
             kwargs = {'list_all':True}
@@ -60,8 +58,6 @@ class ListGroups(SubCommand):
             kwargs = {'user':args.user}
         else:
             kwargs = {}
-
-        log.debug("kwargs: '%s'" % kwargs)
 
         try:
             groups = repo.list_groups(**kwargs)

@@ -16,6 +16,7 @@ from repoman_client.subcommands.create import CreateGroup
 from repoman_client.subcommands.group_membership import AddUserToGroup
 from repoman_client.subcommands.group_membership import RemoveUserFromGroup
 from repoman_client.subcommands.listing import ListUsers
+from repoman_client.subcommands.listing import ListGroups
 
 # Add all subcommands here:
 repoman_cli.add_subcommand(Help())
@@ -32,6 +33,7 @@ repoman_cli.add_subcommand(CreateGroup())
 repoman_cli.add_subcommand(AddUserToGroup())
 repoman_cli.add_subcommand(RemoveUserFromGroup())
 repoman_cli.add_subcommand(ListUsers())
+repoman_cli.add_subcommand(ListGroups())
 
 # Ask the parser and subparsers to parse the command line arguments.
 args = repoman_cli.get_arg_parser().parse_args()
@@ -223,15 +225,7 @@ p_apg = sp.add_parser('apg', add_help=False, parents=[p_add_permissions_to_group
 
 
 
-# Subcommand: list-groups
-p_list_groups = sp.add_parser('list-groups', add_help=False)
-p_list_groups.add_argument('-l', '--long', action='store_const', const='yes')
-p_list_groups.add_argument('-a', '--all', action='store_const', const='yes')
-p_list_groups.add_argument('-u', '--user')
-#p_list_groups.set_defaults(func=lg)
 
-p_lg = sp.add_parser('lg', add_help=False, parents=[p_list_groups])
-#p_lg.set_defaults(func=lg)
 
 # Subcommand: modify-group
 p_modify_group = sp.add_parser('modify-group', add_help=False)
