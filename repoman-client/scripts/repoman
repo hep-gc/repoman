@@ -13,6 +13,7 @@ from repoman_client.subcommands.diagnostic import About
 from repoman_client.subcommands.create import CreateImage
 from repoman_client.subcommands.create import CreateUser
 from repoman_client.subcommands.create import CreateGroup
+from repoman_client.subcommands.group_membership import AddUserToGroup
 
 # Add all subcommands here:
 repoman_cli.add_subcommand(Help())
@@ -26,6 +27,7 @@ repoman_cli.add_subcommand(About())
 repoman_cli.add_subcommand(CreateImage())
 repoman_cli.add_subcommand(CreateUser())
 repoman_cli.add_subcommand(CreateGroup())
+repoman_cli.add_subcommand(AddUserToGroup())
 
 # Ask the parser and subparsers to parse the command line arguments.
 args = repoman_cli.get_arg_parser().parse_args()
@@ -222,14 +224,6 @@ p_add_permissions_to_group.add_argument('permissions', nargs='+')
 p_apg = sp.add_parser('apg', add_help=False, parents=[p_add_permissions_to_group])
 #p_apg.set_defaults(func=apg)
 
-# Subcommand: add-users-to-group
-p_add_users_to_group = sp.add_parser('add-users-to-group', add_help=False)
-p_add_users_to_group.add_argument('group')
-p_add_users_to_group.add_argument('users', nargs='+')
-#p_add_users_to_group.set_defaults(func=aug)
-
-p_aug = sp.add_parser('aug', add_help=False, parents=[p_add_users_to_group])
-#p_aug.set_defaults(func=aug)
 
 
 
