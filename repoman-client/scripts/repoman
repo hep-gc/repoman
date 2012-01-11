@@ -17,6 +17,7 @@ from repoman_client.subcommands.group_membership import AddUserToGroup
 from repoman_client.subcommands.group_membership import RemoveUserFromGroup
 from repoman_client.subcommands.listing import ListUsers
 from repoman_client.subcommands.listing import ListGroups
+from repoman_client.subcommands.listing import ListImages
 
 # Add all subcommands here:
 repoman_cli.add_subcommand(Help())
@@ -34,6 +35,7 @@ repoman_cli.add_subcommand(AddUserToGroup())
 repoman_cli.add_subcommand(RemoveUserFromGroup())
 repoman_cli.add_subcommand(ListUsers())
 repoman_cli.add_subcommand(ListGroups())
+repoman_cli.add_subcommand(ListImages())
 
 # Ask the parser and subparsers to parse the command line arguments.
 args = repoman_cli.get_arg_parser().parse_args()
@@ -70,18 +72,6 @@ p_get_image.add_argument('-p', '--path')
 p_gi = sp.add_parser('gi', add_help=False, parents=[p_get_image])
 #p_gi.set_defaults(func=gi)
 
-# Subcommand: list-images
-p_list_images = sp.add_parser('list-images', add_help=False)
-p_list_images.add_argument('-o', '--owner')
-p_list_images.add_argument('-g', '--group')
-p_list_images.add_argument('-a', '--all', action='store_const', const='yes')
-p_list_images.add_argument('-l', '--long', action='store_const', const='yes')
-p_list_images.add_argument('-U', '--url', action='store_const', const='yes')
-p_list_images.add_argument('-s', '--shared_with', nargs=2)
-#p_list_images.set_defaults(func=li)
-
-p_li = sp.add_parser('li', add_help=False, parents=[p_list_images])
-#p_li.set_defaults(func=li)
 
 # Subcommand: modify-image
 p_modify_image = sp.add_parser('modify-image', add_help=False)

@@ -70,76 +70,46 @@ class ListGroups(SubCommand):
 
 
 class ListImages(SubCommand):
-    command_group = "advanced"
     command = 'list-images'
     alias = 'li'
-    description = 'List a users images stored in the repository'
+    description = 'List images stored in the repository'
 
-    def get_parser(self):
-        p = ArgumentParser(self.description)
-        p.formatter_class = argparse.RawDescriptionHelpFormatter
-        p.add_argument('-a', '--all', action='store_true', default=False,
-                       help="Display all images")
-        p.add_argument('-l', '--long', action='store_true', default=False,
-                       help='Display extra information for each image')
-        p.add_argument('--sharedwith', action='store_true', default=False,
-                       help='modifier flag.  See epilog for examples.')
-        g = p.add_mutually_exclusive_group()
-        g.add_argument('-u', '--user', help='List images owned by USER')
-        g.add_argument('-g', '--group', help="List images shared with GROUP.")
-        p.epilog = """\
-Example Usages:
+    def __init__(self):
+        SubCommand.__init__(self)
 
-    repoman list
-        list the current users images
+    def init_arg_parser(self):
+        g = self.get_arg_parser().add_mutually_exclusive_group()
+        g.add_argument('-a', '--all', action = 'store_true', default = False, help = 'Display the names of all the images on the repository.')
+        g.add_argument('-u', '--user', metavar = 'user', help = 'List images owned by the given user.')
+        g.add_argument('-g', '--group', metavar = 'group', help = 'Only list images accessible by members of the given group.  See examples below.')
+        g.add_argument('-s', '--sharedwith', metavar = 'user', nargs = '?', const = '', help = 'List images shared with the given user, or the current user if none is given.')
+        self.get_arg_parser().add_argument('-l', '--long',  action = 'store_true', default = False, help = 'Display a table with extra information.')
+        self.get_arg_parser().add_argument('-U', '--url', action = 'store_true', default = False, help = 'In addition to the name, display the HTTP and HTTPS URLs of each image.')
+        self.get_arg_parser().set_defaults(func=self)
 
-    repoman list --sharedwith
-        list all images shared with the current user
+        self.get_arg_parser().set_defaults(func=self)
 
-    repoman list --user bob
-        list all images owned by the user 'bob'
 
-    repoman list --sharedwith --user bob
-        list all images shared with the user 'bob'
-
-    repoman list --group babar
-        list all images accessible by members of the 'babar' group
-
-    repoman list --sharedwith --group babar
-        has the same effect as the previous example."""
-
-        return p
-
-    def __call__(self, args, extra_args=None):
-        log = logging.getLogger('ListImages')
-        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
-    
-        #TODO: impliment sharedwith calls
+    def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)
         if args.all:
             func = repo.list_all_images
             kwargs = {}
-        elif args.group and not args.user:
+        elif args.group:
             func = repo.list_images_shared_with_group
             kwargs = {'group':args.group}
-        elif args.user and not args.group:
-            if args.sharedwith:
-                func = repo.list_images_shared_with_user
-                kwargs = {'user':args.user}
-            else:
-                func = repo.list_user_images
-                kwargs = {'user':args.user}
+        elif args.user:
+            func = repo.list_user_images
+            kwargs = {'user':args.user}
+        elif args.sharedwith != None and args.sharedwith == '':
+            func = repo.list_images_shared_with_user
+            kwargs = {}
+        elif args.sharedwith and args.sharedwith != '':
+            func = repo.list_images_shared_with_user
+            kwargs = {'user':args.sharedwith}
         else:
-            if args.sharedwith:
-                # shared with you
-                func = repo.list_images_shared_with_user
-                kwargs = {}
-            else:
-                func = repo.list_current_user_images
-                kwargs = {}
-
-        log.debug("function: '%s'" % func)
-        log.debug("kwargs: '%s'" % kwargs)
+            func = repo.list_current_user_images
+            kwargs = {}
 
         try:
             images = func(**kwargs)
@@ -148,10 +118,5 @@ Example Usages:
             print e.message
             sys.exit(1)
 
-
-class List(ListImages):
-    # Subclassed from ListImages because it's the same command.
-    command_group = None
-    command = "list"
 
 
