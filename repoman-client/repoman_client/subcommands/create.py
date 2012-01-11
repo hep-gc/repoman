@@ -43,43 +43,56 @@ class CreateUser(SubCommand):
 
 
 class CreateGroup(SubCommand):
-    command_group = "advanced"
     command = "create-group"
     alias = 'cg'
-    description = 'Create a new group based on given information'
-    parse_known_args = True
+    description = 'Create a new group based on given information.'
 
-    def get_parser(self):
-        p = ArgumentParser(self.description)
-        p.usage = "create-group [-h] [--metadata value [--metadata value ...]]"
-        p.epilog = "See documentation for a list of required and optional metadata"
-        return p
+    def __init__(self):
+        SubCommand.__init__(self)
 
-    def __call__(self, args, extra_args=None):
-        log = logging.getLogger('CreateGroup')
-        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
+    def init_arg_parser(self):
+        self.get_arg_parser().add_argument('group', help = 'The name of the newly created group. It must be unique and can only contain characters ([a-Z][0-0][_][-]).')
+        self.get_arg_parser().add_argument('-u', '--users', metavar = 'list', nargs='+', help = 'The users that are members of the group. (Blank separated list) Ex: "msmithsjobs"')
+        self.get_arg_parser().add_argument('-p', '--permissions', metavar = 'list', nargs = '+', help = 'The permissions that the members of the group have (Blank separated list Ex: "user_delete image_modify").  Possible values are: group_create, group_delete, group_modify, group_modify_membership, group_modify_permissions, image_create, image_delete, image_delete_group, image_modify, image_modify_group, user_create, user_delete, user_modify, user_modify_self.  See repoman manpage for a description of each permission.')
+        self.get_arg_parser().set_defaults(func=self)
 
+    def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)
-        if extra_args:
-            try:
-                kwargs = parse_unknown_args(extra_args)
-            except ArgumentFormatError, e:
-                print e.message
-                sys.exit(1)
-        else:
-            kwargs={}
 
-        log.debug("kwargs: '%s'" % kwargs)
+        # Create group metadata arguments to pass to repoman server.
+        kwargs = {}
+        kwargs['name'] = args.group
 
         try:
             repo.create_group(**kwargs)
-            print "[OK]     Creating new group."
+            print "[OK]     Creating new group: '%s'" % (args.group)
         except RepomanError, e:
             print "[FAILED] Creating new group.\n\t-%s" % e
             sys.exit(1)
 
+        # Add permissions to new group, if needed
+        if args.permissions:
+            for p in args.permissions:
+                status = "Adding permission: '%s' to group: '%s'" % (p, args.group)
+                try:
+                    repo.add_permission(args.group, p)
+                    print "[OK]     %s" % status
+                except RepomanError, e:
+                    print "[FAILED] %s\n\t-%s" % (status, e)
+                    sys.exit(1)
+
+        # Add users to new group, if needed
+        if args.users:
+            for user in args.users:
+                status = "Adding user: `%s` to group: '%s'\t\t" % (user, args.group)
+                try:
+                    repo.add_user_to_group(user, args.group)
+                    print '[OK]     %s' % status
+                except RepomanError, e:
+                    print '[FAILED] %s\n\t-%s' % (status, e.message)
 
 
+        
 class CreateImage(SubCommand):
     command = "create-image"
     alias = 'ci'
