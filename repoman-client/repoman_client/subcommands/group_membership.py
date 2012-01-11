@@ -31,21 +31,19 @@ class AddUserToGroup(SubCommand):
 
 
 class RemoveUserFromGroup(SubCommand):
-    command_group = 'advanced'
     command = 'remove-users-from-group'
-    alias = 'rufg'
-    description = 'Remove specifed users from group'
+    alias = 'rug'
+    description = 'Remove specifed users from a group.'
 
-    def get_parser(self):
-        p = ArgumentParser(self.description)
-        p.add_argument('group', help='group to add users to')
-        p.add_argument('-u', '--users', nargs='+', metavar='USER', help='users to add')
-        return p
+    def __init__(self):
+        SubCommand.__init__(self)
 
-    def __call__(self, args, extra_args=None):
-        log = logging.getLogger('RemoveUserFromGroup')
-        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
-        
+    def init_arg_parser(self):
+        self.get_arg_parser().add_argument('group', help = 'The group to remove the specified user(s) from.')
+        self.get_arg_parser().add_argument('users', metavar = 'user', nargs = '+', help = 'The user(s) to remove from the group.')
+        self.get_arg_parser().set_defaults(func=self)
+
+    def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)
         for user in args.users:
             status = "Removing user: `%s` from  group: '%s'\t\t" % (user, args.group)

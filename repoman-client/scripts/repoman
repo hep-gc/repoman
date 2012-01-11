@@ -14,6 +14,7 @@ from repoman_client.subcommands.create import CreateImage
 from repoman_client.subcommands.create import CreateUser
 from repoman_client.subcommands.create import CreateGroup
 from repoman_client.subcommands.group_membership import AddUserToGroup
+from repoman_client.subcommands.group_membership import RemoveUserFromGroup
 
 # Add all subcommands here:
 repoman_cli.add_subcommand(Help())
@@ -28,6 +29,7 @@ repoman_cli.add_subcommand(CreateImage())
 repoman_cli.add_subcommand(CreateUser())
 repoman_cli.add_subcommand(CreateGroup())
 repoman_cli.add_subcommand(AddUserToGroup())
+repoman_cli.add_subcommand(RemoveUserFromGroup())
 
 # Ask the parser and subparsers to parse the command line arguments.
 args = repoman_cli.get_arg_parser().parse_args()
@@ -264,14 +266,6 @@ p_remove_permissions_from_group.add_argument('permissions', nargs='+')
 p_rpg = sp.add_parser('rpg', add_help=False, parents=[p_remove_permissions_from_group])
 #p_rpg.set_defaults(func=rpg)
 
-# Subcommand: remove-users-from-group
-p_remove_users_from_group = sp.add_parser('remove-users-from-group', add_help=False)
-p_remove_users_from_group.add_argument('group')
-p_remove_users_from_group.add_argument('users', nargs='+')
-#p_remove_users_from_group.set_defaults(func=rug)
-
-p_rug = sp.add_parser('rug', add_help=False, parents=[p_remove_users_from_group])
-#p_rug.set_defaults(func=rug)
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #
