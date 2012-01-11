@@ -15,6 +15,7 @@ from repoman_client.subcommands.create import CreateUser
 from repoman_client.subcommands.create import CreateGroup
 from repoman_client.subcommands.group_membership import AddUserToGroup
 from repoman_client.subcommands.group_membership import RemoveUserFromGroup
+from repoman_client.subcommands.listing import ListUsers
 
 # Add all subcommands here:
 repoman_cli.add_subcommand(Help())
@@ -30,6 +31,7 @@ repoman_cli.add_subcommand(CreateUser())
 repoman_cli.add_subcommand(CreateGroup())
 repoman_cli.add_subcommand(AddUserToGroup())
 repoman_cli.add_subcommand(RemoveUserFromGroup())
+repoman_cli.add_subcommand(ListUsers())
 
 # Ask the parser and subparsers to parse the command line arguments.
 args = repoman_cli.get_arg_parser().parse_args()
@@ -181,14 +183,6 @@ p_uiu = sp.add_parser('uiu', add_help=False, parents=[p_unshare_image_from_users
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-# Subcommand: list-users
-p_list_users = sp.add_parser('list-users', add_help=False)
-p_list_users.add_argument('-l', '--long', action='store_const', const='yes')
-p_list_users.add_argument('-g', '--group')
-#p_list_users.set_defaults(func=lu)
-
-p_lu = sp.add_parser('lu', add_help=False, parents=[p_list_users])
-#p_lu.set_defaults(func=lu)
 
 # Subcommand: modify-user
 p_modify_user = sp.add_parser('modify-user', add_help=False)

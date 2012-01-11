@@ -8,29 +8,26 @@ import sys
 import logging
 
 class ListUsers(SubCommand):
-    command_group = "advanced"
     command = "list-users"
     alias = 'lu'
-    description = 'List user accounts on repoman'
+    description = 'List repoman users.'
 
-    def get_parser(self):
-        p = ArgumentParser(self.description)
-        p.add_argument('-l', '--long', action='store_true', default=False, help='display extra information')
-        p.add_argument('-g', '--group', help='only display users in GROUP')
-        return p
+    def __init__(self):
+        SubCommand.__init__(self)
 
-    def __call__(self, args, extra_args=None):
-        log = logging.getLogger('ListUsers')
-        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
-    
+    def init_arg_parser(self):
+        self.get_arg_parser().add_argument('-l', '--long', action = 'store_true', default = False, help = 'Display a table with extra information.')
+        self.get_arg_parser().add_argument('-g', '--group', metavar = 'group', help = 'Only display users that belong to the given group.')
+        self.get_arg_parser().set_defaults(func=self)
+
+
+    def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)
         if args.group:
             kwargs = {'group':args.group}
         else:
             kwargs = {}
             
-        log.debug("kwargs: '%s'" % kwargs)
-
         try:
             users = repo.list_users(**kwargs)
             display.display_user_list(users, long=args.long)
