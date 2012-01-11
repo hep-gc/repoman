@@ -190,13 +190,14 @@ The image to download. Use \fBrepoman list-images\fP to see possible values.
 .image_path
 
 .TP
-\fB{li|list-images}\fP [-a|--all] [{-g|--group} \fIgroup\fP] [-l|--long] [{-s|--sharedwith}] [-U|--url] [{-u|--user} \fIuser\fP]]
+\fB{li|list-images}\fP [{{-a|--all} | {-g|--group} \fIgroup\fP | {-u|--user} \fIuser\fP}] [-l|--long] [-U|--url] 
 List images stored in the repository.
 
-\fB{-a|--all}\fP \- Display the names of all the images on the repository.
+\fB{-a|--all}\fP \- Display the names of all the images in the repository that you have access to.
 
-\fB{-g|--group}\fP \fIgroup\fP \- Only list images accessible by members of the group \fIgroup\fP.
-See examples below.
+\fB{-g|--group}\fP \fIgroup\fP \- List images accessible by you and by members of the named group.
+
+\fB{-u|--user}\fP \fIuser\fP \- List images accessible by you and the named user.
 
 \fB{-l|--long}\fP \- Display a table with extra information. Example:
 .TS
@@ -207,8 +208,6 @@ Image Name~Owner~Size~Last Modified~Description
 myImage~jdoe~4.2GB~Dec 6, 16:04:54 2011~My new image
 .TE
 
-\fB{-s|--sharedwith}\fP \- Modifier flag. See below examples.
-
 \fB{-U|--url}\fP \- In addition to the name, display the HTTP and HTTPS URLs of each image. Example:
 .TS
 tab(~);
@@ -218,24 +217,6 @@ myImage
   http://vmrepo.example.ca/api/images/raw/jdoe/myImage~
   https://vmrepo.example.ca:443/api/images/raw/jdoe/myImage~
 .TE
-
-\fB{-u|--user}\fP \fIuser\fP \- List images either owned by \fIuser\fP or your images shared with \fIuser\fP.
-See examples below.
-
-Examples:
-
-    \fBrepoman list-images\fP
-        \- list the current user's images
-    \fBrepoman list-images --sharedwith\fP
-        \- list the images shared with the current user
-    \fBrepoman list-images --user bob\fP
-        \- list images owned by the user \'bob\'
-    \fBrepoman list-images --sharedwith --user bob\fP
-        \- list the images shared with the user \'bob\'
-    \fBrepoman list-images --group babar\fP
-        \- list images accessible by members of the \'babar\' group
-    \fBrepoman list-images --sharedwith --group babar\fP
-        \- has the same effect as the previous example
 
 .TP
 \fB{mi|modify-image}\fP \fIimage\fP [{-a|--unauthenticated_access} {\fItrue\fP|\fIfalse\fP}] [{-d|--description} \fIvalue\fP] [--hypervisor \fIvalue\fP] [{-n|--new_name} \fIvalue\fP] [{-o|--owner} \fIuser\fP] [--os_variant \fIvalue\fP] [--os_arch \fIvalue\fP] [--os_type \fIvalue\fP]
