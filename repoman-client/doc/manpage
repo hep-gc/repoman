@@ -190,25 +190,32 @@ The image to download. Use \fBrepoman list-images\fP to see possible values.
 .image_path
 
 .TP
-\fBli, list-images\fP [--all | --group \fIgroup\fP | --user \fIuser\fP] [--long | --url] 
+\fBli, list-images\fP [\fB-a\fP | \fB-g\fP \fIgroup\fP | \fB-u\fP \fIuser\fP] [\fB-l\fP | \fB-U\fP] 
 List images stored in the repository. By default, only images owned by the current user are listed.
 
 \fB-a\fP, \fB--all\fP \- List all images accessible by you.
 
 \fB-g\fP \fIgroup\fP, \fB--group\fP \fIgroup\fP \- List all images shared between you and the named group.
 
-\fB-l\fP, \fB--long\fP \- List images, together with additional information, in a table. Example:
+\fB-l\fP, \fB--long\fP \- List images, together with additional information, in a table.
+
+\fB-u\fP \fIuser\fP, \fB--user\fP \fIuser\fP \- List all images shared between you and the named user.
+
+\fB-U\fP, \fB--url\fP \- List images and associated URLs.
+
+Examples:
+
+1. \fBrepoman list-images --long --user bob\fP
 .TS
 tab(~);
 l l l l l.
 Image Name~Owner~Size~Last Modified~Description
 =
+upandown~bob~6.9GB~Jan 12, 13:24:39 2011~
 testimage~jdoe~4.2GB~Dec 6, 16:04:54 2011~My new image
 .TE
 
-\fB-u\fP \fIuser\fP, \fB--user\fP \fIuser\fP \- List all images shared between you and the named user.
-
-\fB-U\fP, \fB--url\fP \- List images and associated URLs. Example:
+2. \fBrepoman li -U\fP
 .TS
 tab(~);
 l
