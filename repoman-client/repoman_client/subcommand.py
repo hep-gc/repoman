@@ -28,7 +28,7 @@ class SubCommand(object):
     arg_parser = None;
 
     def __init__(self):
-        self.arg_parser = repoman_cli.get_sub_arg_parser().add_parser(self.command, help = self.description)
+        self.arg_parser = repoman_cli.get_sub_arg_parser().add_parser(self.command, help = self.description, add_help = False)
         self.init_arg_parser()
         if self.alias:
             alias_sp = repoman_cli.get_sub_arg_parser().add_parser(self.alias, 
