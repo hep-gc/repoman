@@ -205,7 +205,7 @@ tab(~);
 l l l l l.
 Image Name~Owner~Size~Last Modified~Description
 =
-myImage~jdoe~4.2GB~Dec 6, 16:04:54 2011~My new image
+testimage~jdoe~4.2GB~Dec 6, 16:04:54 2011~My new image
 .TE
 
 \fB{-U|--url}\fP \- Display image names and URLs only. Example:
