@@ -9,24 +9,26 @@ import logging
 
 
 class UploadImage(SubCommand):
-    command_group = 'advanced'
-    command = 'upload-image'
-    alias = 'up'
-    description = 'Upload an image file to the repository at an existing location'
+    command = 'put-image'
+    alias = 'pi'
+    description = 'Upload an image file from local disk space to the repoman repository and associate it with an existing image-slot.'
 
-    def get_parser(self):
-        p = ArgumentParser(self.description)
-        p.add_argument('image', help='The image you want to upload to')
-        p.add_argument('--file', help='Path to the image you are uploading')
-        return p
+    def __init__(self):
+        SubCommand.__init__(self)
 
-    def __call__(self, args, extra_args=None):
-        log = logging.getLogger('UploadImage')
-        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
-    
+    def init_arg_parser(self):
+        self.get_arg_parser().add_argument('file', help = 'The local image file to upload to the repository.')
+        self.get_arg_parser().add_argument('image', help = 'The name of the image slot to be used.  Use "repoman list-images" to see possible values.')
+        self.get_arg_parser().add_argument('-o', '--owner', metavar = 'user', help = 'The owner of the named image.  The default is the ID of the current repoman user whih can be determined with the "repoman whoami" command.')
+        self.get_arg_parser().set_defaults(func=self)
+
+    def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)
         try:
-            repo.upload_image(args.image, args.file)
+            image_name = args.image
+            if args.owner:
+                image_name = "%s/%s" % (args.owner, args.image)
+            repo.upload_image(image_name, args.file)
         except RepomanError, e:
             print e
             sys.exit(1)

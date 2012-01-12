@@ -19,6 +19,7 @@ from repoman_client.subcommands.listing import ListUsers
 from repoman_client.subcommands.listing import ListGroups
 from repoman_client.subcommands.listing import ListImages
 from repoman_client.subcommands.up_down import DownloadImage
+from repoman_client.subcommands.up_down import UploadImage
 
 # Add all subcommands here:
 repoman_cli.add_subcommand(Help())
@@ -38,6 +39,7 @@ repoman_cli.add_subcommand(ListUsers())
 repoman_cli.add_subcommand(ListGroups())
 repoman_cli.add_subcommand(ListImages())
 repoman_cli.add_subcommand(DownloadImage())
+repoman_cli.add_subcommand(UploadImage())
 
 # Ask the parser and subparsers to parse the command line arguments.
 args = repoman_cli.get_arg_parser().parse_args()
@@ -83,15 +85,6 @@ p_modify_image.add_argument('-n', '--new_name')
 p_mi = sp.add_parser('mi', add_help=False, parents=[p_modify_image])
 #p_mi.set_defaults(func=mi)
 
-# Subcommand: put-image
-p_put_image = sp.add_parser('put-image', add_help=False)
-p_put_image.add_argument('file')
-p_put_image.add_argument('image')
-p_put_image.add_argument('-o', '--owner')
-#p_put_image.set_defaults(func=pi)
-
-p_pi = sp.add_parser('pi', add_help=False, parents=[p_put_image])
-#p_pi.set_defaults(func=pi)
 
 # Subcommand: remove-image
 p_remove_image = sp.add_parser('remove-image', add_help=False)
