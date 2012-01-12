@@ -213,9 +213,9 @@ myImage~jdoe~4.2GB~Dec 6, 16:04:54 2011~My new image
 tab(~);
 l
 ls.
-myImage
-  http://vmrepo.example.ca/api/images/raw/jdoe/myImage~
-  https://vmrepo.example.ca:443/api/images/raw/jdoe/myImage~
+bob/testimage
+  http://vmrepo.example.ca/api/images/raw/jdoe/testimage
+  https://vmrepo.example.ca:443/api/images/raw/jdoe/testimage
 .TE
 
 .TP
