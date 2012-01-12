@@ -1,40 +1,38 @@
 from repoman_client.subcommand import SubCommand
 from repoman_client.client import RepomanClient, RepomanError
 from repoman_client.config import config
-from repoman_client.parsers import parse_unknown_args, ArgumentFormatError, arg_value_pairs
 from argparse import ArgumentParser
 import sys
 import logging
 
 class ModifyUser(SubCommand):
-    command_group = "advanced"
     command = "modify-user"
     alias = 'mu'
-    description = 'Modify an existing user with the given information'
-    parse_known_args = True
+    description = 'Modify a repoman user with the given metadata information.'
 
-    def get_parser(self):
-        p = ArgumentParser(self.description)
-        p.usage = "modify-user [-h] user [--metadata value [--metadata value ...]]"
-        p.epilog = "See documentation for a list of required and optional metadata"
-        p.add_argument('user', help='The existing user you want to modify')
-        return p
+    def __init__(self):
+        SubCommand.__init__(self)
 
-    def __call__(self, args, extra_args=None):
-        log = logging.getLogger('ModifyUser')
-        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
-    
+    def init_arg_parser(self):
+        self.get_arg_parser().add_argument('user', help = 'The name of the user to be modified.  See "repoman list-users" to see possible values.')
+        self.get_arg_parser().add_argument('-c', '--client_dn', metavar = 'dn', help = 'The Distinguised Name (DN) of the certificate which is owned by the user.')
+        self.get_arg_parser().add_argument('-f', '--full_name', metavar = 'name', help = 'The full name of the user.')
+        self.get_arg_parser().add_argument('-e', '--email', metavar = 'address', help = 'The email address of the user.')
+        self.get_arg_parser().add_argument('-n', '--new_name', metavar = 'user', help = 'The new unique username for the user.')
+        self.get_arg_parser().set_defaults(func=self)
+
+    def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)
-        if extra_args:
-            try:
-                kwargs = parse_unknown_args(extra_args)
-            except ArgumentFormatError, e:
-                print e.message
-                sys.exit(1)
-        else:
-            kwargs={}
-            
-        log.debug("kwargs: '%s'" % kwargs)
+
+        kwargs = {}
+        if args.full_name:
+            kwargs['full_name'] = args.full_name
+        if args.email:
+            kwargs['email'] = args.email
+        if args.new_name:
+            kwargs['user_name'] = args.new_name
+        if args.client_dn:
+            kwargs['client_dn'] = args.client_dn
 
         try:
             repo.modify_user(args.user, **kwargs)

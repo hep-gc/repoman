@@ -18,6 +18,9 @@ from repoman_client.subcommands.group_membership import RemoveUserFromGroup
 from repoman_client.subcommands.listing import ListUsers
 from repoman_client.subcommands.listing import ListGroups
 from repoman_client.subcommands.listing import ListImages
+from repoman_client.subcommands.up_down import DownloadImage
+from repoman_client.subcommands.up_down import UploadImage
+from repoman_client.subcommands.modify import ModifyUser
 
 # Add all subcommands here:
 repoman_cli.add_subcommand(Help())
@@ -36,6 +39,9 @@ repoman_cli.add_subcommand(RemoveUserFromGroup())
 repoman_cli.add_subcommand(ListUsers())
 repoman_cli.add_subcommand(ListGroups())
 repoman_cli.add_subcommand(ListImages())
+repoman_cli.add_subcommand(DownloadImage())
+repoman_cli.add_subcommand(UploadImage())
+repoman_cli.add_subcommand(ModifyUser())
 
 # Ask the parser and subparsers to parse the command line arguments.
 args = repoman_cli.get_arg_parser().parse_args()
@@ -62,15 +68,7 @@ sys.exit(0)
 
 
 
-# Subcommand: get-image
-p_get_image = sp.add_parser('get-image', add_help=False)
-p_get_image.add_argument('image') 
-p_get_image.add_argument('-o', '--owner')
-p_get_image.add_argument('-p', '--path')
-#p_get_image.set_defaults(func=gi)
 
-p_gi = sp.add_parser('gi', add_help=False, parents=[p_get_image])
-#p_gi.set_defaults(func=gi)
 
 
 # Subcommand: modify-image
@@ -89,15 +87,6 @@ p_modify_image.add_argument('-n', '--new_name')
 p_mi = sp.add_parser('mi', add_help=False, parents=[p_modify_image])
 #p_mi.set_defaults(func=mi)
 
-# Subcommand: put-image
-p_put_image = sp.add_parser('put-image', add_help=False)
-p_put_image.add_argument('file')
-p_put_image.add_argument('image')
-p_put_image.add_argument('-o', '--owner')
-#p_put_image.set_defaults(func=pi)
-
-p_pi = sp.add_parser('pi', add_help=False, parents=[p_put_image])
-#p_pi.set_defaults(func=pi)
 
 # Subcommand: remove-image
 p_remove_image = sp.add_parser('remove-image', add_help=False)
@@ -176,17 +165,6 @@ p_uiu = sp.add_parser('uiu', add_help=False, parents=[p_unshare_image_from_users
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-# Subcommand: modify-user
-p_modify_user = sp.add_parser('modify-user', add_help=False)
-p_modify_user.add_argument('user')
-p_modify_user.add_argument('client_dn')
-p_modify_user.add_argument('-f', '--full_name')
-p_modify_user.add_argument('-e', '--email')
-p_modify_user.add_argument('-n', '--new_name')
-#p_modify_user.set_defaults(func=mu)
-
-p_mu = sp.add_parser('mu', add_help=False, parents=[p_modify_user])
-#p_mu.set_defaults(func=mu)
 
 # Subcommand: remove-user
 p_remove_user = sp.add_parser('remove-user', add_help=False)

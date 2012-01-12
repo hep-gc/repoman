@@ -72,21 +72,19 @@ class ListGroups(SubCommand):
 class ListImages(SubCommand):
     command = 'list-images'
     alias = 'li'
-    description = 'List images stored in the repository'
+    description = 'List images stored in the repository.  By default, only images owned by the current user are listed.'
 
     def __init__(self):
         SubCommand.__init__(self)
 
     def init_arg_parser(self):
-        g = self.get_arg_parser().add_mutually_exclusive_group()
-        g.add_argument('-a', '--all', action = 'store_true', default = False, help = 'Display the names of all the images on the repository.')
-        g.add_argument('-u', '--user', metavar = 'user', help = 'List images owned by the given user.')
-        g.add_argument('-g', '--group', metavar = 'group', help = 'Only list images accessible by members of the given group.  See examples below.')
-        g.add_argument('-s', '--sharedwith', metavar = 'user', nargs = '?', const = '', help = 'List images shared with the given user, or the current user if none is given.')
-        self.get_arg_parser().add_argument('-l', '--long',  action = 'store_true', default = False, help = 'Display a table with extra information.')
-        self.get_arg_parser().add_argument('-U', '--url', action = 'store_true', default = False, help = 'In addition to the name, display the HTTP and HTTPS URLs of each image.')
-        self.get_arg_parser().set_defaults(func=self)
-
+        g1 = self.get_arg_parser().add_mutually_exclusive_group()
+        g1.add_argument('-a', '--all', action = 'store_true', default = False, help = 'List all images accessible by you.')
+        g1.add_argument('-g', '--group', metavar = 'group', help = 'List images accessible by you and by members of the named group.')
+        g1.add_argument('-u', '--user', metavar = 'user', help = 'List all images shared between you and the named user.')
+        g2 = self.get_arg_parser().add_mutually_exclusive_group()
+        g2.add_argument('-l', '--long',  action = 'store_true', default = False, help = 'Display a table with extra information.')
+        g2.add_argument('-U', '--url', action = 'store_true', default = False, help = 'In addition to the name, display the HTTP and HTTPS URLs of each image.')
         self.get_arg_parser().set_defaults(func=self)
 
 

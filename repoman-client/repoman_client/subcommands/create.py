@@ -15,9 +15,9 @@ class CreateUser(SubCommand):
 
     def init_arg_parser(self):
         self.get_arg_parser().add_argument('user', help = 'The name of the newly created user.  Must be unique and only contain characters ([a-Z][0-0][_][-]).')
+        self.get_arg_parser().add_argument('full_name', help = 'The full name of the user.')
         self.get_arg_parser().add_argument('client_dn', help = 'The Distinguished Name (DN, looks like "/C=CA/O=Grid/OU=dept.org.ca/CN=John Doe")  of the certificate owned by the user and issued by a certificate authority, for example GridCanada.ca.')
-        self.get_arg_parser().add_argument('-e', '--email', metavar = 'address', help = 'The email address of the user.')
-        self.get_arg_parser().add_argument('-f', '--full_name', metavar = 'name', help = 'The full name of the user.')
+        self.get_arg_parser().add_argument('email', help = 'The email address of the user.')
 
         self.get_arg_parser().set_defaults(func=self)
 
@@ -27,11 +27,9 @@ class CreateUser(SubCommand):
         # Create user metadata arguments to pass to repoman server.
         kwargs = {}
         kwargs['user_name'] = args.user
-        kwargs['client_dn'] = args.client_dn
-        if args.email:
-            kwargs['email'] = args.email
-        if args.full_name:
-            kwargs['full_name'] = args.full_name
+        kwargs['cert_dn'] = args.client_dn
+        kwargs['email'] = args.email
+        kwargs['full_name'] = args.full_name
 
         try:
             repo.create_user(**kwargs)
