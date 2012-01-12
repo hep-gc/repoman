@@ -190,16 +190,14 @@ The image to download. Use \fBrepoman list-images\fP to see possible values.
 .image_path
 
 .TP
-\fB{li|list-images}\fP [{{-a|--all} | {-g|--group} \fIgroup\fP | {-u|--user} \fIuser\fP}] [-l|--long] [-U|--url] 
-List images stored in the repository.
+\fB{li|list-images}\fP [--all | --group \fIgroup\fP | --user \fIuser\fP] [--long | --url] 
+List images stored in the repository. By default, only images owned by the current user are listed.
 
-\fB{-a|--all}\fP \- Display the names of all the images in the repository that you have access to.
+\fB{-a|--all}\fP \- List all images accessible by you.
 
-\fB{-g|--group}\fP \fIgroup\fP \- List images accessible by you and by members of the named group.
+\fB{-g|--group}\fP \fIgroup\fP \- List all images shared between you and the named group.
 
-\fB{-u|--user}\fP \fIuser\fP \- List images accessible by you and the named user.
-
-\fB{-l|--long}\fP \- Display a table with extra information. Example:
+\fB{-l|--long}\fP \- List images, together with additional information, in a table. Example:
 .TS
 tab(~);
 l l l l l.
@@ -208,7 +206,9 @@ Image Name~Owner~Size~Last Modified~Description
 testimage~jdoe~4.2GB~Dec 6, 16:04:54 2011~My new image
 .TE
 
-\fB{-U|--url}\fP \- Display image names and URLs only. Example:
+\fB{-u|--user}\fP \fIuser\fP \- List all images shared between you and the named user.
+
+\fB{-U|--url}\fP \- List images and associated URLs. Example:
 .TS
 tab(~);
 l
