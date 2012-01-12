@@ -208,7 +208,7 @@ Image Name~Owner~Size~Last Modified~Description
 myImage~jdoe~4.2GB~Dec 6, 16:04:54 2011~My new image
 .TE
 
-\fB{-U|--url}\fP \- In addition to the name, display the HTTP and HTTPS URLs of each image. Example:
+\fB{-U|--url}\fP \- Display image names and URLs only. Example:
 .TS
 tab(~);
 l
