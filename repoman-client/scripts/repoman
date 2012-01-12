@@ -18,6 +18,7 @@ from repoman_client.subcommands.group_membership import RemoveUserFromGroup
 from repoman_client.subcommands.listing import ListUsers
 from repoman_client.subcommands.listing import ListGroups
 from repoman_client.subcommands.listing import ListImages
+from repoman_client.subcommands.up_down import DownloadImage
 
 # Add all subcommands here:
 repoman_cli.add_subcommand(Help())
@@ -36,6 +37,7 @@ repoman_cli.add_subcommand(RemoveUserFromGroup())
 repoman_cli.add_subcommand(ListUsers())
 repoman_cli.add_subcommand(ListGroups())
 repoman_cli.add_subcommand(ListImages())
+repoman_cli.add_subcommand(DownloadImage())
 
 # Ask the parser and subparsers to parse the command line arguments.
 args = repoman_cli.get_arg_parser().parse_args()
@@ -62,15 +64,7 @@ sys.exit(0)
 
 
 
-# Subcommand: get-image
-p_get_image = sp.add_parser('get-image', add_help=False)
-p_get_image.add_argument('image') 
-p_get_image.add_argument('-o', '--owner')
-p_get_image.add_argument('-p', '--path')
-#p_get_image.set_defaults(func=gi)
 
-p_gi = sp.add_parser('gi', add_help=False, parents=[p_get_image])
-#p_gi.set_defaults(func=gi)
 
 
 # Subcommand: modify-image
