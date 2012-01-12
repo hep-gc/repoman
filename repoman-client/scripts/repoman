@@ -20,6 +20,7 @@ from repoman_client.subcommands.listing import ListGroups
 from repoman_client.subcommands.listing import ListImages
 from repoman_client.subcommands.up_down import DownloadImage
 from repoman_client.subcommands.up_down import UploadImage
+from repoman_client.subcommands.modify import ModifyUser
 
 # Add all subcommands here:
 repoman_cli.add_subcommand(Help())
@@ -40,6 +41,7 @@ repoman_cli.add_subcommand(ListGroups())
 repoman_cli.add_subcommand(ListImages())
 repoman_cli.add_subcommand(DownloadImage())
 repoman_cli.add_subcommand(UploadImage())
+repoman_cli.add_subcommand(ModifyUser())
 
 # Ask the parser and subparsers to parse the command line arguments.
 args = repoman_cli.get_arg_parser().parse_args()
@@ -163,17 +165,6 @@ p_uiu = sp.add_parser('uiu', add_help=False, parents=[p_unshare_image_from_users
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-# Subcommand: modify-user
-p_modify_user = sp.add_parser('modify-user', add_help=False)
-p_modify_user.add_argument('user')
-p_modify_user.add_argument('client_dn')
-p_modify_user.add_argument('-f', '--full_name')
-p_modify_user.add_argument('-e', '--email')
-p_modify_user.add_argument('-n', '--new_name')
-#p_modify_user.set_defaults(func=mu)
-
-p_mu = sp.add_parser('mu', add_help=False, parents=[p_modify_user])
-#p_mu.set_defaults(func=mu)
 
 # Subcommand: remove-user
 p_remove_user = sp.add_parser('remove-user', add_help=False)
