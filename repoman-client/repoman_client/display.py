@@ -35,8 +35,17 @@ def display_user_list(users, long_output=False):
 def display_image_list(images, long_output=False, urls=False):
     format_string = None
     if long_output:
+        column_headers = ['Image Name',
+                          'Owner',
+                          'Size',
+                          'Last Modified',
+                          'Description']
         # Compute max field lengths
-        max_feild_lengths = [0,0,0,0,0]
+        max_feild_lengths = [len(column_headers[0]),
+                             len(column_headers[1]),
+                             len(column_headers[2]),
+                             len(column_headers[3]),
+                             len(column_headers[4])]
         for image in images:
             max_feild_lengths[0] = max(len(image['name']), max_feild_lengths[0])
             max_feild_lengths[1] = max(len(image['owner'].rsplit('/', 1)[-1]), max_feild_lengths[1])
@@ -55,7 +64,11 @@ def display_image_list(images, long_output=False, urls=False):
                                                               max_feild_lengths[4])
 
         # Print a header with column names and horizontal line.
-        print format_string % ("Image Name", "Owner", "Size", "Last Modified", "Description")
+        print format_string % (column_headers[0],
+                               column_headers[1],
+                               column_headers[2],
+                               column_headers[3],
+                               column_headers[4])
         print format_string % ('-' * max_feild_lengths[0], '-' * max_feild_lengths[1], '-' * max_feild_lengths[2], '-' * max_feild_lengths[3], '-' * max_feild_lengths[4])
 
     # Let's print each image.
