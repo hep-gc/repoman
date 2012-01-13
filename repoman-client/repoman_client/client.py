@@ -1,12 +1,19 @@
+import sys, os, time
 from repoman_client.config import config
 from repoman_client import imageutils
-import simplejson
+if sys.version_info < (2, 6):
+    try:
+        import simplejson as json
+    except:
+        raise "Please install the simplejson lib for python 2.4 or 2.5"
+else:
+    import json
+
 import httplib
 import urllib
 import socket
 import subprocess
 #import ssl
-import sys, os, time
 import logging
 
 log = logging.getLogger('client')
@@ -160,7 +167,7 @@ class RepomanClient(object):
         body = resp.read()
         log.debug("Message body from server: '%s'" % body)
         try:
-            return simplejson.loads(body)
+            return json.loads(body)
         except:
             message = "Unable to parse response."
             raise FormattingError(message, body)
