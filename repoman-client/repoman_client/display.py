@@ -48,7 +48,7 @@ def display_image_list(images, long_output=False, urls=False):
         # Create a format string used to format output lines.
         # Edit the 'format_string' variable below if you want to change
         # the output format (i.e., change field width, alignment, etc. )
-        format_string = "%%-%ds %%-%ds %%%ds %%%ds %%-%ds" % (max_feild_lengths[0], 
+        format_string = "%%-%ds %%-%ds %%%ds %%-%ds %%-%ds" % (max_feild_lengths[0], 
                                                               max_feild_lengths[1], 
                                                               max_feild_lengths[2], 
                                                               max_feild_lengths[3], 
