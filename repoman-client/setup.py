@@ -17,7 +17,7 @@ setup(name='repoman-client',
     url='http://github.com/hep-gc/repoman',
     install_requires=["simplejson","argparse"],
     packages=['repoman_client'],
-    scripts=['scripts/repoman'],
+    scripts=['repoman'],
     include_package_data=True,
     zip_safe=False,
 )
