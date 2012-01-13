@@ -23,7 +23,7 @@ class DescribeUser(SubCommand):
         repo = RepomanClient(config.host, config.port, config.proxy)
         try:
             user = repo.describe_user(args.user)
-            display.describe_user(user, long=True)
+            display.describe_user(user, long_output=True)
         except RepomanError, e:
             print e
             sys.exit(1)
@@ -46,7 +46,7 @@ class DescribeGroup(SubCommand):
         repo = RepomanClient(config.host, config.port, config.proxy)
         try:
             group = repo.describe_group(args.group)
-            display.describe_group(group, long=True)
+            display.describe_group(group, long_output=True)
         except RepomanError, e:
             print e
             sys.exit(1)
@@ -72,7 +72,7 @@ class DescribeImage(SubCommand):
             if args.owner:
                 image_path = args.owner + '/' + args.image
             image = repo.describe_image(image_path)
-            display.describe_image(image, long=True)
+            display.describe_image(image, long_output=True)
         except RepomanError, e:
             print e
             sys.exit(1)
