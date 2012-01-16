@@ -27,6 +27,8 @@ from repoman_client.subcommands.remove import RemoveUser
 from repoman_client.subcommands.remove import RemoveGroup
 from repoman_client.subcommands.remove import RemoveImage
 from repoman_client.subcommands.save import Save
+from repoman_client.subcommands.sharing import ShareImageWithGroups
+from repoman_client.subcommands.sharing import ShareImageWithUsers
 
 # Add all subcommands here:
 repoman_cli.add_subcommand(Help())
@@ -54,6 +56,8 @@ repoman_cli.add_subcommand(RemoveUser())
 repoman_cli.add_subcommand(RemoveGroup())
 repoman_cli.add_subcommand(RemoveImage())
 repoman_cli.add_subcommand(Save())
+repoman_cli.add_subcommand(ShareImageWithGroups())
+repoman_cli.add_subcommand(ShareImageWithUsers())
 
 
 
@@ -80,46 +84,6 @@ sys.exit(0)
 # be moved to individual subcommand classes.  See MakeConfig and Help for
 # examples.
 
-
-
-
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#
-#                             Image Manipulation Subcommands                          #
-#
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-
-
-
-
-
-
-
-
-
-
-
-# Subcommand: share-image-with-groups
-p_share_image_with_groups = sp.add_parser('share-image-with-groups', add_help=False)
-p_share_image_with_groups.add_argument('image')
-p_share_image_with_groups.add_argument('-o', '--owner')
-p_share_image_with_groups.add_argument('groups', nargs='+')
-#p_share_image.set_defaults(func=sig)
-
-p_sig = sp.add_parser('sig', add_help=False, parents=[p_share_image_with_groups])
-#p_sig.set_defaults(func=sig)
-
-# Subcommand: share-image-with-users
-p_share_image_with_users = sp.add_parser('share-image-with-users', add_help=False)
-p_share_image_with_users.add_argument('image')
-p_share_image_with_users.add_argument('-o', '--owner')
-p_share_image_with_users.add_argument('users', nargs='+')
-#p_share_image.set_defaults(func=siu)
-
-p_siu = sp.add_parser('siu', add_help=False, parents=[p_share_image_with_users])
-#p_siu.set_defaults(func=siu)
 
 # Subcommand: unshare-image-from-groups
 p_unshare_image_from_groups = sp.add_parser('unshare-image-from-groups', add_help=False)
