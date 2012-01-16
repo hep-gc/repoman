@@ -81,45 +81,50 @@ class ModifyGroup(SubCommand):
 
 
 class ModifyImage(SubCommand):
-    command_group = "advanced"
     command = "modify-image"
     alias = 'mi'
-    description = 'Modify an existing image with the given information'
-    parse_known_args = True
+    description = 'Modify an image with the given information.'
 
-    def get_parser(self):
-        p = ArgumentParser(self.description)
-        p.usage = "modify-image image [-h] [--name] [--description] [--os_variant] [--os_arch] [--os_type] [--hypervisor] [--read_only] [--expires] [--unauthenticated_access]"
-        p.add_argument('image', help='The existing image you want to modify')
-        p.add_argument('--name', help='image name unique to the users namespace')
-        p.add_argument('--description', help='description of the image modification')
-        p.add_argument('--os_variant', help='redhat, centos, ubuntu, etc')
-        p.add_argument('--os_arch', help='x86, x86_64')
-        p.add_argument('--os_type', help='linux, unix, windows, etc')
-        p.add_argument('--hypervisor', help='kvm, xen')
-        p.add_argument('--read_only', default=False, help='should the image be read only?')
-        p.add_argument('--expires', help='when should the image expire?')
-        p.add_argument('--unauthenticated_access', default=True, help='should the image access be unauthenticated?')
-        return p
+    def __init__(self):
+        SubCommand.__init__(self)
 
-    def __call__(self, args, extra_args=None):
-        log = logging.getLogger('ModifyImage')
-        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
-    
+    def init_arg_parser(self):
+        self.get_arg_parser().add_argument('image', help = 'The name of the image to modify. Use "repoman list-images" to see possible values.') 
+        self.get_arg_parser().add_argument('-a', '--unauthenticated_access', choices=['true', 'false'], help = 'Defaults  to  false.  If  set  to  true, the image may be retrieved by anybody who has the correct URL.')
+        self.get_arg_parser().add_argument('-d', '--description', metavar = 'value', help = 'Description of the image.')
+        self.get_arg_parser().add_argument('-h', '--hypervisor', metavar = 'value', help = 'The hypervisor. Ex: xen, kvm, etc.')
+        self.get_arg_parser().add_argument('-n', '--new_name', metavar = 'value', help = 'The new name of the image-slot on the repository.  This  will be used to reference the image when running other repoman commands. It must be unique  to  the  owner\'s domain and can only contain ([a-Z][0-9][_][-]) characters.') 
+        self.get_arg_parser().add_argument('-o', '--new_owner', metavar = 'user', help = 'The new owner of the named image. Use "repoman list-users" to see possible values.')
+        self.get_arg_parser().add_argument('--os_arch', choices = ['x86', 'x86_64'], help = 'The  operating  system  architecture.')
+        self.get_arg_parser().add_argument('--os_type', metavar = 'value', help = 'The operating system type.  Ex:  linux,  unix, windows, etc.')
+        self.get_arg_parser().add_argument('--os_variant', metavar = 'value', help = 'The operating system variant. Ex: redhat, centos, ubuntu, etc.')
+        self.get_arg_parser().set_defaults(func=self)
+
+
+    def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)
   
         kwargs={}
-        extra_args=['name',args.name,'description',args.description,'os_variant',args.os_variant,'os_arch',args.os_arch,'os_type',args.os_type,
-                   'hypervisor',args.hypervisor,'read_only',args.read_only,'expires',args.expires,'unauthenticated_access',args.unauthenticated_access]
-        for arg,value in arg_value_pairs(extra_args):
-            if value:
-                if value in ['true', 'True', 'TRUE']:
-                    value = True
-                elif value in ['false', 'False', 'FALSE']:
-                    value = False
-                kwargs.update({arg:value})
-        del extra_args    
-        log.debug("kwargs: '%s'" % kwargs)
+        if args.unauthenticated_access and args.unauthenticated_access.lower() == 'true':
+            kwargs['unauthenticated_access'] = True
+        if args.unauthenticated_access and args.unauthenticated_access.lower() == 'false':
+            kwargs['unauthenticated_access'] = False
+        if args.description:
+            kwargs['description'] = args.description
+        if args.hypervisor:
+            kwargs['hypervisor'] = args.hypervisor
+        if args.new_name:
+            kwargs['name'] = args.new_name
+        if args.new_owner:
+            print 'Changing the owner of an image has not been implemented yet.'
+            sys.exit(1)
+            #kwargs['owner'] = args.owner
+        if args.os_arch:
+            kwargs['os_arch'] = args.os_arch
+        if args.os_type:
+            kwargs['os_type'] = args.os_type
+        if args.os_variant:
+            kwargs['os_variant'] = args.os_variant
 
         try:
             repo.modify_image(args.image, **kwargs)

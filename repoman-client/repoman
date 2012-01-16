@@ -22,6 +22,7 @@ from repoman_client.subcommands.up_down import DownloadImage
 from repoman_client.subcommands.up_down import UploadImage
 from repoman_client.subcommands.modify import ModifyUser
 from repoman_client.subcommands.modify import ModifyGroup
+from repoman_client.subcommands.modify import ModifyImage
 
 # Add all subcommands here:
 repoman_cli.add_subcommand(Help())
@@ -44,6 +45,10 @@ repoman_cli.add_subcommand(DownloadImage())
 repoman_cli.add_subcommand(UploadImage())
 repoman_cli.add_subcommand(ModifyUser())
 repoman_cli.add_subcommand(ModifyGroup())
+repoman_cli.add_subcommand(ModifyImage())
+
+
+
 
 # Check if no arguments were given.  In this case,
 # we display a simple help message.
@@ -82,21 +87,7 @@ sys.exit(0)
 
 
 
-# Subcommand: modify-image
-p_modify_image = sp.add_parser('modify-image', add_help=False)
-p_modify_image.add_argument('image') 
-p_modify_image.add_argument('-o', '--owner')
-p_modify_image.add_argument('-d', '--description')
-p_modify_image.add_argument('--os_variant')
-p_modify_image.add_argument('--os_arch')
-p_modify_image.add_argument('--os_type')
-p_modify_image.add_argument('--hypervisor')
-p_modify_image.add_argument('-u', '--unauthenticated_access', choices=['True', 'False'])
-p_modify_image.add_argument('-n', '--new_name')
-#p_modify_image.set_defaults(func=mi)
 
-p_mi = sp.add_parser('mi', add_help=False, parents=[p_modify_image])
-#p_mi.set_defaults(func=mi)
 
 
 # Subcommand: remove-image
