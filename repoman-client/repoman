@@ -25,6 +25,7 @@ from repoman_client.subcommands.modify import ModifyGroup
 from repoman_client.subcommands.modify import ModifyImage
 from repoman_client.subcommands.remove import RemoveUser
 from repoman_client.subcommands.remove import RemoveGroup
+from repoman_client.subcommands.remove import RemoveImage
 
 # Add all subcommands here:
 repoman_cli.add_subcommand(Help())
@@ -50,6 +51,7 @@ repoman_cli.add_subcommand(ModifyGroup())
 repoman_cli.add_subcommand(ModifyImage())
 repoman_cli.add_subcommand(RemoveUser())
 repoman_cli.add_subcommand(RemoveGroup())
+repoman_cli.add_subcommand(RemoveImage())
 
 
 
@@ -94,15 +96,6 @@ sys.exit(0)
 
 
 
-# Subcommand: remove-image
-p_remove_image = sp.add_parser('remove-image', add_help=False)
-p_remove_image.add_argument('image')
-p_remove_image.add_argument('-o', '--owner')
-p_remove_image.add_argument('-f', '--force', action='store_const', const='yes')
-#p_remove_image.set_defaults(func=ri)
-
-p_ri = sp.add_parser('ri', add_help=False, parents=[p_remove_image])
-#p_ri.set_defaults(func=ri)
 
 # Subcommand: save-image
 p_save_image = sp.add_parser('save-image', add_help=False)
