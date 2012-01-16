@@ -133,31 +133,3 @@ class ModifyImage(SubCommand):
             print "[FAILED] Modifying image.\n\t-%s" % e
             sys.exit(1)
 
-
-
-class Rename(SubCommand):
-    command = 'rename'
-    alias = 'rn'
-    description = "Rename an existing image from 'old' to 'new'"
-
-    def get_parser(self):
-        p = ArgumentParser(self.description)
-        p.add_argument('old', help='name of exiting image')
-        p.add_argument('new', help='new name that existing image will get')
-        return p
-
-    def __call__(self, args, extra_args=None):
-        log = logging.getLogger('Rename')
-        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
-        
-        repo = RepomanClient(config.host, config.port, config.proxy)
-
-        kwargs = {'name':args.new}
-        log.debug("kwargs: '%s'" % kwargs)
-        try:
-            repo.modify_image(args.old, **kwargs)
-            print "[OK]     Renaming image."
-        except RepomanError, e:
-            print "[FAILED] Renaming image.\n\t-%s" % e
-            sys.exit(1)
-
