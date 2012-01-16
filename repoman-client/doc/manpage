@@ -23,6 +23,11 @@
 \- The new name of the image-slot on the repository. This will be used to reference the image when running
 other repoman commands. It must be unique to the owner's domain and can only contain ([a-Z][0-9][_][-]) characters.
 ..
+.de image_new_owner
+\fB-N\fP, \fB--new_owner\fP \fIuser\fP
+\- The user name of the new owner of the image.
+The specified user name must be a registered repoman user; use the \fBrepoman list-users\fP to display possible valid values.
+..
 .de image_owner
 \fB-o\fP, \fB--owner\fP \fIuser\fP
 \- The owner of the named image. The default is the ID of the current repoman user which can be determined with the command "\fBrepoman whoami\fP" command. 
@@ -247,7 +252,7 @@ jdoe/testimage
 .TE
 
 .TP
-\fBmi\fP, \fBmodify-image\fP \fIimage\fP [\fB--unauthenticated_access\fP [\fBtrue\fP|\fBfalse\fP]] [\fB--description\fP \fIvalue\fP] [\fB--hypervisor\fP \fIvalue\fP] [\fB--new_name\fP \fIvalue\fP] [\fB--owner\fP \fIuser\fP] [\fB--os_variant\fP \fIvalue\fP] [\fB--os_arch\fP \fIvalue\fP] [\fB--os_type\fP \fIvalue\fP]
+\fBmi\fP, \fBmodify-image\fP \fIimage\fP [\fB--unauthenticated_access\fP [\fBtrue\fP|\fBfalse\fP]] [\fB--description\fP \fIvalue\fP] [\fB--hypervisor\fP \fIvalue\fP] [\fB--new_name\fP \fIvalue\fP] [\fB--new_owner\fP \fIuser\fP] [\fB--owner\fP \fIuser\fP] [\fB--os_variant\fP \fIvalue\fP] [\fB--os_arch\fP \fIvalue\fP] [\fB--os_type\fP \fIvalue\fP]
 \#-----------------------------------------------------------------------------------------------------
 Modify an image with the given information.
 
@@ -265,6 +270,8 @@ Options:
 .image_hypervisor
 
 .image_new_name
+
+.image_new_owner
 
 .image_owner
 
