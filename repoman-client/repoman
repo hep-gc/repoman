@@ -43,6 +43,15 @@ repoman_cli.add_subcommand(DownloadImage())
 repoman_cli.add_subcommand(UploadImage())
 repoman_cli.add_subcommand(ModifyUser())
 
+# Check if no arguments were given.  In this case,
+# we display a simple help message.
+# We do this so that we do not get the default help message,
+# which in the case of this application, is too verbal.
+if len(sys.argv) == 1:
+    print 'repoman: error: too few arguments'
+    print 'use "repoman help" for more information'
+    sys.exit(1)
+
 # Ask the parser and subparsers to parse the command line arguments.
 args = repoman_cli.get_arg_parser().parse_args()
 
