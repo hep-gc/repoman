@@ -18,7 +18,6 @@ class ListUsers(SubCommand):
     def init_arg_parser(self):
         self.get_arg_parser().add_argument('-l', '--long', action = 'store_true', default = False, help = 'Display a table with extra information.')
         self.get_arg_parser().add_argument('-g', '--group', metavar = 'group', help = 'Only display users that belong to the given group.')
-        self.get_arg_parser().set_defaults(func=self)
 
 
     def __call__(self, args):
@@ -48,7 +47,6 @@ class ListGroups(SubCommand):
         self.get_arg_parser().add_argument('-l', '--long', action = 'store_true', default = False, help = 'Display extra information in a table.')
         self.get_arg_parser().add_argument('-a', '--all', action = 'store_true', default = False, help = 'Display all groups.')
         self.get_arg_parser().add_argument('-u', '--user', metavar = 'user', help = 'Display group membership for the given user.')
-        self.get_arg_parser().set_defaults(func=self)
 
     def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)
@@ -85,7 +83,6 @@ class ListImages(SubCommand):
         g2 = self.get_arg_parser().add_mutually_exclusive_group()
         g2.add_argument('-l', '--long',  action = 'store_true', default = False, help = 'List images, together with additional information, in a table.')
         g2.add_argument('-U', '--url', action = 'store_true', default = False, help = 'List images and associated URLs.')
-        self.get_arg_parser().set_defaults(func=self)
 
 
     def __call__(self, args):

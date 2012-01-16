@@ -20,7 +20,6 @@ class UploadImage(SubCommand):
         self.get_arg_parser().add_argument('file', help = 'The local image file to upload to the repository.')
         self.get_arg_parser().add_argument('image', help = 'The name of the image slot to be used.  Use "repoman list-images" to see possible values.')
         self.get_arg_parser().add_argument('-o', '--owner', metavar = 'user', help = 'The owner of the named image.  The default is the ID of the current repoman user whih can be determined with the "repoman whoami" command.')
-        self.get_arg_parser().set_defaults(func=self)
 
     def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)
@@ -46,7 +45,6 @@ class DownloadImage(SubCommand):
         self.get_arg_parser().add_argument('image', help = 'The image to download.  Use "repoman list-images" to see possible values.') 
         self.get_arg_parser().add_argument('-o', '--owner', metavar = 'user', help = 'The owner of the named image.  The default is the ID of the current repoman user which can be determined with the "repoman whoami" command.')
         self.get_arg_parser().add_argument('-p', '--path', metavar = 'path', help = 'The destination of the downloaded image.  If omitted, the image is downloaded to a file with the same name as the image into your current working directory.')
-        self.get_arg_parser().set_defaults(func=self)
 
     def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)

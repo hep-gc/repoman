@@ -14,7 +14,7 @@ class Version(SubCommand):
         SubCommand.__init__(self)
 
     def init_arg_parser(self):
-        self.get_arg_parser().set_defaults(func=self)
+        pass
 
     def __call__(self, args):
         print version

@@ -20,7 +20,6 @@ class MakeConfig(SubCommand):
                                    help = 'Blank separated list of paths to be excluded from a snapshot of the operating system during a "repoman save-image".  A directory path specification ending in "/*" will cause the directory to be created in the saved image, but none of it\'s contents to be copied to the saved image.  Defaults to an empty list.')
         self.get_arg_parser().add_argument('--stdout', action='store_true', help = 'Send the configuration to stdout instead of writing it to a file under the current user\'s home directory.')
 
-        self.get_arg_parser().set_defaults(func=self)
 
 
 

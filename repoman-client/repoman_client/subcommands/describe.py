@@ -17,7 +17,6 @@ class DescribeUser(SubCommand):
 
     def init_arg_parser(self):
         self.get_arg_parser().add_argument('user', help = 'The user to describe.  Use "repoman list-users" to see possible values.')
-        self.get_arg_parser().set_defaults(func=self)
         
     def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)
@@ -40,7 +39,6 @@ class DescribeGroup(SubCommand):
 
     def init_arg_parser(self):
         self.get_arg_parser().add_argument('group', help='The group to describe.  Use "repoman list-groups" to see possible values.')
-        self.get_arg_parser().set_defaults(func=self)
 
     def __call__(self, args, extra_args=None):
         repo = RepomanClient(config.host, config.port, config.proxy)
@@ -63,7 +61,6 @@ class DescribeImage(SubCommand):
     def init_arg_parser(self):
         self.get_arg_parser().add_argument('image', help='The image to describe.  Use repoman list-images to see possible values.')
         self.get_arg_parser().add_argument('-o', '--owner', help='The owner of the named image.  The default is the ID of the current repoman user which can be determined with the "repoman whoami" command.')
-        self.get_arg_parser().set_defaults(func=self)
 
     def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)

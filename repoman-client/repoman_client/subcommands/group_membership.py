@@ -16,7 +16,6 @@ class AddUserToGroup(SubCommand):
     def init_arg_parser(self):
         self.get_arg_parser().add_argument('group', help = 'The name of the newly created group.  It must be unique and can only contain ([a-Z][0-9][_][-]) characters.')
         self.get_arg_parser().add_argument('users', metavar = 'user', nargs = '+', help = 'The user(s) to add to the group.')
-        self.get_arg_parser().set_defaults(func=self)
 
     def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)
@@ -41,7 +40,6 @@ class RemoveUserFromGroup(SubCommand):
     def init_arg_parser(self):
         self.get_arg_parser().add_argument('group', help = 'The group to remove the specified user(s) from.')
         self.get_arg_parser().add_argument('users', metavar = 'user', nargs = '+', help = 'The user(s) to remove from the group.')
-        self.get_arg_parser().set_defaults(func=self)
 
     def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)

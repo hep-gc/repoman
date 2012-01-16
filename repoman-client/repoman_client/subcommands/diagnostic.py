@@ -15,7 +15,7 @@ class Whoami(SubCommand):
         SubCommand.__init__(self)
 
     def init_arg_parser(self):
-        self.get_arg_parser().set_defaults(func=self)
+        pass
 
     def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)
@@ -37,7 +37,7 @@ class About(SubCommand):
         SubCommand.__init__(self)
 
     def init_arg_parser(self):
-        self.get_arg_parser().set_defaults(func=self)
+        pass
 
     def __call__(self, args):
         keys = {'config_file':config.files_parsed,

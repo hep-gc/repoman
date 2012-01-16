@@ -40,6 +40,9 @@ class SubCommand(object):
                                                                       help = h, 
                                                                       add_help = False)
         self.init_arg_parser()
+
+        self.get_arg_parser().set_defaults(func=self.delegator)
+
         if self.alias:
             alias_sp = repoman_cli.get_sub_arg_parser().add_parser(self.alias,
                                                                    description = self.description,
@@ -53,6 +56,13 @@ class SubCommand(object):
 
     def get_arg_parser(self):
         return self.arg_parser
+
+    # This method gets called when the sub command is parsed.
+    # It should simply delegate the work to the subcommand by
+    # calling the subcommand's __call__ method.
+    def delegator(self, args):
+        self.__call__(args)
+
 
     def __call__(self, args):
         # Raise an exception to make sure people override this in the subclass

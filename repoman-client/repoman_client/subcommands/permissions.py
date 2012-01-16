@@ -17,7 +17,6 @@ class AddPermission(SubCommand):
     def init_arg_parser(self):
         self.get_arg_parser().add_argument('group', help = 'The group that you are adding permissions to. Use "repoman list-groups" to see possible values.')
         self.get_arg_parser().add_argument('permission', nargs = '+', help = 'The permission(s) to add to the group. Possible values are: group_create, group_delete,  group_modify,   group_modify_membership,   group_modify_permissions,   image_create,   image_delete,  image_delete_group, image_modify, image_modify_group, user_create, user_delete, user_modify, user_modify_self. See the repoman manpage for a description of each permission.')
-        self.get_arg_parser().set_defaults(func=self)
 
 
     def __call__(self, args):
@@ -42,7 +41,6 @@ class RemovePermission(SubCommand):
     def init_arg_parser(self):
         self.get_arg_parser().add_argument('group', help = 'The group that you are removing permissions from. Use "repoman list-groups" to see possible values.')
         self.get_arg_parser().add_argument('permission', nargs = '+', help = 'The  permission(s)  to  remove  from  the  group.  Possible values are: group_create, group_delete, group_modify, group_modify_membership, group_modify_permissions, image_create, image_delete, image_delete_group, image_modify, image_modify_group, user_create, user_delete, user_modify, user_modify_self. See the repoman manpage for a description of each permission.')
-        self.get_arg_parser().set_defaults(func=self)
 
     def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)

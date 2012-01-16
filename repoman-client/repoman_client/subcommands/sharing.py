@@ -17,7 +17,6 @@ class ShareImageWithGroups(SubCommand):
         self.get_arg_parser().add_argument('image', help = 'The image to share. Use "repoman list-images" to see possible values.')
         self.get_arg_parser().add_argument('group', nargs = '+', help = 'The name of the group(s) to share the image with. Use "repoman list-groups" to see possible values.')
         self.get_arg_parser().add_argument('-o', '--owner', metavar = 'user', help = 'The owner of the named image. The default is the ID of the current repoman user which can be determined with the command "repoman whoami" command.')
-        self.get_arg_parser().set_defaults(func=self)
 
     def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)
@@ -47,7 +46,6 @@ class ShareImageWithUsers(SubCommand):
         self.get_arg_parser().add_argument('image', help = 'The image to share. Use "repoman list-images" to see possible values.')
         self.get_arg_parser().add_argument('user', nargs = '+', help = 'The name of the users(s) to share the image with. Use "repoman list-users" to see possible values.')
         self.get_arg_parser().add_argument('-o', '--owner', metavar = 'user', help = 'The owner of the named image. The default is the ID of the current repoman user which can be determined with the command "repoman whoami" command.')
-        self.get_arg_parser().set_defaults(func=self)
 
     def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)
@@ -78,7 +76,6 @@ class UnshareImageWithGroups(SubCommand):
         self.get_arg_parser().add_argument('image', help='The image to unshare. Use "repoman list-images" to see possible values.')
         self.get_arg_parser().add_argument('group', nargs = '+', help='The name of the group(s) to unshare the image with. Use "repoman describe-image" to see possible values.')
         self.get_arg_parser().add_argument('-o', '--owner', metavar = 'user', help = 'The owner of the named image. The default is the ID of the current repoman user which can be determined with the command "repoman whoami" command.')
-        self.get_arg_parser().set_defaults(func=self)
 
     def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)
@@ -108,7 +105,6 @@ class UnshareImageWithUsers(SubCommand):
         self.get_arg_parser().add_argument('image', help='The image to unshare. Use "repoman list-images" to see possible values.')
         self.get_arg_parser().add_argument('user', nargs = '+', help='The name of the user(s) to unshare the image with. Use "repoman describe-image" to see possible values.')
         self.get_arg_parser().add_argument('-o', '--owner', metavar = 'user', help = 'The owner of the named image. The default is the ID of the current repoman user which can be determined with the command "repoman whoami" command.')
-        self.get_arg_parser().set_defaults(func=self)
 
     def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)

@@ -19,7 +19,6 @@ class RemoveUser(SubCommand):
         self.get_arg_parser().add_argument('user', help='The user to delete. Use "repoman list-users" to see possible values.')
         self.get_arg_parser().add_argument('-f', '--force', action='store_true', default=False,
                        help='Delete user without confirmation.')
-        self.get_arg_parser().set_defaults(func=self)
 
 
     def __call__(self, args):
@@ -53,7 +52,6 @@ class RemoveGroup(SubCommand):
         self.get_arg_parser().add_argument('group', help='The group to delete.')
         self.get_arg_parser().add_argument('-f', '--force', action='store_true', default=False,
                        help='Delete group without confirmation.')
-        self.get_arg_parser().set_defaults(func=self)
 
     def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)
@@ -82,7 +80,6 @@ class RemoveImage(SubCommand):
         self.get_arg_parser().add_argument('image', help='The name of the image to be deleted.')
         self.get_arg_parser().add_argument('-f', '--force', action='store_true', default=False,
                        help='Delete image without confirmation.')
-        self.get_arg_parser().set_defaults(func=self)
 
     def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)

@@ -19,7 +19,6 @@ class ModifyUser(SubCommand):
         self.get_arg_parser().add_argument('-f', '--full_name', metavar = 'name', help = 'The full name of the user.')
         self.get_arg_parser().add_argument('-e', '--email', metavar = 'address', help = 'The email address of the user.')
         self.get_arg_parser().add_argument('-n', '--new_name', metavar = 'user', help = 'The new unique username for the user.')
-        self.get_arg_parser().set_defaults(func=self)
 
     def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)
@@ -57,7 +56,6 @@ class ModifyGroup(SubCommand):
         self.get_arg_parser().add_argument('-n', '--new_name', metavar = 'value', help = 'The name of the group. It must be  unique and can only contain ([a-Z][0-9][_][-]) characters.')
         self.get_arg_parser().add_argument('-p', '--permissions', metavar = 'permission', nargs = '+', help = 'The permissions that the members of the group have (Blank separated  list  Ex: user_delete  image_modify).   Possible   values   are:   group_create,  group_delete, group_modify, group_modify_membership, group_modify_permissions, image_create,  image_delete,  image_delete_group,  image_modify, image_modify_group,   user_create,   user_delete,   user_modify, user_modify_self.  See repoman manpage description of each permission.')
         self.get_arg_parser().add_argument('-u', '--users', metavar = 'user', nargs='+', help = 'The users that  are  members  of  the  group.  (Blank separated list) Ex: msmith sjobs')
-        self.get_arg_parser().set_defaults(func=self)
 
         
 
@@ -98,7 +96,6 @@ class ModifyImage(SubCommand):
         self.get_arg_parser().add_argument('--os_arch', choices = ['x86', 'x86_64'], help = 'The  operating  system  architecture.')
         self.get_arg_parser().add_argument('--os_type', metavar = 'value', help = 'The operating system type.  Ex:  linux,  unix, windows, etc.')
         self.get_arg_parser().add_argument('--os_variant', metavar = 'value', help = 'The operating system variant. Ex: redhat, centos, ubuntu, etc.')
-        self.get_arg_parser().set_defaults(func=self)
 
 
     def __call__(self, args):
