@@ -1,7 +1,6 @@
 from repoman_client.subcommand import SubCommand
 from repoman_client.client import RepomanClient, RepomanError
 from repoman_client.config import config
-from repoman_client.parsers import parse_unknown_args, ArgumentFormatError
 from repoman_client.utils import yes_or_no
 from repoman_client.imageutils import ImageUtils, ImageUtilError
 from argparse import ArgumentParser
@@ -12,29 +11,34 @@ import re
 
 
 class Save(SubCommand):
-    command = 'save'
-    alias = None
-    description = 'Snapshot and upload current system'
-    parse_known_args = False
+    command = 'save-image'
+    alias = 'si'
+    short_description = 'Takes  a  snapshot  of  your  running  system\'s.'
+    description = 'Takes  a  snapshot  of  your  running  system\'s filesystem (except paths listed under system-excludes and  user-excludes in repoman configuration file).  If name is not in your user\'s domain, an image-slot entry is created with  the supplied metadata information.  If name does exist, the image-slot is updated with any given metadata.  Finally, the snapshot is uploaded to the image-slot on the repoman repository.'
     metadata_file = '/.image.metadata'
     require_sudo = True
 
-    def get_parser(self):
-        p = ArgumentParser(self.description)
-        p.usage = "save name [-h] [-f] [--gzip] [--resize RESIZE] [--verbose] [--clean] [--comment COMMENT]"
-        p.add_argument('name', help='the name of the new image')
-        p.add_argument('-f', '--force', action='store_true', default=False,
-                       help='Force uploading even if it overwrites an existing image')
-        p.add_argument('--gzip', action='store_true', default=False,
-                       help='Upload the image compressed with gzip.')
-        p.add_argument('--resize', type=int, default=0,
-                       help='Create an image with a new size (in MB)')
-        p.add_argument('--verbose', action='store_true', default=False,
-                       help='Display verbose output during snapshot')         
-        p.add_argument('--clean', action='store_true', default=False,
-                       help='Remove any existing local snapshots before creating a new one.')
-        p.add_argument('--comment', help='Add/Replace the image comment at the end of the description.')
-        return p
+    def __init__(self):
+        SubCommand.__init__(self)
+
+    def init_arg_parser(self):
+        self.get_arg_parser().add_argument('image', help = 'The name of the newly created or existing image-slot on the repository.  This will be used to  reference the image when running other repoman commands.  It can only contain ([a-Z][0-9][_][-]) characters.')
+        self.get_arg_parser().add_argument('-u', '--unauthenticated_access', choices=['true', 'false'], help = 'Defaults  to false. If set to true, the image may be retrieved by anybody who has the correct URL.')
+        self.get_arg_parser().add_argument('--clean', action = 'store_true', default = False, help = 'Remove any existing local snapshots before creating a new one.')
+        self.get_arg_parser().add_argument('-c', '--comment', metavar = 'comment', help='Add/Replace the image comment at the end of the description.')
+        self.get_arg_parser().add_argument('-d', '--description', metavar = 'value', help = 'Description of the image.')
+        self.get_arg_parser().add_argument('-f', '--force', action = 'store_true', default = False, help = 'Force uploading even if it overwrites an existing image.')
+        self.get_arg_parser().add_argument('--gzip', action='store_true', default = False, help = 'Upload the image compressed with gzip.')
+        self.get_arg_parser().add_argument('-h', '--hypervisor', metavar = 'value', help = 'The hypervisor. Ex: xen, kvm, etc.')
+        self.get_arg_parser().add_argument('-o', '--owner', metavar = 'user', help = 'The owner of the named image. The default is the ID of the current repoman user which can  be determined with the command "repoman whoami" command.')
+        self.get_arg_parser().add_argument('--os_arch', choices = ['x86', 'x86_64'], help = 'The operating system architecture.')
+        self.get_arg_parser().add_argument('--os_type', metavar = 'value', help = 'The operating system type. Ex: linux, unix, windows, etc.')
+        self.get_arg_parser().add_argument('--os_variant', metavar = 'value', help = 'The operating system variant. Ex: redhat, centos, ubuntu, etc.')
+        self.get_arg_parser().add_argument('--resize', type=int, metavar = 'SIZE', help = 'Create  an image with a size of SIZE MB.  The size selected must be big enough to contain the entire filesystem image.  If the size specified is not big enough, repoman will issue an error mesage and exit.')
+        self.get_arg_parser().add_argument('--verbose', action='store_true', default = False, help = 'Display verbose output during snapshot.')
+        self.get_arg_parser().set_defaults(func=self)
+
+
 
     def write_metadata(self, metadata, metafile):
         # Write metadata to filesystem for later use.
@@ -43,14 +47,11 @@ class Save(SubCommand):
             metafile.write("%s: %s\n" % (k, v))
         metafile.close()
 
-    def __call__(self, args, extra_args=None):
-        log = logging.getLogger('Save')
-        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
-        
+    def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)
         kwargs={}
 
-        name = args.name
+        name = args.image
         # Check for proper Gzip extension (if needed)
         if args.gzip:
             if name and name.endswith('.gz'):
@@ -100,6 +101,24 @@ class Save(SubCommand):
                                  size=args.resize*1024*1024)
         
         try:
+            # Set image metadata from given arguments.
+            if args.unauthenticated_access and args.unauthenticated_access.lower() == 'true':
+                kwargs['unauthenticated_access'] = True
+            if args.unauthenticated_access and args.unauthenticated_access.lower() == 'false':
+                kwargs['unauthenticated_access'] = False
+            if args.description:
+                kwargs['description'] = args.description
+            if args.hypervisor:
+                kwargs['hypervisor'] = args.hypervisor
+            if args.owner:
+                kwargs['owner'] = args.owner
+            if args.os_arch:
+                kwargs['os_arch'] = args.os_arch
+            if args.os_type:
+                kwargs['os_type'] = args.os_type
+            if args.os_variant:
+                kwargs['os_variant'] = args.os_variant
+
             self.write_metadata(kwargs, self.metadata_file)
         except IOError, e:
             log.error("Unable to write to root fs.")
@@ -127,7 +146,6 @@ class Save(SubCommand):
                 sys.exit(1)
             
         #upload
-        name = image.get('name')
         print "Uploading snapshot"
         try:
             repo.upload_image(name, config.snapshot, gzip=args.gzip)

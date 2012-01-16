@@ -26,6 +26,7 @@ from repoman_client.subcommands.modify import ModifyImage
 from repoman_client.subcommands.remove import RemoveUser
 from repoman_client.subcommands.remove import RemoveGroup
 from repoman_client.subcommands.remove import RemoveImage
+from repoman_client.subcommands.save import Save
 
 # Add all subcommands here:
 repoman_cli.add_subcommand(Help())
@@ -52,6 +53,7 @@ repoman_cli.add_subcommand(ModifyImage())
 repoman_cli.add_subcommand(RemoveUser())
 repoman_cli.add_subcommand(RemoveGroup())
 repoman_cli.add_subcommand(RemoveImage())
+repoman_cli.add_subcommand(Save())
 
 
 
@@ -97,25 +99,7 @@ sys.exit(0)
 
 
 
-# Subcommand: save-image
-p_save_image = sp.add_parser('save-image', add_help=False)
-p_save_image.add_argument('image')
-p_save_image.add_argument('-o', '--owner')
-p_save_image.add_argument('-f', '--force', action='store_const', const='yes')
-p_save_image.add_argument('--gzip', action='store_const', const='yes')
-p_save_image.add_argument('--resize', type=int)
-p_save_image.add_argument('--verbose', action='store_const', const='yes')
-p_save_image.add_argument('--clean', action='store_const', const='yes')
-p_save_image.add_argument('-d', '--description')
-p_save_image.add_argument('--os_variant')
-p_save_image.add_argument('--os_arch')
-p_save_image.add_argument('--os_type')
-p_save_image.add_argument('--hypervisor')
-p_save_image.add_argument('-u', '--unauthenticated_access', choices=['True', 'False'])
-#p_save_image.set_defaults(func=si)
 
-p_si = sp.add_parser('si', add_help=False, parents=[p_save_image])
-#p_si.set_defaults(func=si)
 
 # Subcommand: share-image-with-groups
 p_share_image_with_groups = sp.add_parser('share-image-with-groups', add_help=False)

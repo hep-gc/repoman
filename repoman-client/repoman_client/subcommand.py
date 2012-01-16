@@ -19,6 +19,7 @@ class SubCommand(object):
     """
     command = None # the command
     alias = None # a short alias for the command
+    short_description = None
     description = "" # a description string that will show up in a
 
     validate_config = True      # If False, config.validate() will not be called
@@ -28,15 +29,21 @@ class SubCommand(object):
     arg_parser = None;
 
     def __init__(self):
+        h = None
+        if self.short_description:
+            h = self.short_description
+        else:
+            h = self.description
+
         self.arg_parser = repoman_cli.get_sub_arg_parser().add_parser(self.command, 
                                                                       description = self.description,
-                                                                      help = self.description, 
+                                                                      help = h, 
                                                                       add_help = False)
         self.init_arg_parser()
         if self.alias:
             alias_sp = repoman_cli.get_sub_arg_parser().add_parser(self.alias,
-                                                                   help = self.description,
                                                                    description = self.description,
+                                                                   help = h,
                                                                    add_help=False, 
                                                                    parents=[self.arg_parser])
 
