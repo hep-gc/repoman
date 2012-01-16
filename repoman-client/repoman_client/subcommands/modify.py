@@ -94,7 +94,7 @@ class ModifyImage(SubCommand):
         self.get_arg_parser().add_argument('-d', '--description', metavar = 'value', help = 'Description of the image.')
         self.get_arg_parser().add_argument('-h', '--hypervisor', metavar = 'value', help = 'The hypervisor. Ex: xen, kvm, etc.')
         self.get_arg_parser().add_argument('-n', '--new_name', metavar = 'value', help = 'The new name of the image-slot on the repository.  This  will be used to reference the image when running other repoman commands. It must be unique  to  the  owner\'s domain and can only contain ([a-Z][0-9][_][-]) characters.') 
-        self.get_arg_parser().add_argument('-o', '--new_owner', metavar = 'user', help = 'The new owner of the named image. Use "repoman list-users" to see possible values.')
+        self.get_arg_parser().add_argument('-N', '--new_owner', metavar = 'user', help = 'The new owner of the named image. Use "repoman list-users" to see possible values.')
         self.get_arg_parser().add_argument('--os_arch', choices = ['x86', 'x86_64'], help = 'The  operating  system  architecture.')
         self.get_arg_parser().add_argument('--os_type', metavar = 'value', help = 'The operating system type.  Ex:  linux,  unix, windows, etc.')
         self.get_arg_parser().add_argument('--os_variant', metavar = 'value', help = 'The operating system variant. Ex: redhat, centos, ubuntu, etc.')
