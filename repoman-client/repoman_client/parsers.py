@@ -44,6 +44,8 @@ class RepomanCLI(object):
     # Call this method to add a subcommand to the main arg_parser.
     def add_subcommand(self, subcommand):
         self.subcommands[subcommand.command] = subcommand
+        if subcommand.alias != None:
+            self.subcommands[subcommand.alias] = subcommand
 
 # Singleton instance of RepomanCLI:
 repoman_cli = RepomanCLI()
