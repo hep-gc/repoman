@@ -29,6 +29,8 @@ from repoman_client.subcommands.remove import RemoveImage
 from repoman_client.subcommands.save import Save
 from repoman_client.subcommands.sharing import ShareImageWithGroups
 from repoman_client.subcommands.sharing import ShareImageWithUsers
+from repoman_client.subcommands.sharing import UnshareImageWithGroups
+from repoman_client.subcommands.sharing import UnshareImageWithUsers
 
 # Add all subcommands here:
 repoman_cli.add_subcommand(Help())
@@ -58,6 +60,8 @@ repoman_cli.add_subcommand(RemoveImage())
 repoman_cli.add_subcommand(Save())
 repoman_cli.add_subcommand(ShareImageWithGroups())
 repoman_cli.add_subcommand(ShareImageWithUsers())
+repoman_cli.add_subcommand(UnshareImageWithGroups())
+repoman_cli.add_subcommand(UnshareImageWithUsers())
 
 
 
@@ -85,25 +89,6 @@ sys.exit(0)
 # examples.
 
 
-# Subcommand: unshare-image-from-groups
-p_unshare_image_from_groups = sp.add_parser('unshare-image-from-groups', add_help=False)
-p_unshare_image_from_groups.add_argument('image')
-p_unshare_image_from_groups.add_argument('-o', '--owner')
-p_unshare_image_from_groups.add_argument('groups', nargs='+')
-#p_unshare_image.set_defaults(func=uig)
-
-p_uig = sp.add_parser('uig', add_help=False, parents=[p_unshare_image_from_groups])
-#p_uig.set_defaults(func=uig)
-
-# Subcommand: unshare-image-from-users
-p_unshare_image_from_users = sp.add_parser('unshare-image-from-users', add_help=False)
-p_unshare_image_from_users.add_argument('image')
-p_unshare_image_from_users.add_argument('-o', '--owner')
-p_unshare_image_from_users.add_argument('users', nargs='+')
-#p_unshare_image.set_defaults(func=uiu)
-
-p_uiu = sp.add_parser('uiu', add_help=False, parents=[p_unshare_image_from_users])
-#p_uiu.set_defaults(func=uiu)
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
