@@ -42,22 +42,20 @@ class RemoveUser(SubCommand):
 
 
 class RemoveGroup(SubCommand):
-    command_group = "advanced"
     command = "remove-group"
     alias = 'rg'
-    description = 'Remove an existing group from the repository'
+    description = 'Remove a group from the repoman repository.'
 
-    def get_parser(self):
-        p = ArgumentParser(self.description)
-        p.add_argument('group', help='The group you wish to remove')
-        p.add_argument('-f', '--force', action='store_true', default=False,
-                       help='Do not ask for conformation before deleting')
-        return p
+    def __init__(self):
+        SubCommand.__init__(self)
 
-    def __call__(self, args, extra_args=None):
-        log = logging.getLogger('RemoveGroup')
-        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
-    
+    def init_arg_parser(self):
+        self.get_arg_parser().add_argument('group', help='The group to delete.')
+        self.get_arg_parser().add_argument('-f', '--force', action='store_true', default=False,
+                       help='Delete group without confirmation.')
+        self.get_arg_parser().set_defaults(func=self)
+
+    def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)
         if not args.force:
             if not yes_or_no():
@@ -66,8 +64,9 @@ class RemoveGroup(SubCommand):
 
         try:
             repo.remove_group(args.group)
+            print "[OK]     Removed group %s." % (args.group)
         except RepomanError, e:
-            print e
+            print "[FAILED] Removing group.\n\t-%s" % e
             sys.exit(1)
 
 

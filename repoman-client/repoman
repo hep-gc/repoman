@@ -24,6 +24,7 @@ from repoman_client.subcommands.modify import ModifyUser
 from repoman_client.subcommands.modify import ModifyGroup
 from repoman_client.subcommands.modify import ModifyImage
 from repoman_client.subcommands.remove import RemoveUser
+from repoman_client.subcommands.remove import RemoveGroup
 
 # Add all subcommands here:
 repoman_cli.add_subcommand(Help())
@@ -48,6 +49,7 @@ repoman_cli.add_subcommand(ModifyUser())
 repoman_cli.add_subcommand(ModifyGroup())
 repoman_cli.add_subcommand(ModifyImage())
 repoman_cli.add_subcommand(RemoveUser())
+repoman_cli.add_subcommand(RemoveGroup())
 
 
 
@@ -162,22 +164,6 @@ p_unshare_image_from_users.add_argument('users', nargs='+')
 p_uiu = sp.add_parser('uiu', add_help=False, parents=[p_unshare_image_from_users])
 #p_uiu.set_defaults(func=uiu)
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#
-#                             User Manipulation Subcommands                           #
-#
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-
-
-# Subcommand: remove-user
-p_remove_user = sp.add_parser('remove-user', add_help=False)
-p_remove_user.add_argument('user')
-p_remove_user.add_argument('-f', '--force', action='store_const', const='yes')
-#p_remove_user.set_defaults(func=ru)
-
-p_ru = sp.add_parser('ru', add_help=False, parents=[p_remove_user])
-#p_ru.set_defaults(func=ru)
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #
@@ -200,13 +186,6 @@ p_apg = sp.add_parser('apg', add_help=False, parents=[p_add_permissions_to_group
 
 
 
-# Subcommand: remove-group
-p_remove_group = sp.add_parser('remove-group', add_help=False)
-p_add_users_to_group.add_argument('group')
-#p_remove_group.set_defaults(func=rg)
-
-p_rg = sp.add_parser('rg', add_help=False, parents=[p_remove_group])
-#p_rg.set_defaults(func=rg)
 
 # Subcommand: remove-permissions-from-group
 p_remove_permissions_from_group = sp.add_parser('remove-permissions-from-group', add_help=False)
