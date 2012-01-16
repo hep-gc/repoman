@@ -8,22 +8,21 @@ import logging
 
 
 class RemoveUser(SubCommand):
-    command_group = "advanced"
     command = "remove-user"
     alias = 'ru'
-    description = 'Remove an existing user from the repository'
+    description = 'Remove a repoman user. Note: All images owned by user will be deleted.'
 
-    def get_parser(self):
-        p = ArgumentParser(self.description)
-        p.add_argument('user', help='The user you wish to remove')
-        p.add_argument('-f', '--force', action='store_true', default=False,
-                       help='Do not ask for conformation before deleting')
-        return p
+    def __init__(self):
+        SubCommand.__init__(self)
 
-    def __call__(self, args, extra_args=None):
-        log = logging.getLogger('RemoveUser')
-        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
-    
+    def init_arg_parser(self):
+        self.get_arg_parser().add_argument('user', help='The user to delete. Use "repoman list-users" to see possible values.')
+        self.get_arg_parser().add_argument('-f', '--force', action='store_true', default=False,
+                       help='Delete user without confirmation.')
+        self.get_arg_parser().set_defaults(func=self)
+
+
+    def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)
         if not args.force:
             print ("WARNING:\n"
@@ -34,8 +33,9 @@ class RemoveUser(SubCommand):
                 return
         try:
             repo.remove_user(args.user)
+            print "[OK]     Removed user %s." % (args.user)
         except RepomanError, e:
-            print e
+            print "[FAILED] Removing user.\n\t-%s" % e
             sys.exit(1)
 
 

@@ -23,6 +23,7 @@ from repoman_client.subcommands.up_down import UploadImage
 from repoman_client.subcommands.modify import ModifyUser
 from repoman_client.subcommands.modify import ModifyGroup
 from repoman_client.subcommands.modify import ModifyImage
+from repoman_client.subcommands.remove import RemoveUser
 
 # Add all subcommands here:
 repoman_cli.add_subcommand(Help())
@@ -46,6 +47,7 @@ repoman_cli.add_subcommand(UploadImage())
 repoman_cli.add_subcommand(ModifyUser())
 repoman_cli.add_subcommand(ModifyGroup())
 repoman_cli.add_subcommand(ModifyImage())
+repoman_cli.add_subcommand(RemoveUser())
 
 
 
