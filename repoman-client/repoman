@@ -31,6 +31,8 @@ from repoman_client.subcommands.sharing import ShareImageWithGroups
 from repoman_client.subcommands.sharing import ShareImageWithUsers
 from repoman_client.subcommands.sharing import UnshareImageWithGroups
 from repoman_client.subcommands.sharing import UnshareImageWithUsers
+from repoman_client.subcommands.permissions import AddPermission
+from repoman_client.subcommands.permissions import RemovePermission
 
 # Add all subcommands here:
 repoman_cli.add_subcommand(Help())
@@ -62,6 +64,8 @@ repoman_cli.add_subcommand(ShareImageWithGroups())
 repoman_cli.add_subcommand(ShareImageWithUsers())
 repoman_cli.add_subcommand(UnshareImageWithGroups())
 repoman_cli.add_subcommand(UnshareImageWithUsers())
+repoman_cli.add_subcommand(AddPermission())
+repoman_cli.add_subcommand(RemovePermission())
 
 
 
@@ -84,51 +88,3 @@ args.func(args)
 # We're done!
 sys.exit(0)
 
-# If we decide to go with this OO approach, the rest of this file will have to
-# be moved to individual subcommand classes.  See MakeConfig and Help for
-# examples.
-
-
-
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#
-#                             Group Manipulation Subcommands                          #
-#
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-# Subcommand: add-permissions-to-group
-p_add_permissions_to_group = sp.add_parser('add-permissions-to-group', add_help=False)
-p_add_permissions_to_group.add_argument('group')
-p_add_permissions_to_group.add_argument('permissions', nargs='+')
-#p_add_permissions_to_group.set_defaults(func=apg)
-
-p_apg = sp.add_parser('apg', add_help=False, parents=[p_add_permissions_to_group])
-#p_apg.set_defaults(func=apg)
-
-
-
-
-
-
-
-
-# Subcommand: remove-permissions-from-group
-p_remove_permissions_from_group = sp.add_parser('remove-permissions-from-group', add_help=False)
-p_remove_permissions_from_group.add_argument('group')
-p_remove_permissions_from_group.add_argument('permissions', nargs='+')
-#p_remove_permissions_from_group.set_defaults(func=rpg)
-
-p_rpg = sp.add_parser('rpg', add_help=False, parents=[p_remove_permissions_from_group])
-#p_rpg.set_defaults(func=rpg)
-
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#
-#                               Miscellaneous Subcommands                             #
-#
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
-
-args = p.parse_args()
-args.func(args)

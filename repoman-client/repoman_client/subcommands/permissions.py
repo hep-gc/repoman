@@ -7,27 +7,24 @@ import logging
 
 
 class AddPermission(SubCommand):
-    command_group = 'advanced'
-    command = 'add-permissions'
-    alias = 'ap'
-    description = 'Add permissions to groups'
+    command = 'add-permissions-to-group'
+    alias = 'apg'
+    description = 'Add specified permissions to a group.'
 
-    def get_parser(self):
-        p = ArgumentParser(self.description)
-        p.add_argument('group', help='group to add permissions to')
-        p.add_argument('-p', '--permissions', nargs='+', metavar='PERMISSION',
-                       help='List of permissions to add')
-        return p
+    def __init__(self):
+        SubCommand.__init__(self)
 
-    def __call__(self, args, extra_args=None):
-        log = logging.getLogger('AddPermission')
-        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
-    
+    def init_arg_parser(self):
+        self.get_arg_parser().add_argument('group', help = 'The group that you are adding permissions to. Use "repoman list-groups" to see possible values.')
+        self.get_arg_parser().add_argument('permission', nargs = '+', help = 'The permission(s) to add to the group. Possible values are: group_create, group_delete,  group_modify,   group_modify_membership,   group_modify_permissions,   image_create,   image_delete,  image_delete_group, image_modify, image_modify_group, user_create, user_delete, user_modify, user_modify_self. See the repoman manpage for a description of each permission.')
+        self.get_arg_parser().set_defaults(func=self)
+
+
+    def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)
-        for p in args.permissions:
+        for p in args.permission:
             status = "Adding permission: '%s' to group: '%s'" % (p, args.group)
             try:
-                log.debug(status)
                 repo.add_permission(args.group, p)
                 print "[OK]     %s" % status
             except RepomanError, e:
@@ -35,27 +32,23 @@ class AddPermission(SubCommand):
 
 
 class RemovePermission(SubCommand):
-    command_group = 'advanced'
-    command = 'remove-permissions'
-    alias = 'rp'
-    description = 'Remove specified permissions from group'
+    command = 'remove-permissions-from-group'
+    alias = 'rpg'
+    description = 'Remove specified permission(s) from a group.'
 
-    def get_parser(self):
-        p = ArgumentParser(self.description)
-        p.add_argument('group', help='group to remove permissions from')
-        p.add_argument('-p', '--permissions', nargs='+', metavar='PERMISSION',
-                       help='List of permissions to remove')
-        return p
+    def __init__(self):
+        SubCommand.__init__(self)
 
-    def __call__(self, args, extra_args=None):
-        log = logging.getLogger('RemovePermission')
-        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
-    
+    def init_arg_parser(self):
+        self.get_arg_parser().add_argument('group', help = 'The group that you are removing permissions from. Use "repoman list-groups" to see possible values.')
+        self.get_arg_parser().add_argument('permission', nargs = '+', help = 'The  permission(s)  to  remove  from  the  group.  Possible values are: group_create, group_delete, group_modify, group_modify_membership, group_modify_permissions, image_create, image_delete, image_delete_group, image_modify, image_modify_group, user_create, user_delete, user_modify, user_modify_self. See the repoman manpage for a description of each permission.')
+        self.get_arg_parser().set_defaults(func=self)
+
+    def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)
-        for p in args.permissions:
+        for p in args.permission:
             status = "Removing permission: '%s' from group: '%s'" % (p, args.group)
             try:
-                log.debug(status)
                 repo.remove_permission(args.group, p)
                 print "[OK]     %s" % status
             except RepomanError, e:
