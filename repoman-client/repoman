@@ -21,6 +21,7 @@ from repoman_client.subcommands.listing import ListImages
 from repoman_client.subcommands.up_down import DownloadImage
 from repoman_client.subcommands.up_down import UploadImage
 from repoman_client.subcommands.modify import ModifyUser
+from repoman_client.subcommands.modify import ModifyGroup
 
 # Add all subcommands here:
 repoman_cli.add_subcommand(Help())
@@ -42,6 +43,7 @@ repoman_cli.add_subcommand(ListImages())
 repoman_cli.add_subcommand(DownloadImage())
 repoman_cli.add_subcommand(UploadImage())
 repoman_cli.add_subcommand(ModifyUser())
+repoman_cli.add_subcommand(ModifyGroup())
 
 # Check if no arguments were given.  In this case,
 # we display a simple help message.
@@ -204,15 +206,6 @@ p_apg = sp.add_parser('apg', add_help=False, parents=[p_add_permissions_to_group
 
 
 
-# Subcommand: modify-group
-p_modify_group = sp.add_parser('modify-group', add_help=False)
-p_modify_group.add_argument('group')
-p_modify_group.add_argument('-u', '--users', nargs='+')
-p_modify_group.add_argument('-p', '--permissions', nargs='+')
-#p_modify_group.set_defaults(func=mg)
-
-p_mg = sp.add_parser('mg', add_help=False, parents=[p_modify_group])
-#p_mg.set_defaults(func=mg)
 
 # Subcommand: remove-group
 p_remove_group = sp.add_parser('remove-group', add_help=False)

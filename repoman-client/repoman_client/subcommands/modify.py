@@ -44,34 +44,32 @@ class ModifyUser(SubCommand):
 
 
 class ModifyGroup(SubCommand):
-    command_group = "advanced"
     command = "modify-group"
     alias = 'mg'
-    description = 'Modify an existing group with the given information'
-    parse_known_args = True
+    description = 'Modify a group with the given information.'
 
-    def get_parser(self):
-        p = ArgumentParser(self.description)
-        p.usage = "modify-group [-h] group [--metadata value [--metadata value ...]]"
-        p.epilog = "See documentation for a list of required and optional metadata"
-        p.add_argument('group', help='The existing group you want to modify')
-        return p
+    def __init__(self):
+        SubCommand.__init__(self)
 
-    def __call__(self, args, extra_args=None):
-        log = logging.getLogger('ModifyGroup')
-        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
-    
+    def init_arg_parser(self):
+        # Subcommand: modify-group
+        self.get_arg_parser().add_argument('group', help = 'The group you want to modify. Use "repoman list-groups" to see possible values.')
+        self.get_arg_parser().add_argument('-n', '--new_name', metavar = 'value', help = 'The name of the group. It must be  unique and can only contain ([a-Z][0-9][_][-]) characters.')
+        self.get_arg_parser().add_argument('-p', '--permissions', metavar = 'permission', nargs = '+', help = 'The permissions that the members of the group have (Blank separated  list  Ex:  ´user_delete  image_modify´).   Possible   values   are:   group_create,  group_delete, group_modify, group_modify_membership, group_modify_permissions, image_create,  image_delete,  image_delete_group,  image_modify, image_modify_group,   user_create,   user_delete,   user_modify, user_modify_self.  See repoman manpage description of each permission.')
+        self.get_arg_parser().add_argument('-u', '--users', metavar = 'user', nargs='+', help = 'The users that  are  members  of  the  group.  (Blank separated list) Ex: ´msmith sjobs´')
+        self.get_arg_parser().set_defaults(func=self)
+
+        
+
+    def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)
-        if extra_args:
-            try:
-                kwargs = parse_unknown_args(extra_args)
-            except ArgumentFormatError, e:
-                print e.message
-                sys.exit(1)
-        else:
-            kwargs={}
-
-        log.debug("kwargs: '%s'" % kwargs)
+        kwargs={}
+        if args.new_name:
+            kwargs['name'] = args.new_name
+        if args.permissions:
+            kwargs['permissions'] = args.permissions
+        if args.users:
+            kwargs['users'] = args.users
 
         try:
             repo.modify_group(args.group, **kwargs)
