@@ -2,10 +2,8 @@ import sys
 import ConfigParser
 from repoman_client.subcommand import SubCommand
 from repoman_client.config import config
-from argparse import ArgumentParser
 
 class MakeConfig(SubCommand):
-    validate_config = False
     command = 'make-config'
     alias = 'mc'
     description = 'Create a repoman client configuration file under your home directory.'

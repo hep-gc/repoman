@@ -4,7 +4,6 @@ from repoman_client.config import config
 from repoman_client import display
 from repoman_client.__version__ import version
 from repoman_client.logger import repoman_logger
-from argparse import ArgumentParser
 import sys
 
 class Whoami(SubCommand):

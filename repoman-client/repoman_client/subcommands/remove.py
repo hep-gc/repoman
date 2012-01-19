@@ -2,7 +2,6 @@ from repoman_client.subcommand import SubCommand
 from repoman_client.client import RepomanClient, RepomanError
 from repoman_client.config import config
 from repoman_client.utils import yes_or_no
-from argparse import ArgumentParser
 import sys
 import logging
 

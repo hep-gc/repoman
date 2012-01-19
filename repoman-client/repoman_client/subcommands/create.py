@@ -3,7 +3,6 @@ from repoman_client.client import RepomanClient, RepomanError
 from repoman_client.config import config
 from repoman_client.logger import log
 from repoman_client.subcommands.permissions import valid_permissions
-from argparse import ArgumentParser
 import sys
 import logging
 import re

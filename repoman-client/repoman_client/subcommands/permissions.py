@@ -2,7 +2,6 @@ from repoman_client.subcommand import SubCommand
 from repoman_client.client import RepomanClient, RepomanError
 from repoman_client.config import config
 from repoman_client.subcommand import SubCommand
-from argparse import ArgumentParser
 import logging
 
 # This is a list of valid permissions.

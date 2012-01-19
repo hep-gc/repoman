@@ -3,7 +3,6 @@ from repoman_client.client import RepomanClient, RepomanError
 from repoman_client.config import config
 from repoman_client import display
 import argparse
-from argparse import ArgumentParser
 import sys
 import logging
 

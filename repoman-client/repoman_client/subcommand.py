@@ -22,10 +22,6 @@ class SubCommand(object):
     short_description = None
     description = "" # a description string that will show up in a
 
-    validate_config = True      # If False, config.validate() will not be called
-                                # before the subcommand is run.
-                                # If the subcommand depends on configuration values
-                                # this should remain True.
     arg_parser = None;
 
     def __init__(self):

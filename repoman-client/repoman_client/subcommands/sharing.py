@@ -1,7 +1,6 @@
 from repoman_client.subcommand import SubCommand
 from repoman_client.client import RepomanClient, RepomanError
 from repoman_client.config import config
-from argparse import ArgumentParser
 import sys
 import logging
 

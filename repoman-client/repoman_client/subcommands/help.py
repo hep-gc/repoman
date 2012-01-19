@@ -1,10 +1,8 @@
 import ConfigParser
 from repoman_client.subcommand import SubCommand
-from argparse import ArgumentParser
 from repoman_client.parsers import repoman_cli
 
 class Help(SubCommand):
-    validate_config = False
     command = 'help'
     description = 'This is the help command.'
 

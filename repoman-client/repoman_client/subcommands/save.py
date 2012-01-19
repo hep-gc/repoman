@@ -3,7 +3,6 @@ from repoman_client.client import RepomanClient, RepomanError
 from repoman_client.config import config
 from repoman_client.utils import yes_or_no
 from repoman_client.imageutils import ImageUtils, ImageUtilError
-from argparse import ArgumentParser
 import sys
 import logging
 import re
