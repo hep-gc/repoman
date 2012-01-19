@@ -1,6 +1,7 @@
 from repoman_client.subcommand import SubCommand
 from repoman_client.client import RepomanClient, RepomanError
 from repoman_client.config import config
+from repoman_client.subcommands.permissions import valid_permissions
 from argparse import ArgumentParser
 import sys
 import logging
@@ -19,6 +20,18 @@ class ModifyUser(SubCommand):
         self.get_arg_parser().add_argument('-f', '--full_name', metavar = 'name', help = 'The full name of the user.')
         self.get_arg_parser().add_argument('-e', '--email', metavar = 'address', help = 'The email address of the user.')
         self.get_arg_parser().add_argument('-n', '--new_name', metavar = 'user', help = 'The new unique username for the user.')
+
+
+    def validate_args(self, args):
+        if agrs.new_name and not re.match('^[a-zA-Z0-9_-]+$', args.new_name):
+            log.info('Invalid new username detected: %s' % (args.new_name))
+            print 'Error: Invalid new username.  Please see "repoman help %s" for acceptable username syntax.' % (self.command)
+            sys.exit(1)
+        if args.email and not re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", args.email):
+            log.info('Invalid user email address detected: %s' % (args.user))
+            print 'Error: Invalid email address.  Please use a valid email address and try again.'
+            sys.exit(1)
+
 
     def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)
@@ -54,10 +67,22 @@ class ModifyGroup(SubCommand):
         # Subcommand: modify-group
         self.get_arg_parser().add_argument('group', help = 'The group you want to modify. Use "repoman list-groups" to see possible values.')
         self.get_arg_parser().add_argument('-n', '--new_name', metavar = 'value', help = 'The name of the group. It must be  unique and can only contain ([a-Z][0-9][_][-]) characters.')
-        self.get_arg_parser().add_argument('-p', '--permissions', metavar = 'permission', nargs = '+', help = 'The permissions that the members of the group have (Blank separated  list  Ex: user_delete  image_modify).   Possible   values   are:   group_create,  group_delete, group_modify, group_modify_membership, group_modify_permissions, image_create,  image_delete,  image_delete_group,  image_modify, image_modify_group,   user_create,   user_delete,   user_modify, user_modify_self.  See repoman manpage description of each permission.')
+        self.get_arg_parser().add_argument('-p', '--permissions', metavar = 'permission', nargs = '+', help = 'The permissions that the members of the group have (Blank separated  list  Ex: user_delete  image_modify).   Possible   values   are: %s.  See repoman manpage description of each permission.' % (','.join(valid_permissions)))
         self.get_arg_parser().add_argument('-u', '--users', metavar = 'user', nargs='+', help = 'The users that  are  members  of  the  group.  (Blank separated list) Ex: msmith sjobs')
 
         
+    def validate_args(self, args):
+        if args.new_name and not re.match('^[a-zA-Z0-9_-]+$', args.new_name):
+            log.info('Invalid group name syntax detected: %s' % (args.new_name))
+            print 'Error: Invalid group name syntax.  Please see "repoman help %s" for acceptable username syntax.' % (self.command)
+            sys.exit(1)
+        if args.permissions:
+            for permission in args.permissions:
+                if permission not in valid_permissions:
+                    log.info('Invalid permission detected: %s' % (permission))
+                    print 'Invalid permission: %s\nPlease chose one or more permission from the following list:\n[%s]' % (permission, ', '.join(valid_permissions))
+                    sys.exit(1)
+
 
     def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)
@@ -96,6 +121,13 @@ class ModifyImage(SubCommand):
         self.get_arg_parser().add_argument('--os_arch', choices = ['x86', 'x86_64'], help = 'The  operating  system  architecture.')
         self.get_arg_parser().add_argument('--os_type', metavar = 'value', help = 'The operating system type.  Ex:  linux,  unix, windows, etc.')
         self.get_arg_parser().add_argument('--os_variant', metavar = 'value', help = 'The operating system variant. Ex: redhat, centos, ubuntu, etc.')
+
+
+    def validate_args(self, args):
+        if args.new_name and not re.match('^[a-zA-Z0-9_-]+$', args.new_name):
+            log.info('Invalid image name syntax detected: %s' % (args.new_name))
+            print 'Error: Invalid image name syntax.  Please see "repoman help %s" for acceptable image name syntax.' % (self.command)
+            sys.exit(1)
 
 
     def __call__(self, args):
