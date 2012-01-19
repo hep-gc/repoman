@@ -12,9 +12,9 @@ from repoman_client.config import config
 class Logger():
     logger = None
     formatter = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
-
+    log_filename = None
     def __init__(self):
-        log_filename = None
+        self.log_filename = None
         if config.logging_enabled:
             logging_dir = config.logging_dir
             if logging_dir == '':
@@ -33,21 +33,27 @@ class Logger():
                     print "Error: Logging dir '%s' does not exist and I am unable to create it.\n%s" % (logging_dir, e)
                     sys.exit(1)
             
-            log_filename = os.path.join(config.logging_dir, "repoman-client.log")
+            self.log_filename = os.path.join(config.logging_dir, "repoman-client.log")
         else:
-            log_filename = '/dev/null'
+            self.log_filename = '/dev/null'
 
         self.logger = logging.getLogger('repoman')
         self.logger.setLevel(logging.DEBUG)
 
-        fh = logging.handlers.TimedRotatingFileHandler(log_filename, when="midnight", backupCount=10)
+        fh = logging.handlers.TimedRotatingFileHandler(self.log_filename, when="midnight", backupCount=10)
         fh.setLevel(config.logging_level)
         fh.setFormatter(self.formatter)
         self.logger.addHandler(fh)
-        self.logger.debug('Logger initialized.  Logging to %s, level %d' % (log_filename, config.logging_level))
+        self.logger.debug('Logger initialized.  Logging to %s, level %d' % (self.log_filename, config.logging_level))
 
     def get_logger(self):
         return self.logger
+
+    def is_enabled(self):
+        return config.logging_enabled
+
+    def get_log_filename(self):
+        return self.log_filename
 
     def enable_debug(self):
         ch = logging.StreamHandler()

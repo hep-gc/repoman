@@ -3,6 +3,7 @@ from repoman_client.client import RepomanClient, RepomanError
 from repoman_client.config import config
 from repoman_client import display
 from repoman_client.__version__ import version
+from repoman_client.logger import repoman_logger
 from argparse import ArgumentParser
 import sys
 
@@ -49,6 +50,12 @@ class About(SubCommand):
                 'system_excludes':config.system_excludes,
                 'user_excludes':config.user_excludes,
                 'version':version}
+
+        if not repoman_logger.is_enabled():
+            keys['logging'] = 'Disabled'
+        else:
+            keys['logging'] = 'Log sent to: %s' % (repoman_logger.get_log_filename())
+
         print """\
 client version:          %(version)s
 
@@ -61,5 +68,6 @@ configuration:
     mountpoint:          %(mountpoint)s
     system_excludes:     %(system_excludes)s
     user_excludes:       %(user_excludes)s
+    logging:             %(logging)s
 """ % keys
 
