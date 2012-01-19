@@ -38,6 +38,12 @@ class Save(SubCommand):
         self.get_arg_parser().add_argument('--verbose', action='store_true', default = False, help = 'Display verbose output during snapshot.')
 
 
+    def validate_args(self, args):
+        if not re.match('^[a-zA-Z0-9_-]+$', args.image):
+            log.info('Invalid image name syntax detected: %s' % (args.image))
+            print 'Error: Invalid image name syntax.  Please see "repoman help %s" for acceptable image name syntax.' % (self.command)
+            sys.exit(1)
+
 
     def write_metadata(self, metadata, metafile):
         # Write metadata to filesystem for later use.
