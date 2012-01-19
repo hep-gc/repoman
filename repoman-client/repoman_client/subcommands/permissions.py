@@ -5,6 +5,10 @@ from repoman_client.subcommand import SubCommand
 from argparse import ArgumentParser
 import logging
 
+# This is a list of valid permissions.
+# Use it to validate arguments, or to print out in help messages.
+# NOTE: Do not forget to edit this list if the list of permissions changes.
+valid_permissions = ['group_create', 'group_delete',  'group_modify',   'group_modify_membership',   'group_modify_permissions',   'image_create',   'image_delete',  'image_delete_group', 'image_modify', 'image_modify_group', 'user_create', 'user_delete', 'user_modify', 'user_modify_self']
 
 class AddPermission(SubCommand):
     command = 'add-permissions-to-group'
@@ -16,7 +20,7 @@ class AddPermission(SubCommand):
 
     def init_arg_parser(self):
         self.get_arg_parser().add_argument('group', help = 'The group that you are adding permissions to. Use "repoman list-groups" to see possible values.')
-        self.get_arg_parser().add_argument('permission', nargs = '+', help = 'The permission(s) to add to the group. Possible values are: group_create, group_delete,  group_modify,   group_modify_membership,   group_modify_permissions,   image_create,   image_delete,  image_delete_group, image_modify, image_modify_group, user_create, user_delete, user_modify, user_modify_self. See the repoman manpage for a description of each permission.')
+        self.get_arg_parser().add_argument('permission', nargs = '+', help = 'The permission(s) to add to the group. Possible values are: %s. See the repoman manpage for a description of each permission.' % (', '.join(valid_permissions)))
 
 
     def __call__(self, args):

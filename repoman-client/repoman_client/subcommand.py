@@ -54,6 +54,13 @@ class SubCommand(object):
         # Raise an exception to make sure people override this in the subclass
         raise Exception("You need to override the 'init_arg_parser' class method")
 
+    def validate_args(self, args):
+        # Default implementation is to do no validation on the arguments.
+        # Override this method in the child class where needed and it will
+        # automatically get called.
+        log.debug('No argument validation implemented for the %s subcommand.' % (self.command))
+        pass
+
     def get_arg_parser(self):
         return self.arg_parser
 
@@ -63,6 +70,10 @@ class SubCommand(object):
     def delegator(self, args):
         log.info('repoman subcommand called: %s' % (self.command))
         log.debug('nargs: %s' % (args))
+        # Validate CLI arguments first
+        log.debug('Validating arguments...')
+        self.validate_args(args)
+        # Now we can delegate to the child class
         self.__call__(args)
 
 
