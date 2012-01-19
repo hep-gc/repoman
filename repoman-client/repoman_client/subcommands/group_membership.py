@@ -14,7 +14,7 @@ class AddUserToGroup(SubCommand):
         SubCommand.__init__(self)
 
     def init_arg_parser(self):
-        self.get_arg_parser().add_argument('group', help = 'The name of the newly created group.  It must be unique and can only contain ([a-Z][0-9][_][-]) characters.')
+        self.get_arg_parser().add_argument('group', help = 'The group to add the specified user(s) to.')
         self.get_arg_parser().add_argument('users', metavar = 'user', nargs = '+', help = 'The user(s) to add to the group.')
 
     def __call__(self, args):
