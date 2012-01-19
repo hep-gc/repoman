@@ -11,12 +11,19 @@ from repoman_client.config import config
 # own modules.
 class Logger():
     logger = None
+    formatter = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
 
     def __init__(self):
         log_filename = None
         if config.logging_enabled:
             logging_dir = config.logging_dir
-            if not os.path.isdir(logging_dir):
+            if logging_dir == '':
+                # nothing to do in the case of empty logging_dir
+                pass
+            elif os.path.exists and not os.path.isdir(logging_dir):
+                print 'The logging directory path specified in the configuration file already exists and is not a directory.  Please chose a different logging directory.'
+                sys.exit(1)
+            elif not os.path.exists(logging_dir):
                 try:
                     os.makedirs(logging_dir)
                     uid = os.environ.get('SUDO_UID', os.getuid())
@@ -32,11 +39,10 @@ class Logger():
 
         self.logger = logging.getLogger('repoman')
         self.logger.setLevel(logging.DEBUG)
-        formatter = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
 
         fh = logging.handlers.TimedRotatingFileHandler(log_filename, when="midnight", backupCount=10)
         fh.setLevel(config.logging_level)
-        fh.setFormatter(formatter)
+        fh.setFormatter(self.formatter)
         self.logger.addHandler(fh)
         self.logger.debug('Logger initialized.  Logging to %s, level %d' % (log_filename, config.logging_level))
 
@@ -46,7 +52,7 @@ class Logger():
     def enable_debug(self):
         ch = logging.StreamHandler()
         ch.setLevel(logging.DEBUG)
-        ch.setFormatter(formatter)
+        ch.setFormatter(self.formatter)
         self.logger.addHandler(ch)
             
 

@@ -61,7 +61,8 @@ class SubCommand(object):
     # It should simply delegate the work to the subcommand by
     # calling the subcommand's __call__ method.
     def delegator(self, args):
-        log.info('repoman subcommand called: %s\nargs: %s' % (self.command, args))
+        log.info('repoman subcommand called: %s' % (self.command))
+        log.debug('nargs: %s' % (args))
         self.__call__(args)
 
 
