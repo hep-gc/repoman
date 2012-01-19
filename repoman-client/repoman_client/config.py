@@ -1,6 +1,7 @@
 import ConfigParser
 import os
 import sys
+import logging
 from repoman_client.utils import get_userid
 
 DEFAULT_CONFIG_TEMPLATE="""\
@@ -33,7 +34,7 @@ port: %(port)d
 
 [Logger]
 #
-# enabled:          If True, then logs will be generated and placed in 'log_dir'
+# enabled:          If True, then logs will be generated and placed in 'dir'
 #
 enabled: %(logging_enabled)s
 
@@ -41,8 +42,16 @@ enabled: %(logging_enabled)s
 # dir:              Name of directory that logs will be placed in.
 #                   If this is NOT an absolute path, then the directory is
 #                   assumed to reside in the base directory of this config file.
+#                   Defaults to '$HOME'/.repoman/logs
 #
-dir: %(logging_dir)s
+#dir: %(logging_dir)s
+
+#
+# The logging level.
+# Possible values: DEBUG, INFO, WARNING, ERROR, CRITICAL
+# Defaults to INFO
+#
+#level: %(logging_level)s
 
 
 
@@ -78,6 +87,7 @@ class Config(object):
                        'proxy_cert' : '',
                        'logging_enabled' : 'true',
                        'logging_dir' : '',
+                       'logging_level' : 'INFO', 
                        'lockfile' : '/tmp/repoman-sync.lock',
                        'snapshot' : '/tmp/fscopy.img',
                        'mountpoint' : '/tmp/fscopy',
@@ -114,9 +124,6 @@ class Config(object):
 
         # Validate
         self._validate()
-
-
-        #self._check_logging()
 
 
 
@@ -159,7 +166,7 @@ class Config(object):
         if self._config.has_option('Repository', 'port'):
             return self._config.getint('Repository', 'port')
         else:
-            return config_defaults['port']
+            return self.config_defaults['port']
 
     @property
     def proxy(self):
@@ -177,7 +184,24 @@ class Config(object):
 
     @property
     def logging_dir(self):
-        return self._config.get('Logger', 'dir')
+        if self._config.has_option('Logger', 'dir'):
+            return self._config.get('Logger', 'dir')
+        else:
+            return os.path.expandvars('$HOME/.repoman/logs')
+
+    @property
+    def logging_level(self):
+        level_string = None
+        if self._config.has_option('Logger', 'level'):
+            level_string = self._config.get('Logger', 'level')
+        else:
+            level_string = self.config_defaults['logging_level']
+
+        numeric_level = getattr(logging, level_string.upper(), None)
+        if not isinstance(numeric_level, int):
+            raise ValueError('Invalid log level: %s' % loglevel)
+        else:
+            return numeric_level
 
     @property
     def lockfile(self):
@@ -247,41 +271,6 @@ class Config(object):
                 print 'Error writing Repoman configuration file at %s\n%s' % (self._user_config_file, e)
                 sys.exit(1)
         
-
-
-
-    # TODO: Move this to another class/file (Andre)
-    def _check_logging(self):
-        if not self.logging_enabled:
-            return
-        elif self.logging_enabled and not self.logging_dir:
-            self._error_messages = True
-            self._error_messages.append("Specify a logging directory")
-            return
-        elif not os.path.isabs(self.logging_dir):
-            self.logging_dir = os.path.join(os.path.dirname(self.config_file),
-                                            self.logging_dir)
-
-        if not os.path.isdir(self.logging_dir):
-            try:
-                os.mkdir(self.logging_dir)
-                uid = os.environ.get('SUDO_UID', os.getuid())
-                gid = os.environ.get('SUDO_GID', os.getgid())
-                os.chown(self.logging_dir, int(uid), int(gid))
-            except:
-                self._errors_found = True
-                self._error_messages.append("Logging dir does not exist and I am unable to create it.")
-
-        test_file = os.path.join(self.logging_dir, 'TEST_LOG.DELETE_ME')
-        try:
-            test = open(test_file, 'w')
-            test.close()
-            os.remove(test_file)
-        except:
-            self._errors_found = True
-            self._error_messages.append("The logging directory is not writable.")
-
-
 
 
 # Globally accessible Config() singleton instance.

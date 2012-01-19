@@ -1,6 +1,6 @@
 import os
 import sys
-import logging
+from repoman_client.logger import log
 
 # Import the RepomanCLI singleton instance:
 from repoman_client.parsers import repoman_cli
@@ -61,7 +61,7 @@ class SubCommand(object):
     # It should simply delegate the work to the subcommand by
     # calling the subcommand's __call__ method.
     def delegator(self, args):
-        logging.getLogger('client').info('repoman subcommand called: %s\nargs:\n%s' % (self.command, args))
+        log.info('repoman subcommand called: %s\nargs: %s' % (self.command, args))
         self.__call__(args)
 
 

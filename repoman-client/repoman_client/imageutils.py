@@ -4,8 +4,7 @@ import subprocess
 import logging
 import fcntl
 import tempfile
-
-log = logging.getLogger('ImageUtils')
+from repoman_client.logger import log
 
 class ImageUtilError(Exception):
     pass

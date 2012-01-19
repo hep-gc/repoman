@@ -19,6 +19,7 @@ class RepomanCLI(object):
         self.arg_parser.add_argument('-r', '--repository', help = 'The repoman repository server to connect to.  Overrides the "repository" setting in the configuration file.')
         self.arg_parser.add_argument('-p', '--port', type = int, help = 'The repoman repository server port to connect to.  Overrides the "port" setting in the configuration file.  Defaults to 443.')
         self.arg_parser.add_argument('-P', '--proxy', help = 'The path to your proxy certificate to be used for authentication.  Overrides the "proxy" setting in the configuration file.  Defaults to "/tmp/x509up_uNNNN", where "NNNN" is your effective UID.')
+        self.arg_parser.add_argument('--debug', action='store_true', default = False, help=argparse.SUPPRESS)
 
         self.sub_arg_parser = self.arg_parser.add_subparsers(dest='subcommand')
 

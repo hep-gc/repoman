@@ -1,4 +1,5 @@
 import sys, os, time
+from repoman_client.logger import log
 from repoman_client.config import config
 from repoman_client import imageutils
 if sys.version_info < (2, 6):
@@ -14,9 +15,6 @@ import urllib
 import socket
 import subprocess
 #import ssl
-import logging
-
-log = logging.getLogger('client')
 
 
 HEADERS = {"Content-type":"application/x-www-form-urlencoded", "Accept": "*"}
