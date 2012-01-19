@@ -40,7 +40,7 @@ class DescribeGroup(SubCommand):
     def init_arg_parser(self):
         self.get_arg_parser().add_argument('group', help='The group to describe.  Use "repoman list-groups" to see possible values.')
 
-    def __call__(self, args, extra_args=None):
+    def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)
         try:
             group = repo.describe_group(args.group)
