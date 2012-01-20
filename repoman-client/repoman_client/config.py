@@ -180,6 +180,8 @@ class Config(object):
 
     @property
     def logging_enabled(self):
+        if not self._config.has_section('Logger') or not self._config.has_option('Logger', 'enabled'):
+            return False
         return self._config.getboolean('Logger', 'enabled')
 
     @property
