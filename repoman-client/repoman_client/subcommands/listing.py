@@ -21,13 +21,16 @@ class ListUsers(SubCommand):
 
     def __call__(self, args):
         repo = RepomanClient(config.host, config.port, config.proxy)
-        if args.group:
-            kwargs = {'group':args.group}
-        else:
-            kwargs = {}
             
         try:
-            users = repo.list_users(**kwargs)
+            users_urls = repo.list_users(group = args.group)
+            # Fetch metadata for each user.
+            # TODO: Create a server method that will return the metadata
+            # of all users and use that instead. (Andre)
+            users = []
+            for user_url in users_urls:
+                users.append(repo.describe_user(user_url.rsplit('/',1)[-1]))
+
             display.display_user_list(users, long_output=args.long)
         except RepomanError, e:
             print e.message
@@ -57,7 +60,14 @@ class ListGroups(SubCommand):
             kwargs = {}
 
         try:
-            groups = repo.list_groups(**kwargs)
+            groups_urls = repo.list_groups(**kwargs)
+            # Fetch metadata for each group.
+            # TODO: Create a server method that will return the metadata
+            # of all groups and use that instead. (Andre)
+            groups = []
+            for group_url in groups_urls:
+                groups.append(repo.describe_group(group_url.rsplit('/',1)[-1]))
+
             display.display_group_list(groups, long_output=args.long)
         except RepomanError, e:
             print e.message
