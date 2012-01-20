@@ -146,6 +146,11 @@ class Config(object):
             print 'Error reading configuration file(s).\n%s' % (e)
             sys.exit(1)
 
+        if len(self.files_parsed) == 0:
+            print 'Could not find a repoman configuration file on your system.'
+            print 'Please run "repoman make-config" to create a configuration file and then try again.'
+            sys.exit(1)
+
             
     # Validates the current configuration.
     def _validate(self):
@@ -155,7 +160,7 @@ class Config(object):
     # shortcut properties
     @property
     def host(self):
-        if self._config.has_option('Repository', 'repository'):
+        if self._config.has_option('Repository', 'repository') and len(self._config.get('Repository', 'repository')) > 0:
             return self._config.get('Repository', 'repository')
         else:
             print 'Missing repository entry in repoman configuration.'
