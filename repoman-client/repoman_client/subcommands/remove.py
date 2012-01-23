@@ -21,7 +21,6 @@ class RemoveUser(SubCommand):
 
 
     def __call__(self, args):
-        repo = RepomanClient(config.host, config.port, config.proxy)
         if not args.force:
             print ("WARNING:\n"
                     "\tAll images owned by the user will be removed.\n"
@@ -30,7 +29,7 @@ class RemoveUser(SubCommand):
                 print "Aborting user deletion"
                 return
         try:
-            repo.remove_user(args.user)
+            self.get_repoman_client(args).remove_user(args.user)
             print "[OK]     Removed user %s." % (args.user)
         except RepomanError, e:
             print "[FAILED] Removing user.\n\t-%s" % e
@@ -53,14 +52,13 @@ class RemoveGroup(SubCommand):
                        help='Delete group without confirmation.')
 
     def __call__(self, args):
-        repo = RepomanClient(config.host, config.port, config.proxy)
         if not args.force:
             if not yes_or_no():
                 print "Aborting group deletion"
                 return
 
         try:
-            repo.remove_group(args.group)
+            self.get_repoman_client(args).remove_group(args.group)
             print "[OK]     Removed group %s." % (args.group)
         except RepomanError, e:
             print "[FAILED] Removing group.\n\t-%s" % e
@@ -81,7 +79,6 @@ class RemoveImage(SubCommand):
                        help='Delete image without confirmation.')
 
     def __call__(self, args):
-        repo = RepomanClient(config.host, config.port, config.proxy)
         if not args.force:
             print ("WARNING:\n"
                     "\tdeleting an image cannot be undone.\n")
@@ -90,7 +87,7 @@ class RemoveImage(SubCommand):
                 return
 
         try:
-            repo.remove_image(args.image)
+            self.get_repoman_client(args).remove_image(args.image)
             print "[OK]     Removed image %s." % (args.image)
         except RepomanError, e:
             print "[FAILED] Removing image.\n\t-%s" % e

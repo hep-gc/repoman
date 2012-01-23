@@ -32,8 +32,6 @@ class CreateUser(SubCommand):
             sys.exit(1)
 
     def __call__(self, args):
-        repo = RepomanClient(config.host, config.port, config.proxy)
-
         # Create user metadata arguments to pass to repoman server.
         kwargs = {}
         kwargs['user_name'] = args.user
@@ -42,7 +40,7 @@ class CreateUser(SubCommand):
         kwargs['full_name'] = args.full_name
 
         try:
-            repo.create_user(**kwargs)
+            self.get_repoman_client(args).create_user(**kwargs)
             print "[OK]     Created new user %s." % (args.user)
         except RepomanError, e:
             print "[FAILED] Creating new user.\n\t-%s" % e
@@ -76,14 +74,12 @@ class CreateGroup(SubCommand):
                     sys.exit(1)
 
     def __call__(self, args):
-        repo = RepomanClient(config.host, config.port, config.proxy)
-
         # Create group metadata arguments to pass to repoman server.
         kwargs = {}
         kwargs['name'] = args.group
 
         try:
-            repo.create_group(**kwargs)
+            self.get_repoman_client(args).create_group(**kwargs)
             print "[OK]     Creating new group: '%s'" % (args.group)
         except RepomanError, e:
             print "[FAILED] Creating new group.\n\t-%s" % e
@@ -94,7 +90,7 @@ class CreateGroup(SubCommand):
             for p in args.permissions:
                 status = "Adding permission: '%s' to group: '%s'" % (p, args.group)
                 try:
-                    repo.add_permission(args.group, p)
+                    self.get_repoman_client(args).add_permission(args.group, p)
                     print "[OK]     %s" % status
                 except RepomanError, e:
                     print "[FAILED] %s\n\t-%s" % (status, e)
@@ -105,7 +101,7 @@ class CreateGroup(SubCommand):
             for user in args.users:
                 status = "Adding user: `%s` to group: '%s'\t\t" % (user, args.group)
                 try:
-                    repo.add_user_to_group(user, args.group)
+                    self.get_repoman_client(args).add_user_to_group(user, args.group)
                     print '[OK]     %s' % status
                 except RepomanError, e:
                     print '[FAILED] %s\n\t-%s' % (status, e.message)
@@ -140,8 +136,6 @@ class CreateImage(SubCommand):
 
 
     def __call__(self, args):
-        repo = RepomanClient(config.host, config.port, config.proxy)
-
         try:
             # Create image metadata arguments to pass to repoman server.
             kwargs = {}
@@ -161,7 +155,7 @@ class CreateImage(SubCommand):
             if args.os_variant:
                 kwargs['os_variant'] = args.os_variant
 
-            repo.create_image_metadata(**kwargs)
+            self.get_repoman_client(args).create_image_metadata(**kwargs)
             print "[OK]     Created new image meatadata."
         except RepomanError, e:
             print "[FAILED] Creating new image metadata.\n\t-%s" % e
@@ -169,7 +163,7 @@ class CreateImage(SubCommand):
 
         if args.file:
             try:
-                repo.upload_image(kwargs['name'], args.file)
+                self.get_repoman_client(args).upload_image(kwargs['name'], args.file)
             except RepomanError, e:
                 print e
                 sys.exit(1)

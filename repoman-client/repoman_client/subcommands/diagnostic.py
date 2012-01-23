@@ -18,9 +18,8 @@ class Whoami(SubCommand):
         pass
 
     def __call__(self, args):
-        repo = RepomanClient(config.host, config.port, config.proxy)
         try:
-            me = repo.whoami()
+            me = self.get_repoman_client(args).whoami()
             print me.get('user_name')
         except RepomanError, e:
             print e

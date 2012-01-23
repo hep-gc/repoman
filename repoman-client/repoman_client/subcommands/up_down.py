@@ -21,12 +21,11 @@ class UploadImage(SubCommand):
         self.get_arg_parser().add_argument('-o', '--owner', metavar = 'user', help = 'The owner of the named image.  The default is the ID of the current repoman user whih can be determined with the "repoman whoami" command.')
 
     def __call__(self, args):
-        repo = RepomanClient(config.host, config.port, config.proxy)
         try:
             image_name = args.image
             if args.owner:
                 image_name = "%s/%s" % (args.owner, args.image)
-            repo.upload_image(image_name, args.file)
+            self.get_repoman_client(args).upload_image(image_name, args.file)
         except RepomanError, e:
             print e
             sys.exit(1)
@@ -46,12 +45,11 @@ class DownloadImage(SubCommand):
         self.get_arg_parser().add_argument('-p', '--path', metavar = 'path', help = 'The destination of the downloaded image.  If omitted, the image is downloaded to a file with the same name as the image into your current working directory.')
 
     def __call__(self, args):
-        repo = RepomanClient(config.host, config.port, config.proxy)
         try:
             image_name = args.image
             if args.owner:
                 image_name = "%s/%s" % (args.owner, args.image)
-            repo.download_image(image_name, args.path)
+            self.get_repoman_client(args).download_image(image_name, args.path)
         except RepomanError, e:
             print e
             sys.exit(1)

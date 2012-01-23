@@ -23,11 +23,10 @@ class AddPermission(SubCommand):
 
 
     def __call__(self, args):
-        repo = RepomanClient(config.host, config.port, config.proxy)
         for p in args.permission:
             status = "Adding permission: '%s' to group: '%s'" % (p, args.group)
             try:
-                repo.add_permission(args.group, p)
+                self.get_repoman_client(args).add_permission(args.group, p)
                 print "[OK]     %s" % status
             except RepomanError, e:
                 print "[FAILED] %s\n\t-%s" % (status, e)
@@ -46,11 +45,10 @@ class RemovePermission(SubCommand):
         self.get_arg_parser().add_argument('permission', nargs = '+', help = 'The  permission(s)  to  remove  from  the  group.  Use the "repoman describe-group" command to see possible values for a particular group.')
 
     def __call__(self, args):
-        repo = RepomanClient(config.host, config.port, config.proxy)
         for p in args.permission:
             status = "Removing permission: '%s' from group: '%s'" % (p, args.group)
             try:
-                repo.remove_permission(args.group, p)
+                self.get_repoman_client(args).remove_permission(args.group, p)
                 print "[OK]     %s" % status
             except RepomanError, e:
                 print "[FAILED] %s\n\t-%s" % (status, e)

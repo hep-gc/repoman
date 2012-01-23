@@ -17,11 +17,10 @@ class AddUserToGroup(SubCommand):
         self.get_arg_parser().add_argument('users', metavar = 'user', nargs = '+', help = 'The user(s) to add to the group.')
 
     def __call__(self, args):
-        repo = RepomanClient(config.host, config.port, config.proxy)
         for user in args.users:
             status = "Adding user: `%s` to group: '%s'\t\t" % (user, args.group)
             try:
-                repo.add_user_to_group(user, args.group)
+                self.get_repoman_client(args).add_user_to_group(user, args.group)
                 print '[OK]     %s' % status
             except RepomanError, e:
                 print '[FAILED] %s\n\t-%s' % (status, e.message)
@@ -41,11 +40,10 @@ class RemoveUserFromGroup(SubCommand):
         self.get_arg_parser().add_argument('users', metavar = 'user', nargs = '+', help = 'The user(s) to remove from the group.')
 
     def __call__(self, args):
-        repo = RepomanClient(config.host, config.port, config.proxy)
         for user in args.users:
             status = "Removing user: `%s` from  group: '%s'\t\t" % (user, args.group)
             try:
-                repo.remove_user_from_group(user, args.group)
+                self.get_repoman_client(args).remove_user_from_group(user, args.group)
                 print '[OK]     %s' % status
             except RepomanError, e:
                 print '[FAILED] %s\n\t-%s' % (status, e.message)

@@ -52,7 +52,6 @@ class Save(SubCommand):
         metafile.close()
 
     def __call__(self, args):
-        repo = RepomanClient(config.host, config.port, config.proxy)
         kwargs={}
 
         name = args.image
@@ -71,7 +70,7 @@ class Save(SubCommand):
 
         exists = False
         try:
-            image = repo.describe_image(name)
+            image = self.get_repoman_client(args).describe_image(name)
             if image:
                 log.info("Found existing image")
                 exists = True
@@ -141,7 +140,7 @@ class Save(SubCommand):
             
         if not exists:
             try:
-                image = repo.create_image_metadata(**kwargs)
+                image = self.get_repoman_client(args).create_image_metadata(**kwargs)
                 print "[OK]    Creating image metadata on server."
             except RepomanError, e:
                 log.error("Error while creating image slot on server")
@@ -152,7 +151,7 @@ class Save(SubCommand):
         #upload
         print "Uploading snapshot"
         try:
-            repo.upload_image(name, config.snapshot, gzip=args.gzip)
+            self.get_repoman_client(args).upload_image(name, config.snapshot, gzip=args.gzip)
         except RepomanError, e:
             log.error("Error while uploading the image")
             log.error(e)
@@ -161,7 +160,7 @@ class Save(SubCommand):
 
         if args.comment:
             try:
-                image = repo.describe_image(name)
+                image = self.get_repoman_client(args).describe_image(name)
                 if image:
                     # Here we will search for an existing comment and replace it
                     # with the new comment (if it exist).  If it does not exist,
@@ -179,7 +178,7 @@ class Save(SubCommand):
                         new_description = '%s %s' % (old_description, comment_string)
                     kwargs = {'description':new_description}
                     try:
-                        repo.modify_image(image.get('name'), **kwargs)
+                        self.get_repoman_client(args).modify_image(image.get('name'), **kwargs)
                     except RepomanError, e:
                         print "Failed to add/update image save comment.\n\t-%s" % e
                         sys.exit(1)

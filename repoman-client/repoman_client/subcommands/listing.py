@@ -20,16 +20,14 @@ class ListUsers(SubCommand):
 
 
     def __call__(self, args):
-        repo = RepomanClient(config.host, config.port, config.proxy)
-            
         try:
-            users_urls = repo.list_users(group = args.group)
+            users_urls = self.get_repoman_client(args).list_users(group = args.group)
             # Fetch metadata for each user.
             # TODO: Create a server method that will return the metadata
             # of all users and use that instead. (Andre)
             users = []
             for user_url in users_urls:
-                users.append(repo.describe_user(user_url.rsplit('/',1)[-1]))
+                users.append(self.get_repoman_client(args).describe_user(user_url.rsplit('/',1)[-1]))
 
             display.display_user_list(users, long_output=args.long)
         except RepomanError, e:
@@ -51,7 +49,6 @@ class ListGroups(SubCommand):
         self.get_arg_parser().add_argument('-u', '--user', metavar = 'user', help = 'Display group membership for the given user.')
 
     def __call__(self, args):
-        repo = RepomanClient(config.host, config.port, config.proxy)
         if args.all:
             kwargs = {'list_all':True}
         elif args.user:
@@ -60,13 +57,13 @@ class ListGroups(SubCommand):
             kwargs = {}
 
         try:
-            groups_urls = repo.list_groups(**kwargs)
+            groups_urls = self.get_repoman_client(args).list_groups(**kwargs)
             # Fetch metadata for each group.
             # TODO: Create a server method that will return the metadata
             # of all groups and use that instead. (Andre)
             groups = []
             for group_url in groups_urls:
-                groups.append(repo.describe_group(group_url.rsplit('/',1)[-1]))
+                groups.append(self.get_repoman_client(args).describe_group(group_url.rsplit('/',1)[-1]))
 
             display.display_group_list(groups, long_output=args.long)
         except RepomanError, e:
@@ -101,36 +98,35 @@ class ListImages(SubCommand):
         # (Andre)
         #
         images = []
-        repo = RepomanClient(config.host, config.port, config.proxy)
         if args.all:
             # List images that the user has access to.
             # (either via ownership, or shared by user or group membership.)
             # For a repoman admin, this will be all images on the server.
             #func = repo.list_all_images
             kwargs = {}
-            images = repo.list_current_user_images(**kwargs)
-            images += repo.list_images_shared_with_user(**kwargs)           
+            images = self.get_repoman_client(args).list_current_user_images(**kwargs)
+            images += self.get_repoman_client(args).list_images_shared_with_user(**kwargs)           
         elif args.group:
             # List images accessible by you and by members of the named group.
             # First check if the user is a member of the group.  If not, then
             # return an empty list.
             kwargs = {'group':args.group}
-            groups = repo.whoami()['groups']
+            groups = self.get_repoman_client(args).whoami()['groups']
             for group in groups:
                 if group.split('/')[-1] == args.group:
-                    images = repo.list_images_shared_with_group(**kwargs)
+                    images = self.get_repoman_client(args).list_images_shared_with_group(**kwargs)
         elif args.user:
-            current_user = repo.whoami()['user_name']
+            current_user = self.get_repoman_client(args).whoami()['user_name']
             # List all current user's images shared with the given user, AND all of the
             # given user's images shared with the current user.
             kwargs = {'user':args.user}
-            all_images_shared_with_given_user = repo.list_images_shared_with_user(**kwargs)
+            all_images_shared_with_given_user = self.get_repoman_client(args).list_images_shared_with_user(**kwargs)
             for image in all_images_shared_with_given_user:
                 if image.split('/')[-2] == current_user:
                     images.append(image)
 
             kwargs = {'user':current_user}
-            all_images_shared_with_me = repo.list_images_shared_with_user(**kwargs)
+            all_images_shared_with_me = self.get_repoman_client(args).list_images_shared_with_user(**kwargs)
             for image in all_images_shared_with_me:
                 if image.split('/')[-2] == args.user:
                     images.append(image)
@@ -138,7 +134,7 @@ class ListImages(SubCommand):
         else:
             # List only images owned by current user.
             kwargs = {}
-            images = repo.list_current_user_images(**kwargs)
+            images = self.get_repoman_client(args).list_current_user_images(**kwargs)
 
         try:
             # Get the metadata of each image.
@@ -146,7 +142,7 @@ class ListImages(SubCommand):
             images_metadata = []
             for image in images:
                 name = image.rsplit('/', 2)
-                images_metadata.append(repo.describe_image("%s/%s" % (name[-2], name[-1])))
+                images_metadata.append(self.get_repoman_client(args).describe_image("%s/%s" % (name[-2], name[-1])))
             display.display_image_list(images_metadata, long_output=args.long, urls=args.url)
         except RepomanError, e:
             print e.message

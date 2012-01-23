@@ -1,6 +1,8 @@
 import os
 import sys
 from repoman_client.logger import log
+from repoman_client.client import RepomanClient
+from repoman_client.config import config
 
 # Import the RepomanCLI singleton instance:
 from repoman_client.parsers import repoman_cli
@@ -59,6 +61,23 @@ class SubCommand(object):
 
     def get_arg_parser(self):
         return self.arg_parser
+
+    # Subclasses can you this method to easily use a RepomanClient instance to
+    # make calls to the repoman server.
+    # It currently creates a new instance everytime it is called.  If needed, we
+    # could implement some caching method with lazy instantiation in here.
+    def get_repoman_client(self, args = None):
+        host = config.host
+        port = config.port
+        proxy = config.proxy
+        if args:
+            if args.repository:
+                host = args.repository
+            if args.port:
+                port = args.port
+            if args.proxy:
+                proxy = args.proxy
+        return RepomanClient(host, port, proxy)
 
     # This method gets called when the sub command is parsed.
     # It should simply delegate the work to the subcommand by

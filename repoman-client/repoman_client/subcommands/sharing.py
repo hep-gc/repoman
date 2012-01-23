@@ -18,14 +18,13 @@ class ShareImageWithGroups(SubCommand):
         self.get_arg_parser().add_argument('-o', '--owner', metavar = 'user', help = 'The owner of the named image. The default is the ID of the current repoman user which can be determined with the command "repoman whoami" command.')
 
     def __call__(self, args):
-        repo = RepomanClient(config.host, config.port, config.proxy)
         for group in args.group:
             try:
                 kwargs = {'group':group}
                 if args.owner:
-                    repo.share_with_group(args.owner + '/' + args.image, **kwargs)
+                    self.get_repoman_client(args).share_with_group(args.owner + '/' + args.image, **kwargs)
                 else:
-                    repo.share_with_group(args.image, **kwargs)
+                    self.get_repoman_client(args).share_with_group(args.image, **kwargs)
 
                 print "[OK]     Shared image: '%s' with group: '%s'" % (args.image, group)
             except RepomanError, e:
@@ -47,14 +46,13 @@ class ShareImageWithUsers(SubCommand):
         self.get_arg_parser().add_argument('-o', '--owner', metavar = 'user', help = 'The owner of the named image. The default is the ID of the current repoman user which can be determined with the command "repoman whoami" command.')
 
     def __call__(self, args):
-        repo = RepomanClient(config.host, config.port, config.proxy)
         for user in args.user:
             try:
                 kwargs = {'user':user}
                 if args.owner:
-                    repo.share_with_user(args.owner + '/' + args.image, **kwargs)
+                    self.get_repoman_client(args).share_with_user(args.owner + '/' + args.image, **kwargs)
                 else:
-                    repo.share_with_user(args.image, **kwargs)
+                    self.get_repoman_client(args).share_with_user(args.image, **kwargs)
 
                 print "[OK]     Shared image: '%s' with user: '%s'" % (args.image, user)
             except RepomanError, e:
@@ -77,14 +75,13 @@ class UnshareImageWithGroups(SubCommand):
         self.get_arg_parser().add_argument('-o', '--owner', metavar = 'user', help = 'The owner of the named image. The default is the ID of the current repoman user which can be determined with the command "repoman whoami" command.')
 
     def __call__(self, args):
-        repo = RepomanClient(config.host, config.port, config.proxy)
         for group in args.group:
             try:
                 kwargs = {'group':group}
                 if args.owner:
-                    repo.unshare_with_group(args.owner + '/' + args.image, **kwargs)
+                    self.get_repoman_client(args).unshare_with_group(args.owner + '/' + args.image, **kwargs)
                 else:
-                    repo.unshare_with_group(args.image, **kwargs)
+                    self.get_repoman_client(args).unshare_with_group(args.image, **kwargs)
 
                 print "[OK]     Unshared image: '%s' with group: '%s'" % (args.image, group)
             except RepomanError, e:
@@ -106,14 +103,13 @@ class UnshareImageWithUsers(SubCommand):
         self.get_arg_parser().add_argument('-o', '--owner', metavar = 'user', help = 'The owner of the named image. The default is the ID of the current repoman user which can be determined with the command "repoman whoami" command.')
 
     def __call__(self, args):
-        repo = RepomanClient(config.host, config.port, config.proxy)
         for user in args.user:
             try:
                 kwargs = {'user':user}
                 if args.owner:
-                    repo.unshare_with_user(args.owner + '/' + args.image, **kwargs)
+                    self.get_repoman_client(args).unshare_with_user(args.owner + '/' + args.image, **kwargs)
                 else:
-                    repo.unshare_with_user(args.image, **kwargs)
+                    self.get_repoman_client(args).unshare_with_user(args.image, **kwargs)
 
                 print "[OK]     Unshared image: '%s' with user: '%s'" % (args.image, user)
             except RepomanError, e:

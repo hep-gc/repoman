@@ -33,8 +33,6 @@ class ModifyUser(SubCommand):
 
 
     def __call__(self, args):
-        repo = RepomanClient(config.host, config.port, config.proxy)
-
         kwargs = {}
         if args.full_name:
             kwargs['full_name'] = args.full_name
@@ -46,7 +44,7 @@ class ModifyUser(SubCommand):
             kwargs['client_dn'] = args.client_dn
 
         try:
-            repo.modify_user(args.user, **kwargs)
+            self.get_repoman_client(args).modify_user(args.user, **kwargs)
             print "[OK]     Modifying user."
         except RepomanError, e:
             print "[FAILED] Modifying user.\n\t-%s" % e
@@ -84,7 +82,6 @@ class ModifyGroup(SubCommand):
 
 
     def __call__(self, args):
-        repo = RepomanClient(config.host, config.port, config.proxy)
         kwargs={}
         if args.new_name:
             kwargs['name'] = args.new_name
@@ -94,7 +91,7 @@ class ModifyGroup(SubCommand):
             kwargs['users'] = args.users
 
         try:
-            repo.modify_group(args.group, **kwargs)
+            self.get_repoman_client(args).modify_group(args.group, **kwargs)
             print "[OK]     Modifying group."
         except RepomanError, e:
             print "[FAILED] Modifying group.\n\t-%s" % e
@@ -130,8 +127,6 @@ class ModifyImage(SubCommand):
 
 
     def __call__(self, args):
-        repo = RepomanClient(config.host, config.port, config.proxy)
-  
         kwargs={}
         if args.unauthenticated_access and args.unauthenticated_access.lower() == 'true':
             kwargs['unauthenticated_access'] = True
@@ -155,7 +150,7 @@ class ModifyImage(SubCommand):
             kwargs['os_variant'] = args.os_variant
 
         try:
-            repo.modify_image(args.image, **kwargs)
+            self.get_repoman_client(args).modify_image(args.image, **kwargs)
             print "[OK]     Modifying image."
         except RepomanError, e:
             print "[FAILED] Modifying image.\n\t-%s" % e

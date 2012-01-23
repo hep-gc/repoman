@@ -18,9 +18,8 @@ class DescribeUser(SubCommand):
         self.get_arg_parser().add_argument('user', help = 'The user to describe.  Use "repoman list-users" to see possible values.')
         
     def __call__(self, args):
-        repo = RepomanClient(config.host, config.port, config.proxy)
         try:
-            user = repo.describe_user(args.user)
+            user = self.get_repoman_client(args).describe_user(args.user)
             display.describe_user(user, long_output=True)
         except RepomanError, e:
             print e
@@ -40,9 +39,8 @@ class DescribeGroup(SubCommand):
         self.get_arg_parser().add_argument('group', help='The group to describe.  Use "repoman list-groups" to see possible values.')
 
     def __call__(self, args):
-        repo = RepomanClient(config.host, config.port, config.proxy)
         try:
-            group = repo.describe_group(args.group)
+            group = self.get_repoman_client(args).describe_group(args.group)
             display.describe_group(group, long_output=True)
         except RepomanError, e:
             print e
@@ -62,12 +60,11 @@ class DescribeImage(SubCommand):
         self.get_arg_parser().add_argument('-o', '--owner', help='The owner of the named image.  The default is the ID of the current repoman user which can be determined with the "repoman whoami" command.')
 
     def __call__(self, args):
-        repo = RepomanClient(config.host, config.port, config.proxy)
         try:
             image_path = args.image
             if args.owner:
                 image_path = args.owner + '/' + args.image
-            image = repo.describe_image(image_path)
+            image = self.get_repoman_client(args).describe_image(image_path)
             display.describe_image(image, long_output=True)
         except RepomanError, e:
             print e
