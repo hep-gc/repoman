@@ -15,7 +15,9 @@ import httplib
 import urllib
 import socket
 import subprocess
-import ssl
+
+# Note: the following module is not available in python 2.4
+#import ssl
 
 
 HEADERS = {"Content-type":"application/x-www-form-urlencoded", "Accept": "*"}
@@ -106,19 +108,19 @@ class RepomanClient(object):
 #        except socket.error, e:
 #            print 'Unable to connect to server.  Is the server running?\n\t%s' % e
 #            sys.exit(1)
-        except ssl.SSLError, e:
+#        except ssl.SSLError, e:
+#            pass
+        except Exception, e:
+            log.error("%s", e)
             # Let's try to print out a user friendly error message.
-            if not os.path.exists(self.PROXY):
+            if str(e).find('SSL_CTX_use_PrivateKey_file') and not os.path.exists(self.PROXY):
                 print 'Certificate proxy not found: %s' % (self.PROXY)
                 print 'Please create a certificate proxy and try again.'
             elif str(e).find('certificate expired') != -1:
                 print 'Your certificate proxy has expired.\nPlease generate a new one and try again.'
-            log.error("%s", e)
-            sys.exit(1)
-        except Exception, e:
-            log.error("%s", e)
-            print "Unknown error has occurred. \n\t\t %s" % e
-            pprint.pprint(e)
+            else:
+                print "Unknown error has occurred. \n\t\t %s" % e
+                pprint.pprint(e)
             sys.exit(1)
 
 
