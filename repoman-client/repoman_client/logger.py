@@ -9,7 +9,7 @@ from repoman_client.config import config
 # You should not need to instantiate it; a global singleton instance
 # of it will be accessible when you include this module into your
 # own modules.
-class Logger():
+class Logger(object):
     logger = None
     formatter = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
     log_filename = None
