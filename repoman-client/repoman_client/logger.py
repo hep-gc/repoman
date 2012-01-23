@@ -32,7 +32,7 @@ class Logger(object):
                     uid = os.environ.get('SUDO_UID', os.getuid())
                     gid = os.environ.get('SUDO_GID', os.getgid())
                     os.chown(logging_dir, int(uid), int(gid))
-                except Exception as e:
+                except Exception, e:
                     print "Error: Logging dir '%s' does not exist and I am unable to create it.\n%s" % (logging_dir, e)
                     sys.exit(1)
             

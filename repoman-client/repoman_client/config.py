@@ -142,7 +142,7 @@ class Config(object):
             self.files_parsed = self._config.read([self._global_config_file,
                                               self._config_env_var,
                                               self._user_config_file])
-        except Exception as e:
+        except Exception, e:
             print 'Error reading configuration file(s).\n%s' % (e)
             sys.exit(1)
 
@@ -259,7 +259,7 @@ class Config(object):
             if not os.path.isdir(os.path.dirname(self._user_config_file)):
                 try:
                     os.makedirs(os.path.dirname(self._user_config_file))
-                except OSError as e:
+                except OSError, e:
                     print 'Error creating configuration target directory.\n%s ' % (e)
                     sys.exit(1)
 
@@ -273,7 +273,7 @@ class Config(object):
                 f.write(config_content)
                 f.close()
                 print 'Repoman configuration file written to %s' % (self._user_config_file)
-            except Exception as e:
+            except Exception, e:
                 print 'Error writing Repoman configuration file at %s\n%s' % (self._user_config_file, e)
                 sys.exit(1)
         
