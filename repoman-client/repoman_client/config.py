@@ -11,12 +11,12 @@ DEFAULT_CONFIG_TEMPLATE="""\
 #
 # repository: Fully qualified domain name of the host that the Repoman
 #                  repository resides on. (ie, localhost or vmrepo.tld.org)
-repository: %(repository)s
+#repository: %(repository)s
 
 #
 # port: Port number that Repoman repsoitory is being served on
 #
-port: %(port)d
+#port: %(port)d
 
 
 [User]
@@ -36,7 +36,7 @@ port: %(port)d
 #
 # enabled:          If True, then logs will be generated and placed in 'dir'
 #
-enabled: %(logging_enabled)s
+#enabled: %(logging_enabled)s
 
 #
 # dir:              Name of directory that logs will be placed in.
@@ -60,21 +60,21 @@ enabled: %(logging_enabled)s
 # lockfile:        The lockfile used by Repoman to synchronize the image
 #                  snapshot process.
 #
-lockfile: %(lockfile)s
+#lockfile: %(lockfile)s
 
 #
 # snapshot:        Full path to a file that will be created to snapshot the
 #                  running system to. (ie, /tmp/fscopy.img)
 #
-snapshot: %(snapshot)s
+#snapshot: %(snapshot)s
 
 #
 # mountpoint:      Full path that 'snapshot' will be mounted at. (ie, /tmp/fscopy)
 #
-mountpoint: %(mountpoint)s
+#mountpoint: %(mountpoint)s
 
-system_excludes: %(system_excludes)s
-user_excludes: %(user_excludes)s
+#system_excludes: %(system_excludes)s
+#user_excludes: %(user_excludes)s
 """
 
 
@@ -85,8 +85,8 @@ class Config(object):
     config_defaults = {'repository' : '',
                        'port' : 443,
                        'proxy_cert' : '',
-                       'logging_enabled' : 'true',
-                       'logging_dir' : '',
+                       'logging_enabled' : True,
+                       'logging_dir' : '$HOME/.repoman/logs',
                        'logging_level' : 'INFO', 
                        'lockfile' : '/tmp/repoman-sync.lock',
                        'snapshot' : '/tmp/fscopy.img',
@@ -108,16 +108,6 @@ class Config(object):
         self._user_config_file = os.path.expandvars('$HOME/.repoman/repoman.conf')
         self._config_env_var = os.path.expandvars('$REPOMAN_CLIENT_CONFIG')
 
-        self.required_options = [('Repository', 'repository'),
-                                 ('Repository', 'port'),
-                                 ('User', 'proxy_cert'),
-                                 ('ThisImage', 'mountpoint'),
-                                 ('ThisImage', 'snapshot'),
-                                 ('ThisImage', 'lockfile'),
-                                 ('Logger', 'enabled'),
-                                 ('Logger', 'dir')]
-
-        
 
         # Read the config files
         self._read_config()
@@ -185,20 +175,20 @@ class Config(object):
     @property
     def logging_enabled(self):
         if not self._config.has_section('Logger') or not self._config.has_option('Logger', 'enabled'):
-            return False
+            return self.config_defaults['logging_enabled']
         return self._config.getboolean('Logger', 'enabled')
 
     @property
     def logging_dir(self):
-        if self._config.has_option('Logger', 'dir'):
+        if self._config.has_section('Logger') and self._config.has_option('Logger', 'dir'):
             return self._config.get('Logger', 'dir')
         else:
-            return os.path.expandvars('$HOME/.repoman/logs')
+            return os.path.expandvars(self.config_defaults['logging_dir'])
 
     @property
     def logging_level(self):
         level_string = None
-        if self._config.has_option('Logger', 'level'):
+        if self._config.has_section('Logger') and self._config.has_option('Logger', 'level'):
             level_string = self._config.get('Logger', 'level')
         else:
             level_string = self.config_defaults['logging_level']
@@ -211,23 +201,38 @@ class Config(object):
 
     @property
     def lockfile(self):
-        return self._config.get('ThisImage', 'lockfile')
+        if self._config.has_section('ThisImage') and self._config.has_option('ThisImage', 'lockfile'):
+            return self._config.get('ThisImage', 'lockfile')
+        else:
+            return self.config_defaults['lockfile']
 
     @property
     def snapshot(self):
-        return self._config.get('ThisImage', 'snapshot')
+        if self._config.has_section('ThisImage') and self._config.has_option('ThisImage', 'snapshot'):
+            return self._config.get('ThisImage', 'snapshot')
+        else:
+            return self.config_defaults['snapshot']
 
     @property
     def mountpoint(self):
-        return self._config.get('ThisImage', 'mountpoint')
+        if self._config.has_section('ThisImage') and self._config.has_option('ThisImage', 'mountpoint'):
+            return self._config.get('ThisImage', 'mountpoint')
+        else:
+            return self.config_defaults['mountpoint']
 
     @property
     def system_excludes(self):
-        return self._config.get('ThisImage', 'system_excludes')
+        if self._config.has_section('ThisImage') and self._config.has_option('ThisImage', 'system_excludes'):
+            return self._config.get('ThisImage', 'system_excludes')
+        else:
+            return self.config_defaults['system_excludes']
 
     @property
     def user_excludes(self):
-        return self._config.get('ThisImage', 'user_excludes')
+        if self._config.has_section('ThisImage') and self._config.has_option('ThisImage', 'user_excludes'):
+            return self._config.get('ThisImage', 'user_excludes')
+        else:
+            return self.config_defaults['user_excludes']
 
 
     def files_parsed(self):
