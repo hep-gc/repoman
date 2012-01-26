@@ -24,7 +24,7 @@ class Logger(object):
                 # nothing to do in the case of empty logging_dir
                 pass
             elif os.path.exists and not os.path.isdir(logging_dir):
-                print 'The logging directory path specified in the configuration file already exists and is not a directory.  Please chose a different logging directory.'
+                print 'The logging directory path specified in the configuration file (and listed below) already exists and is not a directory.\n\n[%s]\n\n  Please chose a different logging directory.' % (logging_dir)
                 sys.exit(1)
             elif not os.path.exists(logging_dir):
                 try:
