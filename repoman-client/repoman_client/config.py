@@ -268,16 +268,17 @@ class Config(object):
                     print 'Error creating configuration target directory.\n%s ' % (e)
                     sys.exit(1)
 
-            # Write the config file if it does not already exist
+            # Make a backup of the existing config file if present
             if os.path.isfile(self._user_config_file):
-                print '%s already exist.  Not overwriting.' % (self._user_config_file)
-                sys.exit(1)
+                backup_file = self._user_config_file + '.bak'
+                os.rename(self._user_config_file, backup_file)
+                print 'Note: Existing config file has been copied to %s' % (backup_file)
 
             try:
                 f = open(self._user_config_file, 'w')
                 f.write(config_content)
                 f.close()
-                print 'Repoman configuration file written to %s' % (self._user_config_file)
+                print 'New repoman configuration file written to %s' % (self._user_config_file)
             except Exception, e:
                 print 'Error writing Repoman configuration file at %s\n%s' % (self._user_config_file, e)
                 sys.exit(1)
