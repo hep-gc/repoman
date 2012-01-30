@@ -124,7 +124,7 @@ Show the help dialog. If no subcommand is specified, a general overview of all s
 Before other repoman subcommands can be used, a configuration file must be created. The following subcommand will create the
 configuration file for you.
 .TP
-\fBmc\fP, \fBmake-config\fP [\fB--user-excludes\fP \fIuser_paths\fP] [\fB--system-excludes\fP \fIsystem_paths\fP]
+\fBmc\fP, \fBmake-config\fP [\fB--user-excludes\fP \fIuser_paths\fP] [\fB--system-excludes\fP \fIsystem_paths\fP] [\fB--stdout\fP]
 \#-----------------------------------------------------------------------------------------------------
 
 Options:
@@ -144,6 +144,9 @@ operating system during a \fBrepoman save-image\fP. A directory path specificati
 to be created in the saved image, but none of it's contents to be copied to the saved image.
 Defaults to \'/cvmfs/* /dev/* /mnt/* /proc/* /root/.ssh /sys/* /tmp/*\'.
 See note under \fBuser-excludes\fP.
+
+\fB--stdout\fP
+Write configuration to stdout instead of a file.
 
 .SH IMAGE MANIPULATION SUBCOMMANDS
 A VM image is a file containing a bootable copy of a configured operating system.
