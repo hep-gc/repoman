@@ -100,7 +100,10 @@ def _pprint_dict(d):
             max_key_width = len(key)
     format_string = '%%%ds : %%s' % (max_key_width)
     for key in sorted(d.keys()):
-        print format_string % (key, d[key])
+        if isinstance(d[key], list):
+            print format_string % (key, ', '.join(d[key]))
+        else:
+            print format_string % (key, d[key])
 
 
 
