@@ -16,7 +16,7 @@ class Logger(object):
     def __init__(self):
         self.log_filename = None
         self.logger = logging.getLogger('repoman')
-        self.logger.setLevel(logging.DEBUG)
+        self.logger.setLevel(logging.ERROR)
 
         if config.logging_enabled:
             logging_dir = config.logging_dir
