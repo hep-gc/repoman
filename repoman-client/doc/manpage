@@ -146,7 +146,7 @@ Defaults to \'/cvmfs/* /dev/* /mnt/* /proc/* /root/.ssh /sys/* /tmp/*\'.
 See note under \fBuser-excludes\fP.
 
 \fB--stdout\fP
-Write configuration to stdout instead of a file.
+Send the configuration to stdout instead of writing it to a file under the current user's home directory.
 
 .SH IMAGE MANIPULATION SUBCOMMANDS
 A VM image is a file containing a bootable copy of a configured operating system.
