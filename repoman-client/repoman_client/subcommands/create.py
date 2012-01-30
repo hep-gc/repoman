@@ -118,14 +118,14 @@ class CreateImage(SubCommand):
 
     def init_arg_parser(self):
         self.get_arg_parser().add_argument('image', help = 'The name of the newly created image-slot on the repository.  This will be used to reference the image when running other repoman commands.  It must be unique within the owner\'s domain and can only contain ([a-Z][0-0][_][-]) characters.') 
-        self.get_arg_parser().add_argument('-o', '--owner', metavar = 'user', help = 'The owner of the named image.  The default is the ID of the current repoman user which can be determined with the command "repoman whoami" command.')
-        self.get_arg_parser().add_argument('-f', '--file', metavar = 'path', help = 'The path to the image file that will be uploaded to the repository.')
+        self.get_arg_parser().add_argument('-a', '--unauthenticated_access', help = 'Defaults to False.  If set to true, the image may be retrieved by anybody who has the correct URL.', choices=['true', 'false'])
         self.get_arg_parser().add_argument('-d', '--description', metavar = 'value', help = 'Description of the image.')
-        self.get_arg_parser().add_argument('--os_variant', metavar = 'value', help = 'The operating system variant.  Ex: redhat, centos, ubuntu, etc.')
+        self.get_arg_parser().add_argument('-f', '--file', metavar = 'path', help = 'The path to the image file that will be uploaded to the repository.')
+        self.get_arg_parser().add_argument('-h', '--hypervisor', metavar = 'value', help = 'The hypervisor.  Ex: xen, kvm, etc.')
+        self.get_arg_parser().add_argument('-o', '--owner', metavar = 'user', help = 'The owner of the named image.  The default is the ID of the current repoman user which can be determined with the command "repoman whoami" command.')
         self.get_arg_parser().add_argument('--os_arch', help = 'The operating system architecture.', choices = ['x86', 'x86_64'])
         self.get_arg_parser().add_argument('--os_type', metavar = 'value', help = 'The operating system type.  Ex: linux, unix, windows, etc.')
-        self.get_arg_parser().add_argument('--hypervisor', metavar = 'value', help = 'The hypervisor.  Ex: xen, kvm, etc.')
-        self.get_arg_parser().add_argument('-a', '--unauthenticated_access', help = 'Defaults to False.  If set to True, the image may be retrieved by anybody who has the correct URL.', choices=['True', 'False'])
+        self.get_arg_parser().add_argument('--os_variant', metavar = 'value', help = 'The operating system variant.  Ex: redhat, centos, ubuntu, etc.')
 
 
     def validate_args(self, args):
@@ -140,8 +140,8 @@ class CreateImage(SubCommand):
             # Create image metadata arguments to pass to repoman server.
             kwargs = {}
             kwargs['name'] = args.image
-            if args.unauthenticated_access:
-                kwargs['unauthenticated_access'] = args.unauthenticated_access
+            if args.unauthenticated_access and args.unauthenticated_access.lower() == 'true':
+                kwargs['unauthenticated_access'] = True
             if args.description:
                 kwargs['description'] = args.description
             if args.hypervisor:
@@ -156,14 +156,16 @@ class CreateImage(SubCommand):
                 kwargs['os_variant'] = args.os_variant
 
             self.get_repoman_client(args).create_image_metadata(**kwargs)
-            print "[OK]     Created new image meatadata."
+            print "[OK]     Created new image '%s'" % (kwargs['name'])
         except RepomanError, e:
-            print "[FAILED] Creating new image metadata.\n\t-%s" % e
+            print "[FAILED] Creating new image '%s'\n\t-%s" % (kwargs['name'], e)
             sys.exit(1)
 
         if args.file:
             try:
+                print "Uploading %s to new image '%s'..." % (args.file, kwargs['name'])
                 self.get_repoman_client(args).upload_image(kwargs['name'], args.file)
+                print "[OK]     %s uploaded to image '%s'" % (args.file, kwargs['name'])
             except RepomanError, e:
                 print e
                 sys.exit(1)
