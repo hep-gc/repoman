@@ -108,21 +108,9 @@ class Config(object):
         self._user_config_file = os.path.expandvars('$HOME/.repoman/repoman.conf')
         self._config_env_var = os.path.expandvars('$REPOMAN_CLIENT_CONFIG')
 
-
-    # This is somekind of a hack for lazy initialization of
-    # configuration variables.
-    # TODO: Fix this properly using a real singleton pattern implementation.
-    def _populate(self):
-        if self._config == None:
-            # Read the config files
-            self.files_parsed = self._read_config()
-            if len(self.files_parsed) == 0:
-                print 'Could not find a repoman configuration file on your system.'
-                print 'Please run "repoman make-config" to create a configuration file.'
-                sys.exit(1)
-            else:
-                # Validate
-                self._validate()
+        self.files_parsed = self._read_config()
+        if len(self.files_parsed) > 0:
+            self._validate()
 
 
     # Read the config files and populate the internal ConfigParser
@@ -158,7 +146,11 @@ class Config(object):
     # shortcut properties
     @property
     def host(self):
-        self._populate()
+        if len(self.files_parsed) == 0:
+            print 'Could not find a repoman configuration file on your system.'
+            print 'Please run "repoman make-config" to create a configuration file.'
+            sys.exit(1)
+            
         if self._config.has_option('Repository', 'repository') and len(self._config.get('Repository', 'repository')) > 0:
             return self._config.get('Repository', 'repository')
         else:
@@ -167,7 +159,6 @@ class Config(object):
 
     @property
     def port(self):
-        self._populate()
         if self._config.has_option('Repository', 'port'):
             return self._config.getint('Repository', 'port')
         else:
@@ -175,7 +166,6 @@ class Config(object):
 
     @property
     def proxy(self):
-        self._populate()
         if self._config.has_option('User', 'proxy_cert'):
             return self._config.get('User', 'proxy_cert')
         else:
@@ -186,15 +176,12 @@ class Config(object):
 
     @property
     def logging_enabled(self):
-        if self._config == None:
-            return False
         if not self._config.has_section('Logger') or not self._config.has_option('Logger', 'enabled'):
             return self.config_defaults['logging_enabled']
         return self._config.getboolean('Logger', 'enabled')
 
     @property
     def logging_dir(self):
-        self._populate()
         if self._config.has_section('Logger') and self._config.has_option('Logger', 'dir'):
             return self._config.get('Logger', 'dir')
         else:
@@ -202,7 +189,6 @@ class Config(object):
 
     @property
     def logging_level(self):
-        self._populate()
         level_string = None
         if self._config.has_section('Logger') and self._config.has_option('Logger', 'level'):
             level_string = self._config.get('Logger', 'level')
@@ -217,7 +203,6 @@ class Config(object):
 
     @property
     def lockfile(self):
-        self._populate()
         if self._config.has_section('ThisImage') and self._config.has_option('ThisImage', 'lockfile'):
             return self._config.get('ThisImage', 'lockfile')
         else:
@@ -225,7 +210,6 @@ class Config(object):
 
     @property
     def snapshot(self):
-        self._populate()
         if self._config.has_section('ThisImage') and self._config.has_option('ThisImage', 'snapshot'):
             return self._config.get('ThisImage', 'snapshot')
         else:
@@ -233,7 +217,6 @@ class Config(object):
 
     @property
     def mountpoint(self):
-        self._populate()
         if self._config.has_section('ThisImage') and self._config.has_option('ThisImage', 'mountpoint'):
             return self._config.get('ThisImage', 'mountpoint')
         else:
@@ -241,7 +224,6 @@ class Config(object):
 
     @property
     def system_excludes(self):
-        self._populate()
         if self._config.has_section('ThisImage') and self._config.has_option('ThisImage', 'system_excludes'):
             return self._config.get('ThisImage', 'system_excludes')
         else:
@@ -249,7 +231,6 @@ class Config(object):
 
     @property
     def user_excludes(self):
-        self._populate()
         if self._config.has_section('ThisImage') and self._config.has_option('ThisImage', 'user_excludes'):
             return self._config.get('ThisImage', 'user_excludes')
         else:

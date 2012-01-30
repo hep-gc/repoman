@@ -43,7 +43,7 @@ class Logger(object):
             self.logger.addHandler(fh)
             self.logger.debug('Logger initialized.  Logging to %s, level %d' % (self.log_filename, config.logging_level))
         else:
-            logging.basicConfig()
+            self.logger.addHandler(logging.NullHandler())
 
 
 
