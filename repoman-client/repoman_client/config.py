@@ -162,7 +162,7 @@ class Config(object):
         if self._config.has_option('Repository', 'repository') and len(self._config.get('Repository', 'repository')) > 0:
             return self._config.get('Repository', 'repository')
         else:
-            print 'Missing repository entry in repoman configuration.\nPlease edit the repository entry in your repoman configuration file and try again.'
+            print 'Missing repository entry in repoman configuration [%s].\nPlease edit the repository entry in your repoman configuration file and try again.' % (self.files_parsed[-1])
             sys.exit(1)
 
     @property
