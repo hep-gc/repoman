@@ -50,7 +50,7 @@ class DescribeGroup(SubCommand):
 class DescribeImage(SubCommand):
     command = "describe-image"
     alias = "di"
-    description = 'Display information about an image.'
+    description = 'Display all information about an image.'
 
     def __init__(self):
         SubCommand.__init__(self)
