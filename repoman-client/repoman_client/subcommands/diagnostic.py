@@ -39,7 +39,7 @@ class About(SubCommand):
         pass
 
     def __call__(self, args):
-        keys = {'config_file':config.files_parsed,
+        keys = {'config_file': ', '.join(config.files_parsed),
                 'host':config.host,
                 'port':config.port,
                 'proxy':config.proxy,
@@ -55,17 +55,15 @@ class About(SubCommand):
             keys['logging'] = 'Log sent to: %s' % (repoman_logger.get_log_filename())
 
         print """\
-client version:          %(version)s
-
-configuration:
-    config files in use: %(config_file)s
-    repository_host:     %(host)s
-    repository_port:     %(port)s
-    user_proxy_cert:     %(proxy)s
-    snapshot:            %(snapshot)s
-    mountpoint:          %(mountpoint)s
-    system_excludes:     %(system_excludes)s
-    user_excludes:       %(user_excludes)s
-    logging:             %(logging)s
+     client version: %(version)s
+config files in use: %(config_file)s
+    repository_host: %(host)s
+    repository_port: %(port)s
+    user_proxy_cert: %(proxy)s
+           snapshot: %(snapshot)s
+         mountpoint: %(mountpoint)s
+    system_excludes: %(system_excludes)s
+      user_excludes: %(user_excludes)s
+            logging: %(logging)s
 """ % keys
 
