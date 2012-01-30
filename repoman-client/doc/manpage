@@ -30,7 +30,7 @@ The specified user name must be a registered repoman user; use the \fBrepoman li
 ..
 .de image_owner
 \fB-o\fP, \fB--owner\fP \fIuser\fP
-\- The owner of the named image. The default is the ID of the current repoman user which can be determined with the command "\fBrepoman whoami\fP" command. 
+\- The owner of the named image. The default is the ID of the current repoman user which can be determined with the "\fBrepoman whoami\fP" command. 
 ..
 .de image_os_arch
 \fB--os_arch\fP \fIvalue\fP
