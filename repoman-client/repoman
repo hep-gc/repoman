@@ -3,6 +3,8 @@ import sys
 
 from repoman_client.logger import log, repoman_logger
 from repoman_client.parsers import repoman_cli
+
+# Import all modules implementing repoman subcommands here:
 from repoman_client.subcommands.config import MakeConfig
 from repoman_client.subcommands.create import CreateImage, CreateUser, CreateGroup
 from repoman_client.subcommands.describe import DescribeImage, DescribeUser, DescribeGroup
