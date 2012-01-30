@@ -17,16 +17,25 @@ class CreateUser(SubCommand):
 
     def init_arg_parser(self):
         self.get_arg_parser().add_argument('user', help = 'The name of the newly created user.  Must be unique and only contain characters ([a-Z][0-9][_][-]).')
-        self.get_arg_parser().add_argument('full_name', help = 'The full name of the user.')
         self.get_arg_parser().add_argument('client_dn', help = 'The Distinguished Name (DN, looks like "/C=CA/O=Grid/OU=dept.org.ca/CN=John Doe")  of the certificate owned by the user and issued by a certificate authority, for example GridCanada.ca.')
-        self.get_arg_parser().add_argument('email', help = 'The email address of the user.')
+        self.get_arg_parser().add_argument('-e', '--email', metavar = 'address', help = 'The email address of the user.')
+        self.get_arg_parser().add_argument('-f', '--full_name', metavar = 'name', help = 'The full name of the user.')
 
     def validate_args(self, args):
+        # Temp code to force user to enter all attributes.
+        # Clean this up once the server code has been updated to make the email
+        # and full name attributes optional.
+        if not args.email:
+            print 'Error: Please specify the new user\'s email address.'
+            sys.exit(1)
+        if not args.full_name:
+            print 'Error: Please specify the new user\'s full name.'
+            sys.exit(1)
         if not re.match('^[a-zA-Z0-9_-]+$', args.user):
             log.info('Invalid username detected: %s' % (args.user))
             print 'Error: Invalid username.  Please see "repoman help %s" for acceptable username syntax.' % (self.command)
             sys.exit(1)
-        if not re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", args.email):
+        if args.email and not re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", args.email):
             log.info('Invalid user email address detected: %s' % (args.user))
             print 'Error: Invalid email address.  Please use a valid email address and try again.'
             sys.exit(1)
@@ -36,14 +45,16 @@ class CreateUser(SubCommand):
         kwargs = {}
         kwargs['user_name'] = args.user
         kwargs['cert_dn'] = args.client_dn
-        kwargs['email'] = args.email
-        kwargs['full_name'] = args.full_name
+        if args.email:
+            kwargs['email'] = args.email
+        if args.full_name:
+            kwargs['full_name'] = args.full_name
 
         try:
             self.get_repoman_client(args).create_user(**kwargs)
             print "[OK]     Created new user %s." % (args.user)
         except RepomanError, e:
-            print "[FAILED] Creating new user.\n\t-%s" % e
+            print "[FAILED] Creating new user %s.\n\t-%s" % (args.user, e)
             sys.exit(1)
 
 
