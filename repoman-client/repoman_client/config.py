@@ -124,7 +124,8 @@ class Config(object):
     #  2. the file pointed to by the config file env variable
     #  3. the user's config file
     #
-    # This method will exit with an error if a config file exist and could not be
+    # This method will exit with an error if no config files could be
+    # found on the system, or if a config file exist and could not be
     # parsed successfully.
     def _read_config(self):
         self._config = ConfigParser.ConfigParser()
@@ -139,6 +140,7 @@ class Config(object):
         if len(self.files_parsed) == 0:
             print 'Could not find a repoman configuration file on your system.'
             print 'Please run "repoman make-config" to create a configuration file.'
+            sys.exit(1)
 
             
     # Validates the current configuration.
