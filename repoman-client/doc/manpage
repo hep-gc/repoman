@@ -463,14 +463,7 @@ Options:
 
 \fB-g\fP, \fB--group\fP \fIgroup\fP \- Only display users the belong to the group \fIgroup\fP
 
-\fB-l\fP, \fB--long\fP \- Display a table with extra information. Example:
-.TS
-tab(~);
-l l l l l.
-Username~Full Name~Client DN
-=
-jdoe~John Doe~/C=CA/O=Grid/OU=dept.org.ca/CN=John Doe
-.TE
+\fB-l\fP, \fB--long\fP \- Display a table with extra information.
 
 .TP
 \fBmu\fP, \fBmodify-user\fP \fIuser\fP [\fB--client_dn\fP \fIdn\fP] [\fB--email\fP \fIaddress\fP] [\fB--full_name\fP \fIname\fP] [\fB--new_name\fP \fIname\fP]
