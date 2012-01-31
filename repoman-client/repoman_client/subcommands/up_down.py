@@ -25,9 +25,11 @@ class UploadImage(SubCommand):
             image_name = args.image
             if args.owner:
                 image_name = "%s/%s" % (args.owner, args.image)
+            print "Uploading %s to image '%s'..." % (args.file, args.image)
             self.get_repoman_client(args).upload_image(image_name, args.file)
+            print "[OK]     %s uploaded to image '%s'" % (args.file, args.image)
         except RepomanError, e:
-            print e
+            print "[FAILED] Uploading %s to image '%s'.\n\t-%s" % (args.file, args.image, e)
             sys.exit(1)
 
 
