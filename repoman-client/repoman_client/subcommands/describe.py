@@ -6,26 +6,6 @@ import sys
 import logging
 import ConfigParser
 
-class DescribeUser(SubCommand):
-    command = "describe-user"
-    alias = "du"
-    description = 'Display information about a repoman user.'
-
-    def __init__(self):
-        SubCommand.__init__(self)
-
-    def init_arg_parser(self):
-        self.get_arg_parser().add_argument('user', help = 'The user to describe.  Use "repoman list-users" to see possible values.')
-        
-    def __call__(self, args):
-        try:
-            user = self.get_repoman_client(args).describe_user(args.user)
-            display.describe_user(user, long_output=True)
-        except RepomanError, e:
-            print e
-            sys.exit(1)
-
-
 
 class DescribeGroup(SubCommand):
     command = "describe-group"
