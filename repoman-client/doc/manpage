@@ -232,28 +232,6 @@ Options:
 
 \fB-U\fP, \fB--url\fP \- List images and associated URLs.
 
-Examples:
-
-1. \fBrepoman list-images --long --user bob\fP
-.TS
-tab(~);
-l l l l l.
-Image Name~Owner~Size~Last Modified~Description
-=
-upandown~bob~6.9GB~Jan 12, 13:24:39 2011~
-testimage~jdoe~4.2GB~Dec 6, 16:04:54 2011~My new image
-.TE
-
-2. \fBrepoman li -U\fP
-.TS
-tab(~);
-l
-ls.
-jdoe/testimage
-  http://vmrepo.example.ca/api/images/raw/jdoe/testimage
-  https://vmrepo.example.ca:443/api/images/raw/jdoe/testimage
-.TE
-
 .TP
 \fBmi\fP, \fBmodify-image\fP \fIimage\fP [\fB--unauthenticated_access\fP [\fBtrue\fP|\fBfalse\fP]] [\fB--description\fP \fIvalue\fP] [\fB--hypervisor\fP \fIvalue\fP] [\fB--new_name\fP \fIvalue\fP] [\fB--new_owner\fP \fIuser\fP] [\fB--owner\fP \fIuser\fP] [\fB--os_variant\fP \fIvalue\fP] [\fB--os_arch\fP \fIvalue\fP] [\fB--os_type\fP \fIvalue\fP]
 \#-----------------------------------------------------------------------------------------------------
