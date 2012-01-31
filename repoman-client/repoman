@@ -7,7 +7,7 @@ from repoman_client.parsers import repoman_cli
 # Import all modules implementing repoman subcommands here:
 from repoman_client.subcommands.config import MakeConfig
 from repoman_client.subcommands.create import CreateImage, CreateUser, CreateGroup
-from repoman_client.subcommands.describe import DescribeImage, DescribeGroup
+from repoman_client.subcommands.describe import DescribeImage
 from repoman_client.subcommands.diagnostic import Whoami, About
 from repoman_client.subcommands.group_membership import AddUserToGroup, RemoveUserFromGroup
 from repoman_client.subcommands.help import Help
@@ -26,7 +26,6 @@ repoman_cli.add_subcommand(Help())
 repoman_cli.add_subcommand(Version())
 repoman_cli.add_subcommand(MakeConfig())
 repoman_cli.add_subcommand(DescribeImage())
-repoman_cli.add_subcommand(DescribeGroup())
 repoman_cli.add_subcommand(Whoami())
 repoman_cli.add_subcommand(About())
 repoman_cli.add_subcommand(CreateImage())

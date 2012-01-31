@@ -24,11 +24,13 @@ def display_image(image, long_output=False, urls=False, format_string=None):
     else:
         print "%s/%s" % (image['owner'], image['name'])
 
-def display_group(group, long_output=False, format_string=None):
-    if not long_output:
-        print group['name']
-    else:
+def display_group(group, long_output=False, full_output=False, format_string=None):
+    if long_output:
         print format_string % (group['name'], group['users'])
+    elif full_output:
+        describe_group(group)
+    else:
+        print group['name']
 
 def display_user_list(users, long_output=False, full_output=False):
     format_string = None
@@ -64,7 +66,7 @@ def display_image_list(images, long_output=False, urls=False):
         display_image(image, long_output, urls, format_string)
 
 
-def display_group_list(groups, long_output=False):
+def display_group_list(groups, long_output=False, full_output=False):
     format_string = None
     header = None
     # Make a deep copy cause we are going to modify it if needed.
@@ -82,7 +84,7 @@ def display_group_list(groups, long_output=False):
         (format_string, header) = get_format_string(groups_copy, ['name', 'users'], column_headers, ['l', 'l'])
         print header
     for group in sorted(groups_copy, key = lambda group : group['name'].lower()):
-        display_group(group, long_output, format_string)
+        display_group(group, long_output=long_output, full_output=full_output, format_string=format_string)
 
 
 # detailed descriptions of user/groups/images
@@ -92,6 +94,7 @@ def describe_user(user, long_output=False):
 
 def describe_group(group, long_output=False):
     _pprint_dict(group)
+    print ''
 
 def describe_image(image, long_output=False):
     _pprint_dict(image)

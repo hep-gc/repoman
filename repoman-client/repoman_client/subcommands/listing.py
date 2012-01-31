@@ -52,9 +52,12 @@ class ListGroups(SubCommand):
         SubCommand.__init__(self)
 
     def init_arg_parser(self):
+        group = self.get_arg_parser().add_mutually_exclusive_group()
+        group.add_argument('-f', '--full', action = 'store_true', default = False, help = 'Display full user metadata.')
+        group.add_argument('-l', '--long', action = 'store_true', default = False, help = 'Display extra information in a table.')
         self.get_arg_parser().add_argument('-a', '--all', action = 'store_true', default = False, help = 'Display all groups.')
-        self.get_arg_parser().add_argument('-l', '--long', action = 'store_true', default = False, help = 'Display extra information in a table.')
         self.get_arg_parser().add_argument('-u', '--user', metavar = 'user', help = 'Display group membership for the given user.')
+        self.get_arg_parser().add_argument('group', metavar = 'group', nargs = '?', help = 'If given, information about this group only will be displayed.')
 
     def __call__(self, args):
         if args.all:
@@ -64,16 +67,19 @@ class ListGroups(SubCommand):
         else:
             kwargs = {}
 
+        groups = []
         try:
-            groups_urls = self.get_repoman_client(args).list_groups(**kwargs)
-            # Fetch metadata for each group.
-            # TODO: Create a server method that will return the metadata
-            # of all groups and use that instead. (Andre)
-            groups = []
-            for group_url in groups_urls:
-                groups.append(self.get_repoman_client(args).describe_group(group_url.rsplit('/',1)[-1]))
+            if args.group:
+                groups.append(self.get_repoman_client(args).describe_group(args.group))
+            else:
+                groups_urls = self.get_repoman_client(args).list_groups(**kwargs)
+                # Fetch metadata for each group.
+                # TODO: Create a server method that will return the metadata
+                # of all groups and use that instead. (Andre)
+                for group_url in groups_urls:
+                    groups.append(self.get_repoman_client(args).describe_group(group_url.rsplit('/',1)[-1]))
 
-            display.display_group_list(groups, long_output=args.long)
+            display.display_group_list(groups, long_output=args.long, full_output=args.full)
         except RepomanError, e:
             print e.message
             sys.exit(1)
