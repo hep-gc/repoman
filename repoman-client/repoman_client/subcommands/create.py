@@ -69,8 +69,8 @@ class CreateGroup(SubCommand):
 
     def init_arg_parser(self):
         self.get_arg_parser().add_argument('group', help = 'The name of the newly created group. It must be unique and can only contain characters ([a-Z][0-0][_][-]).')
-        self.get_arg_parser().add_argument('-u', '--users', metavar = 'list', nargs='+', help = 'The users that are members of the group. (Blank separated list) Ex: "msmithsjobs"')
-        self.get_arg_parser().add_argument('-p', '--permissions', metavar = 'list', nargs = '+', help = 'The permissions that the members of the group have (Blank separated list Ex: "user_delete image_modify").  Possible values are: %s.  See repoman manpage for a description of each permission.' % (', '.join(valid_permissions)))
+        self.get_arg_parser().add_argument('-p', '--permissions', metavar = 'permission', nargs = '+', help = 'The permissions that the members of the group have (Blank separated list Ex: "user_delete image_modify").  Possible values are: %s.  See repoman manpage for a description of each permission.' % (', '.join(valid_permissions)))
+        self.get_arg_parser().add_argument('-u', '--users', metavar = 'user', nargs='+', help = 'The users that are members of the group. (Blank separated list) Ex: "msmith sjobs"')
 
     def validate_args(self, args):
         if not re.match('^[a-zA-Z0-9_-]+$', args.group):
