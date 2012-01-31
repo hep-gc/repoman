@@ -11,9 +11,11 @@ def display_user(user, long_output=False, full_output=False, format_string=None)
         print user['user_name']
         
 
-def display_image(image, long_output=False, urls=False, format_string=None):
+def display_image(image, long_output=False, full_output=False, urls=False, format_string=None):
     if long_output:
         print format_string % (image['name'], image['owner'], str(image['size']), image['modified'], image['description'])
+    elif full_output:
+        describe_image(image)
     elif urls:
         print "%s/%s" % (image['owner'].rsplit('/', 1)[-1], image['name'])
         if image['http_file_url'] != None:
@@ -42,7 +44,7 @@ def display_user_list(users, long_output=False, full_output=False):
     for user in sorted(users, key = lambda user : user['user_name'].lower()):
         display_user(user, long_output=long_output, full_output=full_output, format_string=format_string)
 
-def display_image_list(images, long_output=False, urls=False):
+def display_image_list(images, long_output=False, full_output=False, urls=False):
     format_string = None
     header = None
     # Make a deep copy cause we are going to modify it if needed.
@@ -63,7 +65,7 @@ def display_image_list(images, long_output=False, urls=False):
         
     # Let's print each image.
     for image in sorted(images_copy, key = lambda image : image['name'].lower()):
-        display_image(image, long_output, urls, format_string)
+        display_image(image, long_output=long_output, full_output=full_output, urls=urls, format_string=format_string)
 
 
 def display_group_list(groups, long_output=False, full_output=False):
@@ -98,6 +100,7 @@ def describe_group(group, long_output=False):
 
 def describe_image(image, long_output=False):
     _pprint_dict(image)
+    print ''
 
 def _pprint_dict(d):
     # find max key width
