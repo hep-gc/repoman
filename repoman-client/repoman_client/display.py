@@ -2,11 +2,14 @@ from pprint import pprint
 import copy
 
 # Single line listings of users/groups/images
-def display_user(user, long_output=False, format_string=None):
-    if not long_output:
-        print user['user_name']
-    else:
+def display_user(user, long_output=False, full_output=False, format_string=None):
+    if long_output:
         print format_string % (user['user_name'], user['full_name'], user['client_dn'])
+    elif full_output:
+        describe_user(user)
+    else:
+        print user['user_name']
+        
 
 def display_image(image, long_output=False, urls=False, format_string=None):
     if long_output:
@@ -27,7 +30,7 @@ def display_group(group, long_output=False, format_string=None):
     else:
         print format_string % (group['name'], group['users'])
 
-def display_user_list(users, long_output=False):
+def display_user_list(users, long_output=False, full_output=False):
     format_string = None
     header = None
     if long_output:
@@ -35,7 +38,7 @@ def display_user_list(users, long_output=False):
         (format_string, header) = get_format_string(users, ['user_name', 'full_name', 'client_dn'], column_headers, ['l', 'l', 'l'])
         print header
     for user in sorted(users, key = lambda user : user['user_name'].lower()):
-        display_user(user, long_output, format_string)
+        display_user(user, long_output=long_output, full_output=full_output, format_string=format_string)
 
 def display_image_list(images, long_output=False, urls=False):
     format_string = None
@@ -85,6 +88,7 @@ def display_group_list(groups, long_output=False):
 # detailed descriptions of user/groups/images
 def describe_user(user, long_output=False):
     _pprint_dict(user)
+    print ''
 
 def describe_group(group, long_output=False):
     _pprint_dict(group)

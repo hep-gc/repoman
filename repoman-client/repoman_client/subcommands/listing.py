@@ -15,21 +15,28 @@ class ListUsers(SubCommand):
         SubCommand.__init__(self)
 
     def init_arg_parser(self):
+        group = self.get_arg_parser().add_mutually_exclusive_group()
+        group.add_argument('-f', '--full', action = 'store_true', default = False, help = 'Display full user metadata.')
+        group.add_argument('-l', '--long', action = 'store_true', default = False, help = 'Display a table with extra information.')
         self.get_arg_parser().add_argument('-g', '--group', metavar = 'group', help = 'Only display users that belong to the given group.')
-        self.get_arg_parser().add_argument('-l', '--long', action = 'store_true', default = False, help = 'Display a table with extra information.')
+        self.get_arg_parser().add_argument('user', metavar = 'user', nargs = '?', help = 'If given, information about this user only will be displayed.')
+        
 
 
     def __call__(self, args):
         try:
-            users_urls = self.get_repoman_client(args).list_users(group = args.group)
-            # Fetch metadata for each user.
-            # TODO: Create a server method that will return the metadata
-            # of all users and use that instead. (Andre)
             users = []
-            for user_url in users_urls:
-                users.append(self.get_repoman_client(args).describe_user(user_url.rsplit('/',1)[-1]))
+            if args.user:
+                users.append(self.get_repoman_client(args).describe_user(args.user))
+            else:
+                users_urls = self.get_repoman_client(args).list_users(group = args.group)
+                # Fetch metadata for each user.
+                # TODO: Create a server method that will return the metadata
+                # of all users and use that instead. (Andre)
+                for user_url in users_urls:
+                    users.append(self.get_repoman_client(args).describe_user(user_url.rsplit('/',1)[-1]))
 
-            display.display_user_list(users, long_output=args.long)
+            display.display_user_list(users, long_output=args.long, full_output=args.full)
         except RepomanError, e:
             print e.message
             sys.exit(1)
