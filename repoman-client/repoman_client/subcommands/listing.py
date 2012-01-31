@@ -38,7 +38,8 @@ class ListUsers(SubCommand):
 class ListGroups(SubCommand):
     command = "list-groups"
     alias = 'lg'
-    description = 'List user groups on the repoman repository.'
+    short_description = 'List user groups on the repoman repository.'
+    description = 'List user groups on the repoman repository.  By default, this command will only list groups that you belong to.'
 
     def __init__(self):
         SubCommand.__init__(self)
