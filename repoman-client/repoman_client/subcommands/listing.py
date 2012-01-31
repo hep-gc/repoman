@@ -55,9 +55,10 @@ class ListGroups(SubCommand):
         group = self.get_arg_parser().add_mutually_exclusive_group()
         group.add_argument('-f', '--full', action = 'store_true', default = False, help = 'Display full group metadata.')
         group.add_argument('-l', '--long', action = 'store_true', default = False, help = 'Display extra information in a table.')
-        self.get_arg_parser().add_argument('-a', '--all', action = 'store_true', default = False, help = 'Display all groups.')
-        self.get_arg_parser().add_argument('-u', '--user', metavar = 'user', help = 'Display group membership for the given user.')
-        self.get_arg_parser().add_argument('group', metavar = 'group', nargs = '?', help = 'If given, information about this group only will be displayed.')
+        group2 = self.get_arg_parser().add_mutually_exclusive_group()
+        group2.add_argument('-a', '--all', action = 'store_true', default = False, help = 'Display all groups.')
+        group2.add_argument('-u', '--user', metavar = 'user', help = 'Display group membership for the given user.')
+        group2.add_argument('group', metavar = 'group', nargs = '?', help = 'If given, information about this group only will be displayed.')
 
     def __call__(self, args):
         if args.all:
