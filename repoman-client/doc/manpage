@@ -410,15 +410,19 @@ Options:
 .user_full_name
 
 .TP
-\fBlu\fP, \fBlist-users\fP [\fB--group\fP \fIgroup\fP] [\fB--long\fP]
+\fBlu\fP, \fBlist-users\fP [\fB--group\fP \fIgroup\fP] [\fB--full\fP | \fB--long\fP] [\fBuser\fP]
 \#-----------------------------------------------------------------------------------------------------
 List repoman users.
 
 Options:
 
+\fB-f\fP, \fB--full\fP \- Display full user metadata.
+
 \fB-g\fP, \fB--group\fP \fIgroup\fP \- Only display users the belong to the group \fIgroup\fP
 
 \fB-l\fP, \fB--long\fP \- Display a table with extra information.
+
+\fBuser\fP \- If given, information about this user only will be displayed.
 
 .TP
 \fBmu\fP, \fBmodify-user\fP \fIuser\fP [\fB--client_dn\fP \fIdn\fP] [\fB--email\fP \fIaddress\fP] [\fB--full_name\fP \fIname\fP] [\fB--new_name\fP \fIname\fP]
