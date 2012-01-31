@@ -555,7 +555,7 @@ Mandatory Parameters:
 .TP
 \fBlg\fP, \fBlist-groups\fP [\fB--all\fP] [\fB--long\fP] [\fB--user\fP \fIuser\fP]
 \#-----------------------------------------------------------------------------------------------------
-List user groups on the repoman repository that you belong to.
+List user groups on the repoman repository.  By default, this command will only list groups that you belong to.
 
 Options:
 
