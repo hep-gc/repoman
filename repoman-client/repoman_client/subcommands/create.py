@@ -69,8 +69,8 @@ class CreateGroup(SubCommand):
 
     def init_arg_parser(self):
         self.get_arg_parser().add_argument('group', help = 'The name of the newly created group. It must be unique and can only contain characters ([a-Z][0-0][_][-]).')
-        self.get_arg_parser().add_argument('-p', '--permissions', metavar = 'permission', nargs = '+', help = 'The permissions that the members of the group have (Blank separated list Ex: "user_delete image_modify").  Possible values are: %s.  See repoman manpage for a description of each permission.' % (', '.join(valid_permissions)))
-        self.get_arg_parser().add_argument('-u', '--users', metavar = 'user', nargs='+', help = 'The users that are members of the group. (Blank separated list) Ex: "msmith sjobs"')
+        self.get_arg_parser().add_argument('-p', '--permissions', metavar = 'permissions', help = 'The permissions that the members of the group have (Comma separated list Ex: "user_delete,image_modify").  Possible values are: %s.  See repoman manpage for a description of each permission.' % (', '.join(valid_permissions)))
+        self.get_arg_parser().add_argument('-u', '--users', metavar = 'users', help = 'The users that are members of the group. (Comma separated list) Ex: "msmith,sjobs"')
 
     def validate_args(self, args):
         if not re.match('^[a-zA-Z0-9_-]+$', args.group):
@@ -78,7 +78,7 @@ class CreateGroup(SubCommand):
             print 'Error: Invalid group name syntax.  Please see "repoman help %s" for acceptable username syntax.' % (self.command)
             sys.exit(1)
         if args.permissions:
-            for permission in args.permissions:
+            for permission in args.permissions.split(','):
                 if permission not in valid_permissions:
                     log.info('Invalid permission detected: %s' % (permission))
                     print 'Invalid permission: %s\nPlease chose one or more permission from the following list:\n[%s]' % (permission, ', '.join(valid_permissions))
@@ -98,7 +98,7 @@ class CreateGroup(SubCommand):
 
         # Add permissions to new group, if needed
         if args.permissions:
-            for p in args.permissions:
+            for p in args.permissions.split(','):
                 status = "Adding permission: '%s' to group: '%s'" % (p, args.group)
                 try:
                     self.get_repoman_client(args).add_permission(args.group, p)
@@ -109,7 +109,7 @@ class CreateGroup(SubCommand):
 
         # Add users to new group, if needed
         if args.users:
-            for user in args.users:
+            for user in args.users.split(','):
                 status = "Adding user: `%s` to group: '%s'\t\t" % (user, args.group)
                 try:
                     self.get_repoman_client(args).add_user_to_group(user, args.group)
