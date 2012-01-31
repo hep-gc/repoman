@@ -561,14 +561,7 @@ Options:
 
 \fB-a\fP, \fB--all\fP \- Display all groups.
 
-\fB-l\fP, \fB--long\fP \- Display extra information in a table. Example:
-.TS
-tab(~);
-l l l l l.
-Group Name~Members
-=
-mygroup~jdoe,hsimpson,pgriffin
-.TE
+\fB-l\fP, \fB--long\fP \- Display extra information in a table.
 
 \fB-u\fP, \fB--user\fP \fIuser\fP \- Display group membership for the user \fIuser\fP.
 
