@@ -42,7 +42,7 @@ class ModifyUser(SubCommand):
         if args.new_name:
             kwargs['user_name'] = args.new_name
         if args.client_dn:
-            kwargs['client_dn'] = args.client_dn
+            kwargs['cert_dn'] = args.client_dn
 
         try:
             self.get_repoman_client(args).modify_user(args.user, **kwargs)
