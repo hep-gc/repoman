@@ -150,7 +150,7 @@ class RepomanClient(object):
                        "process your request.  If problem persists, seek asistance.")
         elif resp.status == httplib.NOT_IMPLEMENTED:
             # 501
-            message = ("The requested functionality has yet to be implimented by the server")
+            message = ("The requested functionality has yet to be implemented by the server")
         else:
             # Generic error message
             message = ("Response from server cannot be handled by this client.\n\n"
