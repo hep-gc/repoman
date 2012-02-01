@@ -503,13 +503,17 @@ Options:
 .group_users
 
 .TP
-\fBlg\fP, \fBlist-groups\fP [\fB--all\fP] [\fB--long\fP] [\fB--user\fP \fIuser\fP]
+\fBlg\fP, \fBlist-groups\fP [\fB--full\fP | \fB--long\fP] [\fB--all\fP | \fB--user\fP \fIuser\fP | \fBgroup\fP]
 \#-----------------------------------------------------------------------------------------------------
 List user groups on the repoman repository.  By default, this command will only list groups that you belong to.
 
 Options:
 
 \fB-a\fP, \fB--all\fP \- Display all groups.
+
+\fB-f\fP, \fB--full\fP \- Display full group metadata.
+
+\fBgroup\fP \- If given, information about this group only will be displayed.
 
 \fB-l\fP, \fB--long\fP \- Display extra information in a table.
 
