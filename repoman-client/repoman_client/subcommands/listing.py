@@ -180,13 +180,13 @@ class ListImages(SubCommand):
                 print e.message
                 sys.exit(1)
 
-            # Remove duplicates first
-            images_metadata_dedup = []
-            for i in images_metadata:
-                if i not in images_metadata_dedup:
-                    images_metadata_dedup.append(i)
+        # Remove duplicates first
+        images_metadata_dedup = []
+        for i in images_metadata:
+            if i not in images_metadata_dedup:
+                images_metadata_dedup.append(i)
 
-            display.display_image_list(images_metadata_dedup, long_output=args.long, full_output=args.full, urls=args.url)
+        display.display_image_list(images_metadata_dedup, long_output=args.long, full_output=args.full, urls=args.url)
 
 
 
