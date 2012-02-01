@@ -35,7 +35,7 @@ class ShareImageWithGroups(SubCommand):
 class ShareImageWithUsers(SubCommand):
     command = 'share-image-with-users'
     alias = 'siu'
-    description = 'SShare an image with one or more users.'
+    description = 'Share an image with one or more users.'
 
     def __init__(self):
         SubCommand.__init__(self)
