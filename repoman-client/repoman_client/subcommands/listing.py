@@ -130,7 +130,11 @@ class ListImages(SubCommand):
             image_name = args.image
             #if args.owner:
             #    image_name = "%s/%s" % (args.owner, args.image)
-            images_metadata.append(self.get_repoman_client(args).describe_image(image_name))
+            try:
+                images_metadata.append(self.get_repoman_client(args).describe_image(image_name))
+            except RepomanError, e:
+                print e.message
+                sys.exit(1)
         else:
             if args.all:
                 # List images that the user has access to.
