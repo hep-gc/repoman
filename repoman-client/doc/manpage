@@ -202,7 +202,7 @@ Options:
 .image_path
 
 .TP
-\fBli\fP, \fBlist-images\fP [\fB--all\fP | \fB--group\fP \fIgroup\fP | \fB--user\fP \fIuser\fP] [\fB--long\fP | \fB--url\fP] 
+\fBli\fP, \fBlist-images\fP [\fB--full\fP | \fB--long\fP | \fB--url\fP] [\fB--all\fP | \fB--group\fP \fIgroup\fP | \fB--user\fP \fIuser\fP | \fBimage\fP]  
 \#-----------------------------------------------------------------------------------------------------
 List images stored in the repository. By default, only images owned by the current user are listed.
 
@@ -210,7 +210,11 @@ Options:
 
 \fB-a\fP, \fB--all\fP \- List all images accessible by you.
 
+\fB-l\fP, \fB--full\fP \- Display full image metadata.
+
 \fB-g\fP, \fB--group\fP \fIgroup\fP \- List all images shared between you and the named group.
+
+\fBimage\fP \- If given, information about this image only will be displayed. To view information about an image owned by another user, preprend "<owner>/" to your image name. For example: "repoman list-images -l john/imageA"
 
 \fB-l\fP, \fB--long\fP \- List images, together with additional information, in a table.
 
