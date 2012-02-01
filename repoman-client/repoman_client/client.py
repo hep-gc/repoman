@@ -324,6 +324,15 @@ class RepomanClient(object):
             log.info("Image slot does not yet exist.")
             raise RepomanError('Image does not yet exist.  Create an image before uploading to it', resp)
 
+        # Check if the source is a directory.  If it is, then raise an
+        # exception.
+        if os.path.isdir(image_file):
+            raise RepomanError('Specified source is a directory: %s\nSource must be a file.' % (image_file))
+           
+        # Check if the source file exists.
+        if not os.path.exists(image_file):
+            raise RepomanError('Specified source not found: %s' % (image_file))
+            
         url = 'https://' + config.host + '/api/images/raw/%s' % image
         try:
             if gzip:
