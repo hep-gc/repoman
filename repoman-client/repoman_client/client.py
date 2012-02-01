@@ -1,4 +1,4 @@
-import sys, os, time
+import sys, os, time, errno
 from repoman_client.logger import log
 from repoman_client.config import config
 from repoman_client import imageutils
@@ -363,6 +363,14 @@ class RepomanClient(object):
         if os.path.isdir(dest):
             raise RepomanError('Cannot create %s.  Specified destination already exist and is a directory.' % (dest))
 
+        # If the destination already exists, make sure we can overwrite it.
+        if os.path.isfile(dest):
+            try:
+                fp = open(dest, 'w')
+            except IOError as e:
+                if e.errno == errno.EACCES:
+                    raise RepomanError('Cannot overwrite %s.  Specified destination already exist and you don\'t have permissions to write to it.' % (dest))
+            
         url = 'https://' + config.host + '/api/images/raw/%s' % image
         log.info("Downloading image From:'%s' To:'%s'" % (url, dest))
         try:
