@@ -97,16 +97,22 @@ class ListImages(SubCommand):
         SubCommand.__init__(self)
 
     def init_arg_parser(self):
-        g1 = self.get_arg_parser().add_mutually_exclusive_group()
-        g1.add_argument('-a', '--all', action = 'store_true', default = False, help = 'List all images accessible by you.')
-        g1.add_argument('-g', '--group', metavar = 'group', help = 'List all images shared between you and the named group.')
-        g1.add_argument('-u', '--user', metavar = 'user', help = 'List all images shared between you and the named user.')
-        g2 = self.get_arg_parser().add_mutually_exclusive_group()
-        g2.add_argument('-f', '--full', action = 'store_true', default = False, help = 'Display full image metadata.')
-        g2.add_argument('-l', '--long',  action = 'store_true', default = False, help = 'List images, together with additional information, in a table.')
-        g2.add_argument('-U', '--url', action = 'store_true', default = False, help = 'List images and associated URLs.')
+        # This argument should be on its own, outside of the 2 mutually exclusive groups
+        # defined below.
         self.get_arg_parser().add_argument('-o', '--owner', metavar = 'owner', help='The owner of the given image.  The default is the ID of the current repoman user which can be determined with the "repoman whoami" command.  This option is only used if an image is given as argument.')
-        self.get_arg_parser().add_argument('image', metavar = 'image', nargs = '?', help = 'If given, information about this image only will be displayed.')
+
+        # First mutually exclusive group
+        group = self.get_arg_parser().add_mutually_exclusive_group()
+        group.add_argument('-f', '--full', action = 'store_true', default = False, help = 'Display full image metadata.')
+        group.add_argument('-l', '--long',  action = 'store_true', default = False, help = 'List images, together with additional information, in a table.')
+        group.add_argument('-U', '--url', action = 'store_true', default = False, help = 'List images and associated URLs.')
+
+        # Second mutually exclusive group
+        group2 = self.get_arg_parser().add_mutually_exclusive_group()
+        group2.add_argument('-a', '--all', action = 'store_true', default = False, help = 'List all images accessible by you.')
+        group2.add_argument('-g', '--group', metavar = 'group', help = 'List all images shared between you and the named group.')
+        group2.add_argument('-u', '--user', metavar = 'user', help = 'List all images shared between you and the named user.')
+        group2.add_argument('image', nargs = '?', help = 'If given, information about this image only will be displayed.')
 
 
     def __call__(self, args):
