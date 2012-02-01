@@ -23,6 +23,10 @@ class ModifyUser(SubCommand):
 
 
     def validate_args(self, args):
+        if args.new_name:
+            # Temporary error message until renaming a user gets implemented (or feature removed).
+            print 'Sorry, this version of the repoman client does not support renaming an existing user.'
+            sys.exit(1)
         if args.new_name and not re.match('^[a-zA-Z0-9_-]+$', args.new_name):
             log.info('Invalid new username detected: %s' % (args.new_name))
             print 'Error: Invalid new username.  Please see "repoman help %s" for acceptable username syntax.' % (self.command)
