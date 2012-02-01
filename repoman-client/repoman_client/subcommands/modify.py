@@ -4,6 +4,7 @@ from repoman_client.config import config
 from repoman_client.subcommands.permissions import valid_permissions
 import sys
 import logging
+import re
 
 class ModifyUser(SubCommand):
     command = "modify-user"
@@ -16,13 +17,13 @@ class ModifyUser(SubCommand):
     def init_arg_parser(self):
         self.get_arg_parser().add_argument('user', help = 'The name of the user to be modified.  See "repoman list-users" to see possible values.')
         self.get_arg_parser().add_argument('-c', '--client_dn', metavar = 'dn', help = 'The Distinguised Name (DN) of the certificate which is owned by the user.')
-        self.get_arg_parser().add_argument('-f', '--full_name', metavar = 'name', help = 'The full name of the user.')
         self.get_arg_parser().add_argument('-e', '--email', metavar = 'address', help = 'The email address of the user.')
+        self.get_arg_parser().add_argument('-f', '--full_name', metavar = 'name', help = 'The full name of the user.')
         self.get_arg_parser().add_argument('-n', '--new_name', metavar = 'user', help = 'The new unique username for the user.')
 
 
     def validate_args(self, args):
-        if agrs.new_name and not re.match('^[a-zA-Z0-9_-]+$', args.new_name):
+        if args.new_name and not re.match('^[a-zA-Z0-9_-]+$', args.new_name):
             log.info('Invalid new username detected: %s' % (args.new_name))
             print 'Error: Invalid new username.  Please see "repoman help %s" for acceptable username syntax.' % (self.command)
             sys.exit(1)
