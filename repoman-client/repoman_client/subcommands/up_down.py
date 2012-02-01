@@ -51,9 +51,11 @@ class DownloadImage(SubCommand):
             image_name = args.image
             if args.owner:
                 image_name = "%s/%s" % (args.owner, args.image)
+            print "Downloading image '%s'..." % (args.image)
             self.get_repoman_client(args).download_image(image_name, args.path)
+            print "[OK]     Image %s downloaded." % (args.image)
         except RepomanError, e:
-            print e
+            print "[FAILED] Downloading image '%s'.\n\t-%s" % (args.image, e)
             sys.exit(1)
 
 

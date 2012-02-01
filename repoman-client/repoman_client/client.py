@@ -24,7 +24,7 @@ HEADERS = {"Content-type":"application/x-www-form-urlencoded", "Accept": "*"}
 
 
 class RepomanError(Exception):
-    def __init__(self, message, resp):
+    def __init__(self, message, resp=None):
         self.resp = resp            # Origonal response
         self.message = message      # User friendly message
         self.exit = True            # Should the client abort on this error?
@@ -358,6 +358,10 @@ class RepomanClient(object):
         # This will raise an exception if it does not.
         log.info("Checking to see if image slot exists on repository before download")
         resp = self._get('/api/images/%s' % image)
+
+        # Check to make sure destination is not an existing directory.
+        if os.path.isdir(dest):
+            raise RepomanError('Cannot create %s.  Specified destination already exist and is a directory.' % (dest))
 
         url = 'https://' + config.host + '/api/images/raw/%s' % image
         log.info("Downloading image From:'%s' To:'%s'" % (url, dest))
