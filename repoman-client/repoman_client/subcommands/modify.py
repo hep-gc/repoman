@@ -2,6 +2,7 @@ from repoman_client.subcommand import SubCommand
 from repoman_client.client import RepomanClient, RepomanError
 from repoman_client.config import config
 from repoman_client.subcommands.permissions import valid_permissions
+from repoman_client.logger import log
 import sys
 import logging
 import re
