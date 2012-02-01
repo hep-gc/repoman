@@ -128,8 +128,8 @@ class ListImages(SubCommand):
 
         if args.image:
             image_name = args.image
-            if args.owner:
-                image_name = "%s/%s" % (args.owner, args.image)
+            #if args.owner:
+            #    image_name = "%s/%s" % (args.owner, args.image)
             images_metadata.append(self.get_repoman_client(args).describe_image(image_name))
         else:
             if args.all:
