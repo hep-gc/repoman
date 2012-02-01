@@ -422,7 +422,7 @@ Options:
 
 \fB-f\fP, \fB--full\fP \- Display full user metadata.
 
-\fB-g\fP, \fB--group\fP \fIgroup\fP \- Only display users the belong to the group \fIgroup\fP
+\fB-g\fP, \fB--group\fP \fIgroup\fP \- Only display users that belong to the group \fIgroup\fP
 
 \fB-l\fP, \fB--long\fP \- Display a table with extra information.
 
