@@ -74,11 +74,11 @@ If omitted, the image is downloaded to a file with the same name as the image in
 ..
 .de group_permissions
 \fB-p\fP, \fB--permissions\fP \fIlist\fP
-\- The permissions that the members of the group have (Blank separated list Ex: \fB\'user_delete image_modify\'\fP). Possible values are: \fBgroup_create, group_delete, group_modify, group_modify_membership, group_modify_permissions, image_create, image_delete, image_delete_group, image_modify, image_modify_group, user_create, user_delete, user_modify, user_modify_self\fP. See GROUP PERMISSIONS section for a description of each permission.
+\- The permissions that the members of the group have (Comma separated list Ex: \fB\'user_delete,image_modify\'\fP). Possible values are: \fBgroup_create, group_delete, group_modify, group_modify_membership, group_modify_permissions, image_create, image_delete, image_delete_group, image_modify, image_modify_group, user_create, user_delete, user_modify, user_modify_self\fP. See GROUP PERMISSIONS section for a description of each permission.
 ..
 .de group_users
 \fB-u\fP, \fB--users\fP \fIlist\fP
--\ The users that are members of the group. (Blank separated list) Ex: \'msmith sjobs\'
+-\ The users that are members of the group. (Comma separated list) Ex: \'msmith,sjobs\'
 ..
 \#
 \#
@@ -542,7 +542,7 @@ Options:
 
 Example:
 
-\fBrepoman modify-group mygroup --new_name mynewgroup --permissions \'user_modify_self image_create\'\fP
+\fBrepoman modify-group mygroup --new_name mynewgroup --permissions \'user_modify_self,image_create\'\fP
     - renames a repoman group and sets some basic permissions
 
 .TP

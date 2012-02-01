@@ -68,9 +68,9 @@ class ModifyGroup(SubCommand):
     def init_arg_parser(self):
         # Subcommand: modify-group
         self.get_arg_parser().add_argument('group', help = 'The group you want to modify. Use "repoman list-groups" to see possible values.')
-        self.get_arg_parser().add_argument('-n', '--new_name', metavar = 'value', help = 'The name of the group. It must be  unique and can only contain ([a-Z][0-9][_][-]) characters.')
-        self.get_arg_parser().add_argument('-p', '--permissions', metavar = 'permission', nargs = '+', help = 'The permissions that the members of the group have (Blank separated  list  Ex: user_delete  image_modify).   Possible   values   are: %s.  See repoman manpage description of each permission.' % (','.join(valid_permissions)))
-        self.get_arg_parser().add_argument('-u', '--users', metavar = 'user', nargs='+', help = 'The users that  are  members  of  the  group.  (Blank separated list) Ex: msmith sjobs')
+        self.get_arg_parser().add_argument('-n', '--new_name', metavar = 'value', help = 'The name of the group.  It must be unique and can only contain ([a-Z][0-9][_][-]) characters.')
+        self.get_arg_parser().add_argument('-p', '--permissions', metavar = 'permissions', help = 'The permissions that the members of the group have (Comma separated list  Ex: user_delete,image_modify).  Possible values are: %s.  See repoman manpage description of each permission.' % (','.join(valid_permissions)))
+        self.get_arg_parser().add_argument('-u', '--users', metavar = 'users', help = 'The users that are members of the group.  (Comma separated list) Ex: msmith,sjobs')
 
         
     def validate_args(self, args):
@@ -79,7 +79,7 @@ class ModifyGroup(SubCommand):
             print 'Error: Invalid group name syntax.  Please see "repoman help %s" for acceptable username syntax.' % (self.command)
             sys.exit(1)
         if args.permissions:
-            for permission in args.permissions:
+            for permission in args.permissions.split(','):
                 if permission not in valid_permissions:
                     log.info('Invalid permission detected: %s' % (permission))
                     print 'Invalid permission: %s\nPlease chose one or more permission from the following list:\n[%s]' % (permission, ', '.join(valid_permissions))
@@ -91,9 +91,9 @@ class ModifyGroup(SubCommand):
         if args.new_name:
             kwargs['name'] = args.new_name
         if args.permissions:
-            kwargs['permissions'] = args.permissions
+            kwargs['permissions'] = args.permissions.split(',')
         if args.users:
-            kwargs['users'] = args.users
+            kwargs['users'] = args.users.split(',')
 
         try:
             self.get_repoman_client(args).modify_group(args.group, **kwargs)
