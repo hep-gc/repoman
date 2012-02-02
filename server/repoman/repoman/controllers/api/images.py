@@ -104,11 +104,12 @@ class ImagesController(BaseController):
                             .first()
 
         if image:
-            inline_auth(AllOf(OwnsImage(image), MemberOf(share_with)), auth_403)
             group = meta.Session.query(Group)\
                                 .filter(Group.name==share_with).first()
             if not group:
-                abort(400, '400 Bad Request')
+                abort(400, 'The group you are trying to share the image with does not exist.')
+
+            inline_auth(AllOf(OwnsImage(image), MemberOf(share_with)), auth_403)
             if group in image.shared.groups:
                 return
             else:
