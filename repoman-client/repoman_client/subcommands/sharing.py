@@ -71,11 +71,11 @@ class UnshareImageWithGroups(SubCommand):
 
     def init_arg_parser(self):
         self.get_arg_parser().add_argument('image', help='The image to unshare. Use "repoman list-images" to see possible values.')
-        self.get_arg_parser().add_argument('group', nargs = '+', help='The name of the group(s) to unshare the image with. Use "repoman describe-image" to see possible values.')
+        self.get_arg_parser().add_argument('groups', help='Comma separated list of the group(s) to unshare the image with. Use "repoman describe-image" to see possible values.')
         self.get_arg_parser().add_argument('-o', '--owner', metavar = 'user', help = 'The owner of the named image. The default is the ID of the current repoman user which can be determined with the command "repoman whoami" command.')
 
     def __call__(self, args):
-        for group in args.group:
+        for group in args.groups.split(','):
             try:
                 kwargs = {'group':group}
                 if args.owner:

@@ -363,7 +363,7 @@ Options:
 .image_owner
 
 .TP
-\fBuig\fP, \fBunshare-image-with-groups\fP \fIimage\fP \fIgroup\fP [\fIgroup\fP ...] [\fB--owner\fP \fIuser\fP]
+\fBuig\fP, \fBunshare-image-with-groups\fP \fIimage\fP \fIgroups\fP [\fB--owner\fP \fIuser\fP]
 \#-----------------------------------------------------------------------------------------------------
 Unshare an image with one or more groups.
 
@@ -371,7 +371,7 @@ Mandatory Parameters:
 
 \fIimage\fP \- The image to unshare. Use \fBrepoman list-images\fP to see possible values.
 
-\fIgroup\fP \- The name of the group(s) to unshare the image with. Use \fBrepoman describe-image\fP to see possible values.
+\fIgroups\fP \- Comma separated list of the groups to unshare the image with. Use \fBrepoman describe-image\fP to see possible values.
 
 Options:
 
