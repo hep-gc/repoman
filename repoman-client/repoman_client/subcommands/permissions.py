@@ -19,11 +19,11 @@ class AddPermission(SubCommand):
 
     def init_arg_parser(self):
         self.get_arg_parser().add_argument('group', help = 'The group that you are adding permissions to. Use "repoman list-groups" to see possible values.')
-        self.get_arg_parser().add_argument('permission', nargs = '+', help = 'The permission(s) to add to the group. Possible values are: %s. See the repoman manpage for a description of each permission.' % (', '.join(valid_permissions)))
+        self.get_arg_parser().add_argument('permissions', help = 'Comma separated list of the permissions to add to the group. Possible values are: %s. See the repoman manpage for a description of each permission.' % (', '.join(valid_permissions)))
 
 
     def __call__(self, args):
-        for p in args.permission:
+        for p in args.permissions.split(','):
             status = "Adding permission: '%s' to group: '%s'" % (p, args.group)
             try:
                 self.get_repoman_client(args).add_permission(args.group, p)
@@ -42,10 +42,10 @@ class RemovePermission(SubCommand):
 
     def init_arg_parser(self):
         self.get_arg_parser().add_argument('group', help = 'The group that you are removing permissions from. Use "repoman list-groups" to see possible values.')
-        self.get_arg_parser().add_argument('permission', nargs = '+', help = 'The  permission(s)  to  remove  from  the  group.  Use the "repoman describe-group" command to see possible values for a particular group.')
+        self.get_arg_parser().add_argument('permissions', help = 'Comma separated list of the  permissions to remove from the group.  Use the "repoman describe-group" command to see possible values for a particular group.')
 
     def __call__(self, args):
-        for p in args.permission:
+        for p in args.permissions.split(','):
             status = "Removing permission: '%s' from group: '%s'" % (p, args.group)
             try:
                 self.get_repoman_client(args).remove_permission(args.group, p)

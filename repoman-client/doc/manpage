@@ -470,7 +470,7 @@ Repoman facilitates the concept of user groups for the purpose of sharing images
 subcommands to create, maintain, and destroy user groups.
 
 .TP
-\fBapg\fP, \fBadd-permissions-to-group\fP \fIgroup\fP \fIpermission\fP [\fIpermission\fP ...]
+\fBapg\fP, \fBadd-permissions-to-group\fP \fIgroup\fP \fIpermissions\fP
 \#-----------------------------------------------------------------------------------------------------
 Add specified permissions to a group.
 
@@ -478,7 +478,7 @@ Mandatory Parameters:
 
 \fIgroup\fP \- The group that you are adding permissions to. Use \fBrepoman list-groups\fP to see possible values.
 
-\fIpermission\fP -\ The permission(s) to add to the group. Possible values are: \fBgroup_create, group_delete, group_modify, group_modify_membership, group_modify_permissions, image_create, image_delete, image_delete_group, image_modify, image_modify_group, user_create, user_delete, user_modify, user_modify_self\fP. See GROUP PERMISSIONS section for a description of each permission.
+\fIpermissions\fP -\ Comma separated list of permissions to add to the group. Possible values are: \fBgroup_create, group_delete, group_modify, group_modify_membership, group_modify_permissions, image_create, image_delete, image_delete_group, image_modify, image_modify_group, user_create, user_delete, user_modify, user_modify_self\fP. See GROUP PERMISSIONS section for a description of each permission.
 
 .TP
 \fBaug\fP, \fBadd-users-to-group\fP \fIgroup\fP \fIuser\fP [\fIuser\fP ...]
@@ -559,7 +559,7 @@ Options:
 \fB-f\fP, \fB--force\fP \- Delete group without confirmation.
 
 .TP
-\fBrpg\fP, \fBremove-permissions-from-group\fP \fIgroup\fP \fIpermission\fP [\fIpermission\fP ...]
+\fBrpg\fP, \fBremove-permissions-from-group\fP \fIgroup\fP \fIpermissions\fP
 \#-----------------------------------------------------------------------------------------------------
 Remove specified permission(s) from a group.
 
@@ -567,7 +567,7 @@ Mandatory Parameters:
 
 \fIgroup\fP \- The group that you are removing permissions from. Use \fBrepoman list-groups\fP to see possible values.
 
-\fIpermission\fP -\ The permission(s) to remove from the group. Use the \fBrepoman describe-group\fP command to see possible values for a particular group.
+\fIpermissions\fP -\ Comma separated list of the permissions to remove from the group. Use the \fBrepoman describe-group\fP command to see possible values for a particular group.
 
 .TP
 \fBrug\fP, \fBremove-users-from-group\fP \fIgroup\fP \fIuser\fP [\fIuser\fP ...]
