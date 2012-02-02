@@ -348,7 +348,7 @@ Options:
 .image_owner
 
 .TP
-\fBsiu\fP, \fBshare-image-with-users\fP \fIimage\fP \fIuser\fP [\fIuser\fP ...] [\fB--owner\fP \fIuser\fP]
+\fBsiu\fP, \fBshare-image-with-users\fP \fIimage\fP \fIusers\fP [\fB--owner\fP \fIuser\fP]
 \#-----------------------------------------------------------------------------------------------------
 Share an image with one or more users.
 
@@ -356,7 +356,7 @@ Mandatory Parameters:
 
 \fIimage\fP \- The image to share. Use \fBrepoman list-images\fP to see possible values.
 
-\fIuser\fP \- The name of the users(s) to share the image with. Use \fBrepoman list-users\fP to see possible values.
+\fIusers\fP \- Comma separated list of the users to share the image with. Use \fBrepoman list-users\fP to see possible values.
 
 Options:
 
