@@ -378,7 +378,7 @@ Options:
 .image_owner
 
 .TP
-\fBuiu\fP, \fBunshare-image-with-users\fP \fIimage\fP \fIuser\fP [\fIuser\fP ...] [\fB--owner\fP \fIuser\fP]
+\fBuiu\fP, \fBunshare-image-with-users\fP \fIimage\fP \fIusers\fP [\fB--owner\fP \fIuser\fP]
 \#-----------------------------------------------------------------------------------------------------
 Unshare an image with one or more users.
 
@@ -386,7 +386,7 @@ Mandatory Parameters:
 
 \fIimage\fP \- The image to unshare. Use \fBrepoman list-images\fP to see possible values.
 
-\fIuser\fP \- The name of the users(s) to unshare the image with. Use \fBrepoman describe-image\fP to see possible values.
+\fIusers\fP \- Comma separated list of the users to unshare the image with. Use \fBrepoman describe-image\fP to see possible values.
 
 Options:
 
