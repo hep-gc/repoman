@@ -248,6 +248,15 @@ class ImagesController(BaseController):
                 if not hasattr(image, k):
                     abort(400, 'The "%s" image metadata does not exist.  Please check your syntax and try again.' % (k))
 
+            # Do a check here to make sure we do not overwrite
+            # any existing image. (Andre)
+            if 'name' in params:
+                image2 = image_q.filter(Image.name==params['name'])\
+                    .filter(Image.owner.has(User.user_name==user))\
+                    .first()
+                if image2:
+                    abort(409, 'Cannot rename an image to an existing image.  Operation aborted.')
+
             for k,v in params.iteritems():
                 if v != None:
                     setattr(image, k, v)
