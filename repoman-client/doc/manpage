@@ -210,7 +210,7 @@ Options:
 
 \fB-a\fP, \fB--all\fP \- List all images accessible by you.
 
-\fB-l\fP, \fB--full\fP \- Display full image metadata.
+\fB-f\fP, \fB--full\fP \- Display full image metadata.
 
 \fB-g\fP, \fB--group\fP \fIgroup\fP \- List all images shared between you and the named group.
 
