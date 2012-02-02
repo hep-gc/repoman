@@ -376,7 +376,7 @@ class RepomanClient(object):
         if os.path.isfile(dest):
             try:
                 fp = open(dest, 'w')
-            except IOError as e:
+            except IOError, e:
                 if e.errno == errno.EACCES:
                     raise RepomanError('Cannot overwrite %s.  Specified destination already exist and you don\'t have permissions to write to it.' % (dest))
             
