@@ -16,7 +16,7 @@ class Logger(object):
     def __init__(self):
         self.log_filename = None
         self.logger = logging.getLogger('repoman')
-        self.logger.setLevel(logging.ERROR)
+        self.logger.setLevel(logging.INFO)
 
         if config.logging_enabled:
             logging_dir = config.logging_dir
@@ -38,6 +38,7 @@ class Logger(object):
             
             self.log_filename = os.path.join(config.logging_dir, "repoman-client.log")
             fh = logging.handlers.TimedRotatingFileHandler(self.log_filename, when="midnight", backupCount=10)
+            self.logger.setLevel(config.logging_level)
             fh.setLevel(config.logging_level)
             fh.setFormatter(self.formatter)
             self.logger.addHandler(fh)
