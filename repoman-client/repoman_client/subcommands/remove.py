@@ -77,6 +77,7 @@ class RemoveImage(SubCommand):
         self.get_arg_parser().add_argument('image', help='The name of the image to be deleted.')
         self.get_arg_parser().add_argument('-f', '--force', action='store_true', default=False,
                        help='Delete image without confirmation.')
+        self.get_arg_parser().add_argument('-o', '--owner', metavar = 'user', help = 'The owner of the named image.  The default is the ID of the current repoman user which can be determined with the command "repoman whoami" command.')
 
     def __call__(self, args):
         if not args.force:
@@ -86,8 +87,12 @@ class RemoveImage(SubCommand):
                 print "Aborting user deletion"
                 return
 
+        image_name = args.image
+        if args.owner:
+            image_name = '%s/%s' % (args.owner, args.image
+)
         try:
-            self.get_repoman_client(args).remove_image(args.image)
+            self.get_repoman_client(args).remove_image(image_name)
             print "[OK]     Removed image %s." % (args.image)
         except RepomanError, e:
             print "[FAILED] Removing image.\n\t-%s" % e

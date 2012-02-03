@@ -44,7 +44,7 @@ class SubCommand(object):
         if self.alias:
             alias_sp = repoman_cli.get_sub_arg_parser().add_parser(self.alias,
                                                                    description = self.description,
-                                                                   help = h,
+                                                                   help = "Alias for %s" % (self.command),
                                                                    add_help=False, 
                                                                    parents=[self.arg_parser])
 
