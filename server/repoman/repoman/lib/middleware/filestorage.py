@@ -78,10 +78,13 @@ class StorageMiddleware(object):
         if not os.path.isdir(self.temp):
             os.mkdir(self.temp)
 
-    def _500_error(self):
+    def _500_error(self, ex = None):
         e = {'component':'StorageMiddleware',
              'error':'Unknown error',
              'description':'An error has occured while processing your file upload.'}
+        if ex != None:
+            e['error'] = str(e)
+
         return e
 
 
@@ -101,13 +104,13 @@ class StorageMiddleware(object):
             except MaxSizeExceeded, e:
                 start_response('400 Bad Request', [('Content-Type','application/json')])
                 return repr(e)
-            except:
+            except Exception, e:
                 try:
                     os.remove(temp_path)
                 except:
                     pass
                 start_response('500 Internal Server Error', [('Content-Type','application/json')])
-                return simplejson.dumps({'errors':[self._500_error()]})
+                return simplejson.dumps({'errors':[self._500_error(e)]})
 
         # Next application
         return self.app(new_env, start_response)
