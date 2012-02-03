@@ -104,11 +104,12 @@ class ImagesController(BaseController):
                             .first()
 
         if image:
-            inline_auth(AllOf(OwnsImage(image), MemberOf(share_with)), auth_403)
             group = meta.Session.query(Group)\
                                 .filter(Group.name==share_with).first()
             if not group:
-                abort(400, '400 Bad Request')
+                abort(400, 'The group you are trying to share the image with does not exist.')
+
+            inline_auth(AllOf(OwnsImage(image), MemberOf(share_with)), auth_403)
             if group in image.shared.groups:
                 return
             else:
@@ -247,6 +248,15 @@ class ImagesController(BaseController):
             for k,v in request.params.iteritems():
                 if not hasattr(image, k):
                     abort(400, 'The "%s" image metadata does not exist.  Please check your syntax and try again.' % (k))
+
+            # Do a check here to make sure we do not overwrite
+            # any existing image. (Andre)
+            if 'name' in params:
+                image2 = image_q.filter(Image.name==params['name'])\
+                    .filter(Image.owner.has(User.user_name==user))\
+                    .first()
+                if image2:
+                    abort(409, 'Cannot rename an image to an existing image.  Operation aborted.')
 
             for k,v in params.iteritems():
                 if v != None:

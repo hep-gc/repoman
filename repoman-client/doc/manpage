@@ -210,7 +210,7 @@ Options:
 
 \fB-a\fP, \fB--all\fP \- List all images accessible by you.
 
-\fB-l\fP, \fB--full\fP \- Display full image metadata.
+\fB-f\fP, \fB--full\fP \- Display full image metadata.
 
 \fB-g\fP, \fB--group\fP \fIgroup\fP \- List all images shared between you and the named group.
 
@@ -333,7 +333,7 @@ If the size specified is not big enough, repoman will issue an error mesage and 
 \fB--verbose\fP \- Display verbose output during snapshot.
 
 .TP
-\fBsig\fP, \fBshare-image-with-groups\fP \fIimage\fP \fIgroup\fP [\fIgroup\fP ...] [\fB--owner\fP \fIuser\fP]
+\fBsig\fP, \fBshare-image-with-groups\fP \fIimage\fP \fIgroups\fP  [\fB--owner\fP \fIuser\fP]
 \#-----------------------------------------------------------------------------------------------------
 Share an image with one or more groups.
 
@@ -341,14 +341,14 @@ Mandatory Parameters:
 
 \fIimage\fP \- The image to share. Use \fBrepoman list-images\fP to see possible values.
 
-\fIgroup\fP \- The name of the group(s) to share the image with. Use \fBrepoman list-groups\fP to see possible values.
+\fIgroups\fP \- Comma separated list of the groups to share the image with. Use "repoman list-groups" to see possible values.
 
 Options:
 
 .image_owner
 
 .TP
-\fBsiu\fP, \fBshare-image-with-users\fP \fIimage\fP \fIuser\fP [\fIuser\fP ...] [\fB--owner\fP \fIuser\fP]
+\fBsiu\fP, \fBshare-image-with-users\fP \fIimage\fP \fIusers\fP [\fB--owner\fP \fIuser\fP]
 \#-----------------------------------------------------------------------------------------------------
 Share an image with one or more users.
 
@@ -356,14 +356,14 @@ Mandatory Parameters:
 
 \fIimage\fP \- The image to share. Use \fBrepoman list-images\fP to see possible values.
 
-\fIuser\fP \- The name of the users(s) to share the image with. Use \fBrepoman list-users\fP to see possible values.
+\fIusers\fP \- Comma separated list of the users to share the image with. Use \fBrepoman list-users\fP to see possible values.
 
 Options:
 
 .image_owner
 
 .TP
-\fBuig\fP, \fBunshare-image-with-groups\fP \fIimage\fP \fIgroup\fP [\fIgroup\fP ...] [\fB--owner\fP \fIuser\fP]
+\fBuig\fP, \fBunshare-image-with-groups\fP \fIimage\fP \fIgroups\fP [\fB--owner\fP \fIuser\fP]
 \#-----------------------------------------------------------------------------------------------------
 Unshare an image with one or more groups.
 
@@ -371,14 +371,14 @@ Mandatory Parameters:
 
 \fIimage\fP \- The image to unshare. Use \fBrepoman list-images\fP to see possible values.
 
-\fIgroup\fP \- The name of the group(s) to unshare the image with. Use \fBrepoman describe-image\fP to see possible values.
+\fIgroups\fP \- Comma separated list of the groups to unshare the image with. Use \fBrepoman describe-image\fP to see possible values.
 
 Options:
 
 .image_owner
 
 .TP
-\fBuiu\fP, \fBunshare-image-with-users\fP \fIimage\fP \fIuser\fP [\fIuser\fP ...] [\fB--owner\fP \fIuser\fP]
+\fBuiu\fP, \fBunshare-image-with-users\fP \fIimage\fP \fIusers\fP [\fB--owner\fP \fIuser\fP]
 \#-----------------------------------------------------------------------------------------------------
 Unshare an image with one or more users.
 
@@ -386,7 +386,7 @@ Mandatory Parameters:
 
 \fIimage\fP \- The image to unshare. Use \fBrepoman list-images\fP to see possible values.
 
-\fIuser\fP \- The name of the users(s) to unshare the image with. Use \fBrepoman describe-image\fP to see possible values.
+\fIusers\fP \- Comma separated list of the users to unshare the image with. Use \fBrepoman describe-image\fP to see possible values.
 
 Options:
 
@@ -470,7 +470,7 @@ Repoman facilitates the concept of user groups for the purpose of sharing images
 subcommands to create, maintain, and destroy user groups.
 
 .TP
-\fBapg\fP, \fBadd-permissions-to-group\fP \fIgroup\fP \fIpermission\fP [\fIpermission\fP ...]
+\fBapg\fP, \fBadd-permissions-to-group\fP \fIgroup\fP \fIpermissions\fP
 \#-----------------------------------------------------------------------------------------------------
 Add specified permissions to a group.
 
@@ -478,7 +478,7 @@ Mandatory Parameters:
 
 \fIgroup\fP \- The group that you are adding permissions to. Use \fBrepoman list-groups\fP to see possible values.
 
-\fIpermission\fP -\ The permission(s) to add to the group. Possible values are: \fBgroup_create, group_delete, group_modify, group_modify_membership, group_modify_permissions, image_create, image_delete, image_delete_group, image_modify, image_modify_group, user_create, user_delete, user_modify, user_modify_self\fP. See GROUP PERMISSIONS section for a description of each permission.
+\fIpermissions\fP -\ Comma separated list of permissions to add to the group. Possible values are: \fBgroup_create, group_delete, group_modify, group_modify_membership, group_modify_permissions, image_create, image_delete, image_delete_group, image_modify, image_modify_group, user_create, user_delete, user_modify, user_modify_self\fP. See GROUP PERMISSIONS section for a description of each permission.
 
 .TP
 \fBaug\fP, \fBadd-users-to-group\fP \fIgroup\fP \fIuser\fP [\fIuser\fP ...]
@@ -559,7 +559,7 @@ Options:
 \fB-f\fP, \fB--force\fP \- Delete group without confirmation.
 
 .TP
-\fBrpg\fP, \fBremove-permissions-from-group\fP \fIgroup\fP \fIpermission\fP [\fIpermission\fP ...]
+\fBrpg\fP, \fBremove-permissions-from-group\fP \fIgroup\fP \fIpermissions\fP
 \#-----------------------------------------------------------------------------------------------------
 Remove specified permission(s) from a group.
 
@@ -567,7 +567,7 @@ Mandatory Parameters:
 
 \fIgroup\fP \- The group that you are removing permissions from. Use \fBrepoman list-groups\fP to see possible values.
 
-\fIpermission\fP -\ The permission(s) to remove from the group. Use the \fBrepoman describe-group\fP command to see possible values for a particular group.
+\fIpermissions\fP -\ Comma separated list of the permissions to remove from the group. Use the \fBrepoman describe-group\fP command to see possible values for a particular group.
 
 .TP
 \fBrug\fP, \fBremove-users-from-group\fP \fIgroup\fP \fIuser\fP [\fIuser\fP ...]
