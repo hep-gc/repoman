@@ -120,6 +120,7 @@ class ModifyImage(SubCommand):
         self.get_arg_parser().add_argument('-h', '--hypervisor', metavar = 'value', help = 'The hypervisor. Ex: xen, kvm, etc.')
         self.get_arg_parser().add_argument('-n', '--new_name', metavar = 'value', help = 'The new name of the image-slot on the repository.  This  will be used to reference the image when running other repoman commands. It must be unique  to  the  owner\'s domain and can only contain ([a-Z][0-9][_][-]) characters.') 
         self.get_arg_parser().add_argument('-N', '--new_owner', metavar = 'user', help = 'The new owner of the named image. Use "repoman list-users" to see possible values.')
+        self.get_arg_parser().add_argument('-o', '--owner', metavar = 'user', help = 'The owner of the named image. The default is the ID of the current repoman user which can be determined with the "repoman whoami" command.')
         self.get_arg_parser().add_argument('--os_arch', choices = ['x86', 'x86_64'], help = 'The  operating  system  architecture.')
         self.get_arg_parser().add_argument('--os_type', metavar = 'value', help = 'The operating system type.  Ex:  linux,  unix, windows, etc.')
         self.get_arg_parser().add_argument('--os_variant', metavar = 'value', help = 'The operating system variant. Ex: redhat, centos, ubuntu, etc.')
@@ -154,6 +155,10 @@ class ModifyImage(SubCommand):
             kwargs['os_type'] = args.os_type
         if args.os_variant:
             kwargs['os_variant'] = args.os_variant
+
+        image_name = args.image
+        if args.owner:
+            image_name = "%s/%s" % (args.owner, args.image)
 
         try:
             self.get_repoman_client(args).modify_image(args.image, **kwargs)
