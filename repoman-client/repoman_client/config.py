@@ -105,7 +105,10 @@ class Config(object):
         # The possible paths of configuration files.
         # These path can include env variables.
         self._global_config_file = os.path.expandvars('/etc/repoman/repoman.conf')
-        self._user_config_file = os.path.expandvars('$HOME/.repoman/repoman.conf')
+        if 'SUDO_UID' in os.environ:
+            self._user_config_file = os.path.expanduser('~%s/.repoman/repoman.conf' % os.environ.get('SUDO_USER'))
+        else:
+            self._user_config_file = os.path.expanduser('~/.repoman/repoman.conf')
         self._config_env_var = os.path.expandvars('$REPOMAN_CLIENT_CONFIG')
 
         self.files_parsed = self._read_config()
