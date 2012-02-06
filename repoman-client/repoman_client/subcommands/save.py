@@ -33,7 +33,7 @@ class Save(SubCommand):
         self.get_arg_parser().add_argument('--os_arch', choices = ['x86', 'x86_64'], help = 'The operating system architecture.')
         self.get_arg_parser().add_argument('--os_type', metavar = 'value', help = 'The operating system type. Ex: linux, unix, windows, etc.')
         self.get_arg_parser().add_argument('--os_variant', metavar = 'value', help = 'The operating system variant. Ex: redhat, centos, ubuntu, etc.')
-        self.get_arg_parser().add_argument('--resize', type=int, metavar = 'SIZE', help = 'Create  an image with a size of SIZE MB.  The size selected must be big enough to contain the entire filesystem image.  If the size specified is not big enough, repoman will issue an error mesage and exit.')
+        self.get_arg_parser().add_argument('--resize', type=int, default=0, metavar = 'SIZE', help = 'Create  an image with a size of SIZE MB.  The size selected must be big enough to contain the entire filesystem image.  If the size specified is not big enough, repoman will issue an error mesage and exit.')
         self.get_arg_parser().add_argument('--verbose', action='store_true', default = False, help = 'Display verbose output during snapshot.')
 
 
