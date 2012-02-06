@@ -1,5 +1,8 @@
 from pprint import pprint
 import copy
+import datetime
+import calendar
+import time
 
 # Single line listings of users/groups/images
 def display_user(user, long_output=False, full_output=False, format_string=None):
@@ -12,19 +15,33 @@ def display_user(user, long_output=False, full_output=False, format_string=None)
         
 
 def display_image(image, long_output=False, full_output=False, urls=False, format_string=None):
+    # Convert times to local timezone first.
+    # This is a bit of a hack because the server does not give us a tz independant
+    # value and we must assume that the value given to us is a ctime in UTC and
+    # then do some conversion.
+    # This should be fixed by modifying the server to return timezone independant
+    # values, such as epoch values, and then clean up the block of code below.
+    image_copy = copy.deepcopy(image)
+    if image_copy['modified'] != None:
+        image_copy['modified'] = datetime.datetime.fromtimestamp(calendar.timegm(time.strptime(image['modified']))).ctime()
+    if image_copy['uploaded'] != None:
+        image_copy['uploaded'] = datetime.datetime.fromtimestamp(calendar.timegm(time.strptime(image['uploaded']))).ctime()
+    if image_copy['expires'] != None:
+        image_copy['expires'] = datetime.datetime.fromtimestamp(calendar.timegm(time.strptime(image['expires']))).ctime()
+
     if long_output:
-        print format_string % (image['name'], image['owner'], str(image['size']), image['modified'], image['description'])
+        print format_string % (image_copy['name'], image_copy['owner'], str(image_copy['size']), image_copy['modified'], image_copy['description'])
     elif full_output:
-        describe_image(image)
+        describe_image(image_copy)
     elif urls:
-        print "%s/%s" % (image['owner'].rsplit('/', 1)[-1], image['name'])
-        if image['http_file_url'] != None:
-            print "  %s" % (image['http_file_url'])
-        if image['file_url'] != None:
-            print "  %s" % (image['file_url'])
+        print "%s/%s" % (image_copy['owner'].rsplit('/', 1)[-1], image_copy['name'])
+        if image_copy['http_file_url'] != None:
+            print "  %s" % (image_copy['http_file_url'])
+        if image_copy['file_url'] != None:
+            print "  %s" % (image_copy['file_url'])
         print ""
     else:
-        print "%s/%s" % (image['owner'], image['name'])
+        print "%s/%s" % (image_copy['owner'], image_copy['name'])
 
 def display_group(group, long_output=False, full_output=False, format_string=None):
     if long_output:
