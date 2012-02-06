@@ -175,10 +175,10 @@ class ImageUtils(object):
         exclude_list = ""
         if self.system_excludes != None and len(self.system_excludes) > 0:
             for exclude_item in self.system_excludes:
-                exclude_list += '--exclude "%s"' % (exclude_item)
+                exclude_list += '--exclude "%s" ' % (exclude_item)
         if self.user_excludes != None and len(self.user_excludes) > 0:
             for exclude_item in self.user_excludes:
-                exclude_list += '--exclude "%s"' % (exclude_item)
+                exclude_list += '--exclude "%s" ' % (exclude_item)
 
         flags = ''
         if verbose:
