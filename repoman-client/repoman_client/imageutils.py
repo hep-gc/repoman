@@ -179,6 +179,11 @@ class ImageUtils(object):
         if self.user_excludes != None and len(self.user_excludes) > 0:
             for exclude_item in self.user_excludes:
                 exclude_list += '--exclude "%s" ' % (exclude_item)
+        # Let's not forget to add the --delete-exclude flag to rsync else
+        # previously synced files which now match an exclude rule will not get
+        # deleted and will stay in the synced image.
+        if len(exclude_list) > 0:
+            exclude_list += " --delete-excluded"
 
         flags = ''
         if verbose:
