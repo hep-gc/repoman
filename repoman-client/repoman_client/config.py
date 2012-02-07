@@ -282,6 +282,11 @@ class Config(object):
         else:
             return self.config_defaults['user_excludes']
 
+    # Change this method's return value if you need to change the acceptable
+    # image name syntax.  
+    def get_image_name_regex(self):
+        return '^[a-zA-Z0-9_\-\.]+$'
+
 
 
     # This method will generate the default config and try to write it

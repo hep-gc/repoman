@@ -28,7 +28,7 @@ class ModifyUser(SubCommand):
             # Temporary error message until renaming a user gets implemented (or feature removed).
             print 'Sorry, this version of the repoman client does not support renaming an existing user.'
             sys.exit(1)
-        if args.new_name and not re.match('^[a-zA-Z0-9_-]+$', args.new_name):
+        if args.new_name and not re.match(config.get_image_name_regex(), args.new_name):
             log.info('Invalid new username detected: %s' % (args.new_name))
             print 'Error: Invalid new username.  Please see "repoman help %s" for acceptable username syntax.' % (self.command)
             sys.exit(1)
@@ -118,7 +118,7 @@ class ModifyImage(SubCommand):
         self.get_arg_parser().add_argument('-a', '--unauthenticated_access', choices=['true', 'false'], help = 'Defaults  to  false.  If  set  to  true, the image may be retrieved by anybody who has the correct URL.')
         self.get_arg_parser().add_argument('-d', '--description', metavar = 'value', help = 'Description of the image.')
         self.get_arg_parser().add_argument('-h', '--hypervisor', metavar = 'value', help = 'The hypervisor. Ex: xen, kvm, etc.')
-        self.get_arg_parser().add_argument('-n', '--new_name', metavar = 'value', help = 'The new name of the image-slot on the repository.  This  will be used to reference the image when running other repoman commands. It must be unique  to  the  owner\'s domain and can only contain ([a-Z][0-9][_][-]) characters.') 
+        self.get_arg_parser().add_argument('-n', '--new_name', metavar = 'value', help = 'The new name of the image-slot on the repository.  This  will be used to reference the image when running other repoman commands. It must be unique  to  the  owner\'s domain and can only contain ([a-Z][0-9][_][-][.]) characters.') 
         self.get_arg_parser().add_argument('-N', '--new_owner', metavar = 'user', help = 'The new owner of the named image. Use "repoman list-users" to see possible values.')
         self.get_arg_parser().add_argument('-o', '--owner', metavar = 'user', help = 'The owner of the named image. The default is the ID of the current repoman user which can be determined with the "repoman whoami" command.')
         self.get_arg_parser().add_argument('--os_arch', choices = ['x86', 'x86_64'], help = 'The  operating  system  architecture.')
@@ -127,9 +127,9 @@ class ModifyImage(SubCommand):
 
 
     def validate_args(self, args):
-        if args.new_name and not re.match('^[a-zA-Z0-9_-]+$', args.new_name):
+        if args.new_name and not re.match(config.get_image_name_regex(), args.new_name):
             log.info('Invalid image name syntax detected: %s' % (args.new_name))
-            print 'Error: Invalid image name syntax.  Please see "repoman help %s" for acceptable image name syntax.' % (self.command)
+            print 'Error: Image name parameter contains invalid characters. Use only alphanumeric characters and the following special characters: ._-'
             sys.exit(1)
 
 

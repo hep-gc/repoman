@@ -21,7 +21,7 @@ class Save(SubCommand):
         SubCommand.__init__(self)
 
     def init_arg_parser(self):
-        self.get_arg_parser().add_argument('image', help = 'The name of the newly created or existing image-slot on the repository.  This will be used to  reference the image when running other repoman commands.  It can only contain ([a-Z][0-9][_][-]) characters.')
+        self.get_arg_parser().add_argument('image', help = 'The name of the newly created or existing image-slot on the repository.  This will be used to  reference the image when running other repoman commands.  It can only contain ([a-Z][0-9][_][-][.]) characters.')
         self.get_arg_parser().add_argument('-u', '--unauthenticated_access', choices=['true', 'false'], help = 'Defaults  to false. If set to true, the image may be retrieved by anybody who has the correct URL.')
         self.get_arg_parser().add_argument('--clean', action = 'store_true', default = False, help = 'Remove any existing local snapshots before creating a new one.')
         self.get_arg_parser().add_argument('-c', '--comment', metavar = 'comment', help='Add/Replace the image comment at the end of the description.')
@@ -38,9 +38,9 @@ class Save(SubCommand):
 
 
     def validate_args(self, args):
-        if not re.match('^[a-zA-Z0-9_-]+$', args.image):
+        if not re.match(config.get_image_name_regex(), args.image):
             log.info('Invalid image name syntax detected: %s' % (args.image))
-            print 'Error: Invalid image name syntax.  Please see "repoman help %s" for acceptable image name syntax.' % (self.command)
+            print 'Error: Image name parameter contains invalid characters. Use only alphanumeric characters and the following special characters: ._-'
             sys.exit(1)
 
 
