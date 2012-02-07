@@ -21,7 +21,7 @@
 .de image_new_name
 \fB-n\fP, \fB--new_name\fP \fIvalue\fP
 \- The new name of the image-slot on the repository. This will be used to reference the image when running
-other repoman commands. It must be unique to the owner's domain and can only contain ([a-Z][0-9][_][-]) characters.
+other repoman commands. It must be unique to the owner's domain and can only contain ([a-Z][0-9][_][-][.]) characters.
 ..
 .de image_new_owner
 \fB-N\fP, \fB--new_owner\fP \fIuser\fP
@@ -148,7 +148,7 @@ Mandatory Parameters:
 .image_image
 The name of the newly created image-slot on the repository.
 This will be used to reference the image when running other repoman commands.
-It must be unique within the owner's domain and can only contain ([a-Z][0-9][_][-]) characters.
+It must be unique within the owner's domain and can only contain ([a-Z][0-9][_][-][.]) characters.
 
 Options:
 
@@ -288,7 +288,7 @@ Mandatory Parameters:
 .image_image
 The name of the newly created or existing image-slot on the repository.
 This will be used to reference the image when running other repoman commands.
-It can only contain ([a-Z][0-9][_][-]) characters.
+It can only contain ([a-Z][0-9][_][-][.]) characters.
 
 Options:
 
