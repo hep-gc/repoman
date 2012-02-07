@@ -25,7 +25,7 @@ HEADERS = {"Content-type":"application/x-www-form-urlencoded", "Accept": "*"}
 
 class RepomanError(Exception):
     def __init__(self, message, resp=None):
-        self.resp = resp            # Origonal response
+        self.resp = resp            # Original response
         self.message = message      # User friendly message
         self.exit = True            # Should the client abort on this error?
         self.status = None
