@@ -179,17 +179,19 @@ class ListImages(SubCommand):
                 kwargs = {}
                 images = self.get_repoman_client(args).list_current_user_images(**kwargs)
 
-            try:
-                # Get the metadata of each image.
-                # TODO: This is a non-efficient hack that will be cleaned-up later. (Andre)
-                log.debug('Images:\n%s\n' % (images))
-                for image in images:
+            # Get the metadata of each image.
+            # TODO: This is a non-efficient hack that will be cleaned-up later. (Andre)
+            log.debug('Images:\n%s\n' % (images))
+            for image in images:
+                try:
                     name = image.rsplit('/', 2)
                     log.debug('Fetching image metadata for "%s" [%s]' % (image, name))
                     images_metadata.append(self.get_repoman_client(args).describe_image("%s/%s" % (name[-2], name[-1])))
-            except RepomanError, e:
-                print e.message
-                sys.exit(1)
+                except RepomanError, e:
+                    print "Warning: Error in retreiving information about image '%s'.  Skipping..." % (image)
+                except Exception, e:
+                    print e.message
+                    sys.exit(1)
 
         # Remove duplicates first
         images_metadata_dedup = []
