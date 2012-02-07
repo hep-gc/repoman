@@ -124,26 +124,10 @@ Show the help dialog. If no subcommand is specified, a general overview of all s
 Before other repoman subcommands can be used, a configuration file must be created. The following subcommand will create the
 configuration file for you.
 .TP
-\fBmc\fP, \fBmake-config\fP [\fB--user-excludes\fP \fIuser_paths\fP] [\fB--system-excludes\fP \fIsystem_paths\fP] [\fB--stdout\fP]
+\fBmc\fP, \fBmake-config\fP [\fB--stdout\fP]
 \#-----------------------------------------------------------------------------------------------------
 
 Options:
-
-\fB-e\fP, \fB--user-excludes\fP \fIuser_paths\fP
-Blank separated list of paths to be excluded from a snapshot of the
-operating system during a \fBrepoman save-image\fP. A directory path specification ending in \'/*\' will cause the directory
-to be created in the saved image, but none of it's contents to be copied to the saved image.
-Defaults to an empty list.
-\fBNote:\fP The \fBsystem-excludes\fP and \fBuser-excludes\fP parameters perform precisely the same function. However, because certain specifications
-are required to create a functional image, these specifications are established by default in the \fBsystem-excludes\fP parameter. It is recommended
-that other exclusions be made by modifying the \fBuser-excludes\fP parameter only.
-
-\fB-E\fP, \fB--system-excludes\fP \fIsystem_paths\fP
-Blank separated list of paths to be excluded from a snapshot of the
-operating system during a \fBrepoman save-image\fP. A directory path specification ending in \'/*\' will cause the directory
-to be created in the saved image, but none of it's contents to be copied to the saved image.
-Defaults to \'/cvmfs/* /dev/* /mnt/* /proc/* /root/.ssh /sys/* /tmp/*\'.
-See note under \fBuser-excludes\fP.
 
 \fB--stdout\fP
 Send the configuration to stdout instead of writing it to a file under the current user's home directory.
