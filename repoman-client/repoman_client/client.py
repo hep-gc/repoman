@@ -217,6 +217,7 @@ class RepomanClient(object):
 
     def list_current_user_images(self):
         resp = self.whoami()
+        log.debug('whoami():\n%s' % (resp))
         return resp.get('images')
 
     def list_user_images(self, user):

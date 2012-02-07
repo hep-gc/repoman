@@ -58,6 +58,7 @@ class Logger(object):
         return self.log_filename
 
     def enable_debug(self):
+        self.logger.setLevel(logging.DEBUG)
         ch = logging.StreamHandler()
         ch.setLevel(logging.DEBUG)
         ch.setFormatter(self.formatter)
