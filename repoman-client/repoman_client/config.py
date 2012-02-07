@@ -10,11 +10,13 @@ DEFAULT_CONFIG_TEMPLATE="""\
 [Repository]
 #
 # repository: Fully qualified domain name of the host that the Repoman
-#                  repository resides on. (ie, localhost or vmrepo.tld.org)
+#             repository resides on. (ie, localhost or vmrepo.tld.org)
+
 #repository: %(repository)s
 
 #
-# port: Port number that Repoman repsoitory is being served on
+# port: Port number that Repoman repsoitory is being served on.
+#       Default: %(port)d
 #
 #port: %(port)d
 
@@ -34,7 +36,9 @@ DEFAULT_CONFIG_TEMPLATE="""\
 
 [Logger]
 #
-# enabled:          If True, then logs will be generated and placed in 'dir'
+# enabled:          If True, then logs will be generated and placed in the
+#                   location defined by 'dir'.
+#                   Default: %(logging_enabled)s
 #
 #enabled: %(logging_enabled)s
 
@@ -42,14 +46,14 @@ DEFAULT_CONFIG_TEMPLATE="""\
 # dir:              Name of directory that logs will be placed in.
 #                   If this is NOT an absolute path, then the directory is
 #                   assumed to reside in the base directory of this config file.
-#                   Defaults to '$HOME'/.repoman/logs
+#                   Default: %(logging_dir)s
 #
 #dir: %(logging_dir)s
 
 #
 # The logging level.
 # Possible values: DEBUG, INFO, WARNING, ERROR, CRITICAL
-# Defaults to INFO
+# Default: %(logging_level)s
 #
 #level: %(logging_level)s
 
@@ -59,22 +63,55 @@ DEFAULT_CONFIG_TEMPLATE="""\
 #
 # lockfile:        The lockfile used by Repoman to synchronize the image
 #                  snapshot process.
+#                  Default: %(lockfile)s
 #
 #lockfile: %(lockfile)s
 
 #
 # snapshot:        Full path to a file that will be created to snapshot the
 #                  running system to. (ie, /tmp/fscopy.img)
+#                  Default: %(snapshot)s
 #
 #snapshot: %(snapshot)s
 
 #
 # mountpoint:      Full path that 'snapshot' will be mounted at. (ie, /tmp/fscopy)
+#                  Default: %(mountpoint)s
 #
 #mountpoint: %(mountpoint)s
 
+#
+# system_excludes:  Blank separated list of paths to be excluded from a snapshot 
+#                   of the operating system during a repoman save-image.  A
+#                   directory path specification ending in ´/*´ will cause
+#                   the directory to be created in the saved image, but none
+#                   of it's contents to be copied to the saved image.
+#                   Default: %(system_excludes)s
+#
+# * WARNING: Please edit this variable only if you really unserstand what
+# you are doing. *
+#
 #system_excludes: %(system_excludes)s
+
+#
+# user_excludes:  Blank separated list of paths to be excluded from 
+#                 a snapshot of the operating system during a repoman 
+#                 save-image.  A directory path specification ending in
+#                 ´/*´ will cause the directory to be created in the 
+#                 saved image, but none of it's contents to be copied to
+#                 the saved image.  Defaults to an empty list.
+#
+#                 Note: The system-excludes and user-excludes parameters 
+#                 perform precisely the same function.  However, because 
+#                 certain specifications are required to create a functional
+#                 image, these specifications are established by default in
+#                 the system-excludes parameter. It is recommended that
+#                 other exclusions be made by modifying the user-excludes
+#                 parameter only.
+#
 #user_excludes: %(user_excludes)s
+
+
 """
 
 
@@ -82,6 +119,12 @@ DEFAULT_CONFIG_TEMPLATE="""\
 
 
 class Config(object):
+
+    # The following data struture will hold the default values for the
+    # repoman client configuration.
+    # If you need to change a default value, do it here, as this will also
+    # affect the default configuration file generation.
+    #
     config_defaults = {'repository' : '',
                        'port' : 443,
                        'proxy_cert' : '',
@@ -91,7 +134,7 @@ class Config(object):
                        'lockfile' : '/tmp/repoman-sync.lock',
                        'snapshot' : '/tmp/fscopy.img',
                        'mountpoint' : '/tmp/fscopy',
-                       'system_excludes' : '/cvmfs/* /dev/* /mnt/* /proc/* /root/.ssh /sys/* /tmp/*',
+                       'system_excludes' : '/dev/* /mnt/* /proc/* /root/.ssh /sys/* /tmp/*',
                        'user_excludes' : ''}
 
 
@@ -244,18 +287,7 @@ class Config(object):
     # This method will generate the default config and try to write it
     # to the path defined by self._user_config_file.
     def generate_config(self, args):
-        # Override default with given command line args
         values = self.config_defaults.copy()
-        if args.system_excludes:
-            values['system_excludes'] = args.system_excludes
-        if args.user_excludes:
-            values['user_excludes'] = args.user_excludes
-        if args.repository:
-            values['repository'] = args.repository
-        if args.port:
-            values['port'] = args.port
-        if args.proxy:
-            values['proxy_cert'] = args.proxy
 
         config_content = DEFAULT_CONFIG_TEMPLATE % values
 
