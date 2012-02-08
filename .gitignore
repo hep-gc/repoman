@@ -33,4 +33,5 @@ repoman-client/repoman_client.egg-info/
 repoman-client/repoman_client.egg-info/*
 repoman-client/scripts/repoman.old
 
-
+# Emacs Rope
+/repoman-client/.ropeproject/
