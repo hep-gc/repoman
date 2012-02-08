@@ -170,15 +170,13 @@ The path to the image file that will be uploaded to the repository.
 .image_os_variant
 
 .TP
-\fBli\fP, \fBlist-images\fP [\fB--full\fP | \fB--long\fP | \fB--url\fP] [\fB--all\fP | \fB--group\fP \fIgroup\fP | \fB--user\fP \fIuser\fP | \fBimage\fP]  
+\fBli\fP, \fBlist-images\fP [\fB--long\fP | \fB--url\fP] [\fB--all\fP | \fB--group\fP \fIgroup\fP | \fB--user\fP \fIuser\fP | \fBimage\fP]  
 \#-----------------------------------------------------------------------------------------------------
 List images stored in the repository. By default, only images owned by the current user are listed.
 
 Options:
 
 \fB-a\fP, \fB--all\fP \- List all images accessible by you.
-
-\fB-f\fP, \fB--full\fP \- Display full image metadata.
 
 \fB-g\fP, \fB--group\fP \fIgroup\fP \- List all images shared between you and the named group.
 
@@ -384,13 +382,11 @@ Options:
 .user_full_name
 
 .TP
-\fBlu\fP, \fBlist-users\fP [\fB--group\fP \fIgroup\fP] [\fB--full\fP | \fB--long\fP] [\fBuser\fP]
+\fBlu\fP, \fBlist-users\fP [\fB--group\fP \fIgroup\fP] [\fB--long\fP] [\fBuser\fP]
 \#-----------------------------------------------------------------------------------------------------
 List repoman users.
 
 Options:
-
-\fB-f\fP, \fB--full\fP \- Display full user metadata.
 
 \fB-g\fP, \fB--group\fP \fIgroup\fP \- Only display users that belong to the group \fIgroup\fP
 
@@ -477,15 +473,13 @@ Options:
 .group_users
 
 .TP
-\fBlg\fP, \fBlist-groups\fP [\fB--full\fP | \fB--long\fP] [\fB--all\fP | \fB--user\fP \fIuser\fP | \fBgroup\fP]
+\fBlg\fP, \fBlist-groups\fP [\fB--long\fP] [\fB--all\fP | \fB--user\fP \fIuser\fP | \fBgroup\fP]
 \#-----------------------------------------------------------------------------------------------------
 List user groups on the repoman repository.  By default, this command will only list groups that you belong to.
 
 Options:
 
 \fB-a\fP, \fB--all\fP \- Display all groups.
-
-\fB-f\fP, \fB--full\fP \- Display full group metadata.
 
 \fBgroup\fP \- If given, information about this group only will be displayed.
 

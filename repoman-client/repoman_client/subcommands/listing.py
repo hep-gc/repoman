@@ -16,7 +16,6 @@ class ListUsers(SubCommand):
 
     def init_arg_parser(self):
         group = self.get_arg_parser().add_mutually_exclusive_group()
-        group.add_argument('-f', '--full', action = 'store_true', default = False, help = 'Display full user metadata.')
         group.add_argument('-l', '--long', action = 'store_true', default = False, help = 'Display a table with extra information.')
         self.get_arg_parser().add_argument('-g', '--group', metavar = 'group', help = 'Only display users that belong to the given group.')
         self.get_arg_parser().add_argument('user', metavar = 'user', nargs = '?', help = 'If given, information about this user only will be displayed.')
@@ -26,8 +25,10 @@ class ListUsers(SubCommand):
     def __call__(self, args):
         try:
             users = []
+            full_output = False
             if args.user:
                 users.append(self.get_repoman_client(args).describe_user(args.user))
+                full_output = True
             else:
                 users_urls = self.get_repoman_client(args).list_users(group = args.group)
                 # Fetch metadata for each user.
@@ -36,7 +37,7 @@ class ListUsers(SubCommand):
                 for user_url in users_urls:
                     users.append(self.get_repoman_client(args).describe_user(user_url.rsplit('/',1)[-1]))
 
-            display.display_user_list(users, long_output=args.long, full_output=args.full)
+            display.display_user_list(users, long_output=args.long, full_output=full_output)
         except RepomanError, e:
             print e.message
             sys.exit(1)
@@ -53,7 +54,6 @@ class ListGroups(SubCommand):
 
     def init_arg_parser(self):
         group = self.get_arg_parser().add_mutually_exclusive_group()
-        group.add_argument('-f', '--full', action = 'store_true', default = False, help = 'Display full group metadata.')
         group.add_argument('-l', '--long', action = 'store_true', default = False, help = 'Display extra information in a table.')
         group2 = self.get_arg_parser().add_mutually_exclusive_group()
         group2.add_argument('-a', '--all', action = 'store_true', default = False, help = 'Display all groups.')
@@ -69,9 +69,12 @@ class ListGroups(SubCommand):
             kwargs = {}
 
         groups = []
+        full_output = False
+
         try:
             if args.group:
                 groups.append(self.get_repoman_client(args).describe_group(args.group))
+                full_output = True
             else:
                 groups_urls = self.get_repoman_client(args).list_groups(**kwargs)
                 # Fetch metadata for each group.
@@ -80,7 +83,7 @@ class ListGroups(SubCommand):
                 for group_url in groups_urls:
                     groups.append(self.get_repoman_client(args).describe_group(group_url.rsplit('/',1)[-1]))
 
-            display.display_group_list(groups, long_output=args.long, full_output=args.full)
+            display.display_group_list(groups, long_output=args.long, full_output=full_output)
         except RepomanError, e:
             print e.message
             sys.exit(1)
@@ -105,7 +108,6 @@ class ListImages(SubCommand):
 
         # First mutually exclusive group
         group = self.get_arg_parser().add_mutually_exclusive_group()
-        group.add_argument('-f', '--full', action = 'store_true', default = False, help = 'Display full image metadata.')
         group.add_argument('-l', '--long',  action = 'store_true', default = False, help = 'List images, together with additional information, in a table.')
         group.add_argument('-U', '--url', action = 'store_true', default = False, help = 'List images and associated URLs.')
 
@@ -125,9 +127,11 @@ class ListImages(SubCommand):
         #
         images = []
         images_metadata = []
+        full_output = False
 
         if args.image:
             image_name = args.image
+            full_output = True
             #if args.owner:
             #    image_name = "%s/%s" % (args.owner, args.image)
             try:
@@ -199,7 +203,7 @@ class ListImages(SubCommand):
             if i not in images_metadata_dedup:
                 images_metadata_dedup.append(i)
 
-        display.display_image_list(images_metadata_dedup, long_output=args.long, full_output=args.full, urls=args.url)
+        display.display_image_list(images_metadata_dedup, long_output=args.long, full_output=full_output, urls=args.url)
 
 
 
