@@ -94,6 +94,9 @@ class ListImages(SubCommand):
     command = 'list-images'
     alias = 'li'
     description = 'List images stored in the repository.  By default, only images owned by the current user are listed.'
+    # We need to override the usage else argparse will not formet the second
+    # mutually exclusive group correctly. (bug in argparse?)
+    usage = '%(prog)s [-o owner] [-l | -U] [-a | -g group | -u user | image]'
 
     def __init__(self):
         SubCommand.__init__(self)
@@ -101,9 +104,9 @@ class ListImages(SubCommand):
     def init_arg_parser(self):
         # This argument should be on its own, outside of the 2 mutually exclusive groups
         # defined below.
-        # Commented out for now as adding this argument causes the second mutually exclusive
-        # group to be broken up. Bug in argparse?
-        #self.get_arg_parser().add_argument('-o', '--owner', metavar = 'owner', help='The owner of the given image.  The default is the ID of the current repoman user which can be determined with the "repoman whoami" command.  This option is only used if an image is given as argument.')
+        # Note that adding this argument causes the second mutually exclusive
+        # group to be broken up. Bug in argparse?  Maybe...
+        self.get_arg_parser().add_argument('-o', '--owner', metavar = 'owner', help='The owner of the given image.  The default is the ID of the current repoman user which can be determined with the "repoman whoami" command.  This option is only used if an image is given as argument.')
 
         # First mutually exclusive group
         group = self.get_arg_parser().add_mutually_exclusive_group()
@@ -115,7 +118,7 @@ class ListImages(SubCommand):
         group2.add_argument('-a', '--all', action = 'store_true', default = False, help = 'List all images accessible by you.')
         group2.add_argument('-g', '--group', metavar = 'group', help = 'List all images shared between you and the named group.')
         group2.add_argument('-u', '--user', metavar = 'user', help = 'List all images shared between you and the named user.')
-        group2.add_argument('image', nargs = '?', help = 'If given, information about this image only will be displayed.  To view information about an image owned by another user, preprend "<owner>/" to your image name.  For example: "repoman list-images -l john/imageA"')
+        group2.add_argument('image', nargs = '?', help = 'If given, information about this image only will be displayed.')
 
 
     def __call__(self, args):
@@ -132,8 +135,8 @@ class ListImages(SubCommand):
             if args.image:
                 image_name = args.image
                 full_output = True
-                #if args.owner:
-                #    image_name = "%s/%s" % (args.owner, args.image)
+                if args.owner:
+                    image_name = "%s/%s" % (args.owner, args.image)
                 log.debug('Fetching info of single image "%s"' % (image_name))
                 images_metadata.append(self.get_repoman_client(args).describe_image(image_name))
             else:

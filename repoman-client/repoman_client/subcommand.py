@@ -21,6 +21,7 @@ class SubCommand(object):
     """
     command = None # the command
     alias = None # a short alias for the command
+    usage = None # the command usage; override this only if needed
     short_description = None
     description = "" # a description string that will show up in a
 
@@ -36,6 +37,7 @@ class SubCommand(object):
         self.arg_parser = repoman_cli.get_sub_arg_parser().add_parser(self.command, 
                                                                       description = self.description,
                                                                       help = h, 
+                                                                      usage = self.usage,
                                                                       add_help = False)
         self.init_arg_parser()
 
@@ -45,6 +47,7 @@ class SubCommand(object):
             alias_sp = repoman_cli.get_sub_arg_parser().add_parser(self.alias,
                                                                    description = self.description,
                                                                    help = "Alias for %s" % (self.command),
+                                                                   usage = self.usage,
                                                                    add_help=False, 
                                                                    parents=[self.arg_parser])
 
