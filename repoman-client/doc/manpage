@@ -170,22 +170,6 @@ The path to the image file that will be uploaded to the repository.
 .image_os_variant
 
 .TP
-\fBgi\fP, \fBget-image\fP \fIimage\fP [\fB--owner\fP \fIuser\fP] [\fB--path\FP \fIpath\fP]
-\#-----------------------------------------------------------------------------------------------------
-Download an image from the repository to the specified path.
-
-Mandatory Parameters:
-
-.image_image
-The image to download. Use \fBrepoman list-images\fP to see possible values.
-
-Options:
-
-.image_owner
-
-.image_path
-
-.TP
 \fBli\fP, \fBlist-images\fP [\fB--full\fP | \fB--long\fP | \fB--url\fP] [\fB--all\fP | \fB--group\fP \fIgroup\fP | \fB--user\fP \fIuser\fP | \fBimage\fP]  
 \#-----------------------------------------------------------------------------------------------------
 List images stored in the repository. By default, only images owned by the current user are listed.
