@@ -1,5 +1,6 @@
 from repoman_client.subcommand import SubCommand
-from repoman_client.client import RepomanClient, RepomanError
+from repoman_client.client import RepomanClient
+from repoman_client.exceptions import RepomanError, SubcommandFailure
 from repoman_client.config import config
 from repoman_client import display
 from repoman_client.logger import log
@@ -39,8 +40,7 @@ class ListUsers(SubCommand):
 
             display.display_user_list(users, long_output=args.long, full_output=full_output)
         except RepomanError, e:
-            print e.message
-            sys.exit(1)
+            raise SubcommandFailure(self, 'Error listing user(s).', e)
 
 
 class ListGroups(SubCommand):
@@ -85,8 +85,7 @@ class ListGroups(SubCommand):
 
             display.display_group_list(groups, long_output=args.long, full_output=full_output)
         except RepomanError, e:
-            print e.message
-            sys.exit(1)
+            raise SubcommandFailure(self, 'Error listing group(s).', e)
 
 
 
@@ -129,73 +128,72 @@ class ListImages(SubCommand):
         images_metadata = []
         full_output = False
 
-        if args.image:
-            image_name = args.image
-            full_output = True
-            #if args.owner:
-            #    image_name = "%s/%s" % (args.owner, args.image)
-            try:
+        try:
+            if args.image:
+                image_name = args.image
+                full_output = True
+                #if args.owner:
+                #    image_name = "%s/%s" % (args.owner, args.image)
                 log.debug('Fetching info of single image "%s"' % (image_name))
                 images_metadata.append(self.get_repoman_client(args).describe_image(image_name))
-            except RepomanError, e:
-                print e.message
-                sys.exit(1)
-        else:
-            if args.all:
-                # List images that the user has access to.
-                # (either via ownership, or shared by user or group membership.)
-                # For a repoman admin, this will be all images on the server.
-                #func = repo.list_all_images
-                log.debug('Listing all images...')
-                kwargs = {}
-                images = self.get_repoman_client(args).list_current_user_images(**kwargs)
-                images += self.get_repoman_client(args).list_images_shared_with_user(**kwargs)
-            elif args.group:
-                # List images accessible by you and by members of the named group.
-                # First check if the user is a member of the group.  If not, then
-                # return an empty list.
-                log.debug('Listing all images for group "%s"' % (args.group))
-                kwargs = {'group':args.group}
-                groups = self.get_repoman_client(args).whoami()['groups']
-                for group in groups:
-                    if group.split('/')[-1] == args.group:
-                        images = self.get_repoman_client(args).list_images_shared_with_group(**kwargs)
-            elif args.user:
-                log.debug('Listing all current user\'s images shared with user %s' % (args.user))
-                current_user = self.get_repoman_client(args).whoami()['user_name']
-                # List all current user's images shared with the given user, AND all of the
-                # given user's images shared with the current user.
-                kwargs = {'user':args.user}
-                all_images_shared_with_given_user = self.get_repoman_client(args).list_images_shared_with_user(**kwargs)
-                for image in all_images_shared_with_given_user:
-                    if image.split('/')[-2] == current_user:
-                        images.append(image)
-
-                kwargs = {'user':current_user}
-                all_images_shared_with_me = self.get_repoman_client(args).list_images_shared_with_user(**kwargs)
-                for image in all_images_shared_with_me:
-                    if image.split('/')[-2] == args.user:
-                        images.append(image)
-
             else:
-                # List only images owned by current user.
-                log.debug('Listing images owned by current user.')
-                kwargs = {}
-                images = self.get_repoman_client(args).list_current_user_images(**kwargs)
+                if args.all:
+                    # List images that the user has access to.
+                    # (either via ownership, or shared by user or group membership.)
+                    # For a repoman admin, this will be all images on the server.
+                    #func = repo.list_all_images
+                    log.debug('Listing all images...')
+                    kwargs = {}
+                    images = self.get_repoman_client(args).list_current_user_images(**kwargs)
+                    images += self.get_repoman_client(args).list_images_shared_with_user(**kwargs)
+                elif args.group:
+                    # List images accessible by you and by members of the named group.
+                    # First check if the user is a member of the group.  If not, then
+                    # return an empty list.
+                    log.debug('Listing all images for group "%s"' % (args.group))
+                    kwargs = {'group':args.group}
+                    groups = self.get_repoman_client(args).whoami()['groups']
+                    for group in groups:
+                        if group.split('/')[-1] == args.group:
+                            images = self.get_repoman_client(args).list_images_shared_with_group(**kwargs)
+                elif args.user:
+                    log.debug('Listing all current user\'s images shared with user %s' % (args.user))
+                    current_user = self.get_repoman_client(args).whoami()['user_name']
+                    # List all current user's images shared with the given user, AND all of the
+                    # given user's images shared with the current user.
+                    kwargs = {'user':args.user}
+                    all_images_shared_with_given_user = self.get_repoman_client(args).list_images_shared_with_user(**kwargs)
+                    for image in all_images_shared_with_given_user:
+                        if image.split('/')[-2] == current_user:
+                            images.append(image)
 
-            # Get the metadata of each image.
-            # TODO: This is a non-efficient hack that will be cleaned-up later. (Andre)
-            log.debug('Images:\n%s\n' % (images))
-            for image in images:
-                try:
-                    name = image.rsplit('/', 2)
-                    log.debug('Fetching image metadata for "%s" [%s]' % (image, name))
-                    images_metadata.append(self.get_repoman_client(args).describe_image("%s/%s" % (name[-2], name[-1])))
-                except RepomanError, e:
-                    print "Warning: Error in retreiving information about image '%s'.  Skipping..." % (image)
-                except Exception, e:
-                    print e.message
-                    sys.exit(1)
+                    kwargs = {'user':current_user}
+                    all_images_shared_with_me = self.get_repoman_client(args).list_images_shared_with_user(**kwargs)
+                    for image in all_images_shared_with_me:
+                        if image.split('/')[-2] == args.user:
+                            images.append(image)
+
+                else:
+                    # List only images owned by current user.
+                    log.debug('Listing images owned by current user.')
+                    kwargs = {}
+                    images = self.get_repoman_client(args).list_current_user_images(**kwargs)
+
+                # Get the metadata of each image.
+                # TODO: This is a non-efficient hack that will be cleaned-up later. (Andre)
+                log.debug('Images:\n%s\n' % (images))
+                for image in images:
+                    try:
+                        name = image.rsplit('/', 2)
+                        log.debug('Fetching image metadata for "%s" [%s]' % (image, name))
+                        images_metadata.append(self.get_repoman_client(args).describe_image("%s/%s" % (name[-2], name[-1])))
+                    except RepomanError, e:
+                        print "Warning: Error in retreiving information about image '%s'.  Skipping..." % (image)
+                    except Exception, e:
+                        raise RepomanError(self, "Error in retreiving information about image '%s'." % (image), e)
+
+        except RepomanError, e:
+            raise SubcommandFailure(self, 'Error listing image(s).', e)
 
         # Remove duplicates first
         images_metadata_dedup = []

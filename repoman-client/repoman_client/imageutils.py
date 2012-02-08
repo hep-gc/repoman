@@ -5,9 +5,7 @@ import logging
 import fcntl
 import tempfile
 from repoman_client.logger import log
-
-class ImageUtilError(Exception):
-    pass
+from repoman_client.exceptions import ImageUtilError
 
 
 class ImageUtils(object):

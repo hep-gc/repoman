@@ -2,6 +2,7 @@ import sys, os, time, errno
 from repoman_client.logger import log
 from repoman_client.config import config
 from repoman_client import imageutils
+from repoman_client.exceptions import RepomanError, FormattingError, ProxyExpiredError, ProxyNotFoundError
 import pprint
 if sys.version_info < (2, 6):
     try:
@@ -23,43 +24,6 @@ import subprocess
 HEADERS = {"Content-type":"application/x-www-form-urlencoded", "Accept": "*"}
 
 
-class RepomanError(Exception):
-    def __init__(self, message, resp=None):
-        self.resp = resp            # Original response
-        self.message = message      # User friendly message
-        self.exit = True            # Should the client abort on this error?
-        self.status = None
-        if resp:
-            try:
-                self.status = resp.status
-            except:
-                pass
-
-    def __str__(self):
-        return self.message
-
-    def __repr__(self):
-        return str(self)
-
-
-class FormattingError(RepomanError):
-    def __init__(self, message, body=None, format='json', resp=None):
-        self.format = format
-        self.body = body
-        self.resp = resp
-        self.message = message
-        self.status = None
-        if resp:
-            try:
-                self.status = resp.status
-            except:
-                pass
-
-    def __str__(self):
-        return self.message
-
-    def __repr__(self):
-        return str(self)
 
 
 class RepomanResponse(object):
@@ -96,32 +60,25 @@ class RepomanClient(object):
             raise(e)
         except httplib.InvalidURL, e:
             log.error("%s" % e)
-            print "Invlaid port number"
-            sys.exit(1)
+            raise RepomanError("Invalid port number")
         except httplib.HTTPException, e:
             log.error("%s" % e)
             print 'httpexception'
         except socket.gaierror, e:
             log.error("%s", e)
-            print 'Unable to connect to server.  Check Host and port \n\t\t %s' % e
-            sys.exit(1)
+            raise RepomanError('Unable to connect to server.  Check Host and port \n\t\t %s' % e)
 #        except socket.error, e:
-#            print 'Unable to connect to server.  Is the server running?\n\t%s' % e
-#            sys.exit(1)
+#            raise RepomanError('Unable to connect to server.  Is the server running?\n\t%s' % e)
 #        except ssl.SSLError, e:
 #            pass
         except Exception, e:
             log.error("%s", e)
-            # Let's try to print out a user friendly error message.
             if str(e).find('SSL_CTX_use_PrivateKey_file') and not os.path.exists(self.PROXY):
-                print 'Certificate proxy not found: %s' % (self.PROXY)
-                print 'Please create a certificate proxy and try again.'
+                raise ProxyNotFoundError('Certificate proxy not found: %s\nPlease create a certificate proxy and try again.' % (self.PROXY))
             elif str(e).find('certificate expired') != -1:
-                print 'Your certificate proxy has expired.\nPlease generate a new one and try again.'
+                raise ProxyExpiredError('Your certificate proxy has expired.\nPlease generate a new one and try again.')
             else:
-                print "Unknown error has occurred. \n\t\t %s" % e
-                pprint.pprint(e)
-            sys.exit(1)
+                raise RepomanError("Unknown error has occurred. \n\t\t %s" % e)
 
 
     def _check_response(self, resp):
@@ -357,7 +314,7 @@ class RepomanClient(object):
             log.info("Command complete")
         except Exception, e:
             log.error("%s" % e)
-            print e
+            raise RepomanError(str(e))
 
     def download_image(self, image, dest=None):
         if not dest:

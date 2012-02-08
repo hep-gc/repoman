@@ -15,11 +15,6 @@ class MakeConfig(SubCommand):
         self.get_arg_parser().add_argument('--stdout', action='store_true', help = 'Send the configuration to stdout instead of writing it to a file under the current user\'s home directory.')
 
 
-
-
     def __call__(self, args):
-        # Print out default global configuration file.
-        print "Generating new default configuration file..."
         config.generate_config(args)
-        sys.exit(0)
             

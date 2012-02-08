@@ -1,5 +1,6 @@
 from repoman_client.subcommand import SubCommand
-from repoman_client.client import RepomanClient, RepomanError
+from repoman_client.client import RepomanClient
+from repoman_client.exceptions import RepomanError, SubcommandFailure
 from repoman_client.config import config
 from repoman_client.subcommand import SubCommand
 import logging
@@ -29,7 +30,7 @@ class AddPermission(SubCommand):
                 self.get_repoman_client(args).add_permission(args.group, p)
                 print "[OK]     %s" % status
             except RepomanError, e:
-                print "[FAILED] %s\n\t-%s" % (status, e)
+                raise SubcommandFailure(self, "Could not add permission: '%s' to group: '%s'" % (p, args.group), e)
 
 
 class RemovePermission(SubCommand):
@@ -51,5 +52,4 @@ class RemovePermission(SubCommand):
                 self.get_repoman_client(args).remove_permission(args.group, p)
                 print "[OK]     %s" % status
             except RepomanError, e:
-                print "[FAILED] %s\n\t-%s" % (status, e)
-
+                raise SubcommandFailure(self, "Could not remove permission: '%s' from group: '%s'" % (p, args.group), e)

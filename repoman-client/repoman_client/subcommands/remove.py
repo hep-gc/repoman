@@ -1,5 +1,6 @@
 from repoman_client.subcommand import SubCommand
-from repoman_client.client import RepomanClient, RepomanError
+from repoman_client.client import RepomanClient
+from repoman_client.exceptions import RepomanError, SubcommandFailure
 from repoman_client.config import config
 from repoman_client.utils import yes_or_no
 import sys
@@ -32,9 +33,7 @@ class RemoveUser(SubCommand):
             self.get_repoman_client(args).remove_user(args.user)
             print "[OK]     Removed user %s." % (args.user)
         except RepomanError, e:
-            print "[FAILED] Removing user.\n\t-%s" % e
-            sys.exit(1)
-
+            raise SubcommandFailure(self, "Could not remove user '%s'" % (args.user), e)
 
 
 
@@ -61,8 +60,8 @@ class RemoveGroup(SubCommand):
             self.get_repoman_client(args).remove_group(args.group)
             print "[OK]     Removed group %s." % (args.group)
         except RepomanError, e:
-            print "[FAILED] Removing group.\n\t-%s" % e
-            sys.exit(1)
+            raise SubcommandFailure(self, "Could not remove group '%s'" % (args.group), e)
+
 
 
 class RemoveImage(SubCommand):
@@ -95,8 +94,4 @@ class RemoveImage(SubCommand):
             self.get_repoman_client(args).remove_image(image_name)
             print "[OK]     Removed image %s." % (args.image)
         except RepomanError, e:
-            print "[FAILED] Removing image.\n\t-%s" % e
-            sys.exit(1)
-
-
-
+            raise SubcommandFailure(self, "Could not remove image '%s'" % (args.image), e)

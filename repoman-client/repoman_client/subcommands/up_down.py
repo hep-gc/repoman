@@ -1,5 +1,6 @@
 from repoman_client.subcommand import SubCommand
-from repoman_client.client import RepomanClient, RepomanError
+from repoman_client.client import RepomanClient
+from repoman_client.exceptions import RepomanError, SubcommandFailure
 from repoman_client.config import config
 from repoman_client.utils import yes_or_no
 from repoman_client import imageutils
@@ -36,8 +37,7 @@ class UploadImage(SubCommand):
             self.get_repoman_client(args).upload_image(image_name, args.file)
             print "[OK]     %s uploaded to image '%s'" % (args.file, args.image)
         except RepomanError, e:
-            print "[FAILED] Uploading %s to image '%s'.\n\t-%s" % (args.file, args.image, e)
-            sys.exit(1)
+            raise SubcommandFailure(self, "Could not upload %s to image '%s'..." % (args.file, args.image), e)
 
 
 class DownloadImage(SubCommand):
@@ -62,7 +62,5 @@ class DownloadImage(SubCommand):
             self.get_repoman_client(args).download_image(image_name, args.path)
             print "[OK]     Image %s downloaded." % (args.image)
         except RepomanError, e:
-            print "[FAILED] Downloading image '%s'.\n\t-%s" % (args.image, e)
-            sys.exit(1)
-
+            raise SubcommandFailure(self, "Could not download image '%s'..." % (args.image), e)
 

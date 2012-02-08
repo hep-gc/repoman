@@ -1,6 +1,7 @@
 from repoman_client.subcommand import SubCommand
-from repoman_client.client import RepomanClient, RepomanError
+from repoman_client.client import RepomanClient
 from repoman_client.config import config
+from repoman_client.exceptions import RepomanError, SubcommandFailure
 import sys
 import logging
 
@@ -28,8 +29,7 @@ class ShareImageWithGroups(SubCommand):
 
                 print "[OK]     Shared image: '%s' with group: '%s'" % (args.image, group)
             except RepomanError, e:
-                print "[FAILED] Shared image: '%s' with group: '%s'\n\t-%s" % (args.image, group, e)
-                sys.exit(1)
+                raise SubcommandFailure(self, "Could not share image: '%s' with group: '%s'" % (args.image, group), e)
 
 
 class ShareImageWithUsers(SubCommand):
@@ -56,8 +56,7 @@ class ShareImageWithUsers(SubCommand):
 
                 print "[OK]     Shared image: '%s' with user: '%s'" % (args.image, user)
             except RepomanError, e:
-                print "[FAILED] Shared image: '%s' with user: '%s'\n\t-%s" % (args.image, user, e)
-                sys.exit(1)
+                raise SubcommandFailure(self, "Could not share image: '%s' with user: '%s'" % (args.image, user), e)
 
 
 
@@ -85,8 +84,7 @@ class UnshareImageWithGroups(SubCommand):
 
                 print "[OK]     Unshared image: '%s' with group: '%s'" % (args.image, group)
             except RepomanError, e:
-                print "[FAILED] Unsharing image: '%s' with group: '%s'\n\t-%s" % (args.image, group, e)
-                sys.exit(1)
+                raise SubcommandFailure(self, "Could not unshare image: '%s' with group: '%s'" % (args.image, group), e)
 
 
 class UnshareImageWithUsers(SubCommand):
@@ -113,8 +111,4 @@ class UnshareImageWithUsers(SubCommand):
 
                 print "[OK]     Unshared image: '%s' with user: '%s'" % (args.image, user)
             except RepomanError, e:
-                print "[FAILED] Unsharing image: '%s' with user: '%s'\n\t-%s" % (args.image, user, e)
-                sys.exit(1)
-
-
-
+                raise SubcommandFailure(self, "Could not unshare image: '%s' with user: '%s'" % (args.image, user), e)

@@ -3,6 +3,7 @@ import os
 import sys
 import logging
 from repoman_client.utils import get_userid
+from repoman_client.exceptions import RepomanError, ClientConfigurationError
 
 DEFAULT_CONFIG_TEMPLATE="""\
 # Configuration file for the repoman client scripts
@@ -179,9 +180,7 @@ class Config(object):
             return files_parsed
 
         except Exception, e:
-            print 'Error reading configuration file(s).\n%s' % (e)
-            sys.exit(1)
-
+            raise ClientConfigurationError('Error reading configuration file(s).\n%s' % (e))
 
             
     # Validates the current configuration.
@@ -193,15 +192,12 @@ class Config(object):
     @property
     def host(self):
         if len(self.files_parsed) == 0:
-            print 'Could not find a repoman configuration file on your system.'
-            print 'Please run "repoman make-config" to create a configuration file.'
-            sys.exit(1)
+            raise ClientConfigurationError('Could not find a repoman configuration file on your system.\nPlease run "repoman make-config" to create a configuration file.')
             
         if self._config.has_option('Repository', 'repository') and len(self._config.get('Repository', 'repository')) > 0:
             return self._config.get('Repository', 'repository')
         else:
-            print 'Missing repository entry in repoman configuration [%s].\nPlease edit the repository entry in your repoman configuration file and try again.' % (self.files_parsed[-1])
-            sys.exit(1)
+            raise ClientConfigurationError('Missing repository entry in repoman configuration [%s].\nPlease edit the repository entry in your repoman configuration file and try again.' % (self.files_parsed[-1]))
 
     @property
     def port(self):
@@ -304,8 +300,7 @@ class Config(object):
                 try:
                     os.makedirs(os.path.dirname(self._user_config_file))
                 except OSError, e:
-                    print 'Error creating configuration target directory.\n%s ' % (e)
-                    sys.exit(1)
+                    raise ClientConfigurationError('Error creating configuration target directory.\n%s ' % (e))
 
             # Make a backup of the existing config file if present
             if os.path.isfile(self._user_config_file):
@@ -319,11 +314,15 @@ class Config(object):
                 f.close()
                 print 'New repoman configuration file written to %s' % (self._user_config_file)
             except Exception, e:
-                print 'Error writing Repoman configuration file at %s\n%s' % (self._user_config_file, e)
-                sys.exit(1)
+                raise ClientConfigurationError('Error writing Repoman configuration file at %s\n%s' % (self._user_config_file, e))
         
 
 
 # Globally accessible Config() singleton instance.
-config = Config()
+config = None
+try:
+    config = Config()
+except RepomanError, e:
+    print e
+    sys.exit(1)
 

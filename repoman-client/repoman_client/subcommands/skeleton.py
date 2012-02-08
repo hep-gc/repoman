@@ -1,5 +1,6 @@
 from repoman_client.subcommand import SubCommand
 from repoman_client.logger import log
+from repoman_client.exceptions import InvalidArgumentError
 
 
 
@@ -34,10 +35,11 @@ class MyCommand(SubCommand):
 
     # Implementing this method is optional.
     # It will get automatically called just before the command is executed.
+    # It should raise a InvalidArgumentError exception when an argument does not
+    # pass validation.
     def validate_args(self, args):
         if len(args.foo) < 8:
-            print 'Error: foo must be at least 8 characters long'
-            sys.exit(1)
+            raise InvalidArgumentError('Error: foo must be at least 8 characters long')
 
     # The __call__ method is where the work is being done.  It will
     # automatically get called and the command line arguments will get passed

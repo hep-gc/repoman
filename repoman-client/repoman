@@ -3,6 +3,7 @@ import sys
 
 from repoman_client.logger import log, repoman_logger
 from repoman_client.parsers import repoman_cli
+from repoman_client.exceptions import RepomanError
 
 # Import all modules implementing repoman subcommands here:
 from repoman_client.subcommands.config import MakeConfig
@@ -68,7 +69,11 @@ if args.debug:
     repoman_logger.enable_debug()
 
 # Run the subcommand function
-args.func(args)
+try:
+    args.func(args)
+except RepomanError, e:
+    print e
+    sys.exit(1)
 
 # We're done!
 sys.exit(0)

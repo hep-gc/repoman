@@ -1,5 +1,6 @@
 from repoman_client.subcommand import SubCommand
-from repoman_client.client import RepomanClient, RepomanError
+from repoman_client.client import RepomanClient
+from repoman_client.exceptions import RepomanError, InvalidArgumentError, SubcommandFailure
 from repoman_client.config import config
 from repoman_client.logger import log
 from repoman_client.subcommands.permissions import valid_permissions
@@ -26,19 +27,13 @@ class CreateUser(SubCommand):
         # Clean this up once the server code has been updated to make the email
         # and full name attributes optional.
         if not args.email:
-            print 'Error: Please specify the new user\'s email address.'
-            sys.exit(1)
+            raise InvalidArgumentError('Please specify the new user\'s email address.')
         if not args.full_name:
-            print 'Error: Please specify the new user\'s full name.'
-            sys.exit(1)
+            raise InvalidArgumentError('Please specify the new user\'s full name.')
         if not re.match('^[a-zA-Z0-9_-]+$', args.user):
-            log.info('Invalid username detected: %s' % (args.user))
-            print 'Error: Invalid username.  Please see "repoman help %s" for acceptable username syntax.' % (self.command)
-            sys.exit(1)
+            raise InvalidArgumentError('Invalid username.  Please see "repoman help %s" for acceptable username syntax.' % (self.command))
         if args.email and not re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", args.email):
-            log.info('Invalid user email address detected: %s' % (args.user))
-            print 'Error: Invalid email address.  Please use a valid email address and try again.'
-            sys.exit(1)
+            raise InvalidArgumentError('Invalid email address.  Please use a valid email address and try again.')
 
     def __call__(self, args):
         # Create user metadata arguments to pass to repoman server.
@@ -54,8 +49,7 @@ class CreateUser(SubCommand):
             self.get_repoman_client(args).create_user(**kwargs)
             print "[OK]     Created new user %s." % (args.user)
         except RepomanError, e:
-            print "[FAILED] Creating new user %s.\n\t-%s" % (args.user, e)
-            sys.exit(1)
+            raise SubcommandFailure(self, "Could not create new user '%s'" % (args.user), e)
 
 
 
@@ -74,15 +68,11 @@ class CreateGroup(SubCommand):
 
     def validate_args(self, args):
         if not re.match('^[a-zA-Z0-9_-]+$', args.group):
-            log.info('Invalid group name syntax detected: %s' % (args.group))
-            print 'Error: Invalid group name syntax.  Please see "repoman help %s" for acceptable username syntax.' % (self.command)
-            sys.exit(1)
+            raise InvalidArgumentError('Invalid group name syntax.  Please see "repoman help %s" for acceptable username syntax.' % (self.command))
         if args.permissions:
             for permission in args.permissions.split(','):
                 if permission not in valid_permissions:
-                    log.info('Invalid permission detected: %s' % (permission))
-                    print 'Invalid permission: %s\nPlease chose one or more permission from the following list:\n[%s]' % (permission, ', '.join(valid_permissions))
-                    sys.exit(1)
+                    raise InvalidArgumentError('Invalid permission: %s\nPlease chose one or more permission from the following list:\n[%s]' % (permission, ', '.join(valid_permissions)))
 
     def __call__(self, args):
         # Create group metadata arguments to pass to repoman server.
@@ -93,8 +83,7 @@ class CreateGroup(SubCommand):
             self.get_repoman_client(args).create_group(**kwargs)
             print "[OK]     Creating new group: '%s'" % (args.group)
         except RepomanError, e:
-            print "[FAILED] Creating new group.\n\t-%s" % e
-            sys.exit(1)
+            raise SubcommandFailure(self, "Could not create new group '%s'" % (args.group), e)
 
         # Add permissions to new group, if needed
         if args.permissions:
@@ -104,8 +93,7 @@ class CreateGroup(SubCommand):
                     self.get_repoman_client(args).add_permission(args.group, p)
                     print "[OK]     %s" % status
                 except RepomanError, e:
-                    print "[FAILED] %s\n\t-%s" % (status, e)
-                    sys.exit(1)
+                    raise SubcommandFailure(self, "Could not add permission: '%s' to group: '%s'" % (p, args.group), e)
 
         # Add users to new group, if needed
         if args.users:
@@ -115,7 +103,7 @@ class CreateGroup(SubCommand):
                     self.get_repoman_client(args).add_user_to_group(user, args.group)
                     print '[OK]     %s' % status
                 except RepomanError, e:
-                    print '[FAILED] %s\n\t-%s' % (status, e.message)
+                    raise SubcommandFailure(self, "Could not add user: `%s` to group: '%s'" % (user, args.group), e)
 
 
         
@@ -141,9 +129,7 @@ class CreateImage(SubCommand):
 
     def validate_args(self, args):
         if not re.match(config.get_image_name_regex(), args.image):
-            log.info('Invalid image name syntax detected: %s' % (args.image))
-            print 'Error: Image name parameter contains invalid characters. Use only alphanumeric characters and the following special characters: ._-'
-            sys.exit(1)
+            raise InvalidArgumentError('Image name parameter contains invalid characters. Use only alphanumeric characters and the following special characters: ._-')
 
 
     def __call__(self, args):
@@ -169,18 +155,12 @@ class CreateImage(SubCommand):
             self.get_repoman_client(args).create_image_metadata(**kwargs)
             print "[OK]     Created new image '%s'" % (kwargs['name'])
         except RepomanError, e:
-            print "[FAILED] Creating new image '%s'\n\t-%s" % (kwargs['name'], e)
-            sys.exit(1)
+            raise SubcommandFailure(self, "Could not create new image '%s'" % (kwargs['name']), e)
 
         if args.file:
             try:
                 print "Uploading %s to new image '%s'..." % (args.file, kwargs['name'])
                 self.get_repoman_client(args).upload_image(kwargs['name'], args.file)
                 print "[OK]     %s uploaded to image '%s'" % (args.file, kwargs['name'])
-            except RepomanError, e:
-                print e
-                sys.exit(1)
-            except Exception:
-                print "An unknown exception occured while uploading the image."
-                sys.exit(1)
-
+            except Exception, e:
+                raise SubcommandFailure(self, "Could not upload %s to new image '%s'..." % (args.file, kwargs['name']), e)

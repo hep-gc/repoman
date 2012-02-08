@@ -1,4 +1,5 @@
 import argparse
+from repoman_client.exceptions import RepomanError
 
 
 class RepomanCLI(object):
@@ -50,5 +51,10 @@ class RepomanCLI(object):
             self.subcommands[subcommand.alias] = subcommand
 
 # Singleton instance of RepomanCLI:
-repoman_cli = RepomanCLI()
+repoman_cli = None
+try:
+    repoman_cli = RepomanCLI()
+except RepomanError, e:
+    print e
+    sys.exit(1)
 

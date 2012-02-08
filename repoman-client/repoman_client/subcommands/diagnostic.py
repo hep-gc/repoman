@@ -1,5 +1,6 @@
 from repoman_client.subcommand import SubCommand
-from repoman_client.client import RepomanClient, RepomanError
+from repoman_client.client import RepomanClient
+from repoman_client.exceptions import RepomanError, SubcommandFailure
 from repoman_client.config import config
 from repoman_client import display
 from repoman_client.__version__ import version
@@ -22,8 +23,7 @@ class Whoami(SubCommand):
             me = self.get_repoman_client(args).whoami()
             print me.get('user_name')
         except RepomanError, e:
-            print e
-            sys.exit(1)
+            raise SubcommandFailure(self, 'Error getting current user\'s information.', e)
 
 
 
