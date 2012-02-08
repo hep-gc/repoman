@@ -120,6 +120,13 @@ DEFAULT_CONFIG_TEMPLATE="""\
 
 
 class Config(object):
+    _instance = None
+
+    @staticmethod
+    def get_instance():
+        if Config._instance == None:
+            Config._instance = Config()
+        return Config._instance
 
     # The following data struture will hold the default values for the
     # repoman client configuration.
@@ -321,7 +328,7 @@ class Config(object):
 # Globally accessible Config() singleton instance.
 config = None
 try:
-    config = Config()
+    config = Config.get_instance()
 except RepomanError, e:
     print e
     sys.exit(1)

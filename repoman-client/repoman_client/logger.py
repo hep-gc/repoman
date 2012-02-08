@@ -11,6 +11,15 @@ from repoman_client.exceptions import RepomanError, LoggingError
 # of it will be accessible when you include this module into your
 # own modules.
 class Logger(object):
+
+    _instance = None
+
+    @staticmethod
+    def get_instance():
+        if Logger._instance == None:
+            Logger._instance = Logger()
+        return Logger._instance
+
     logger = None
     formatter = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
     log_filename = None
@@ -68,7 +77,7 @@ class Logger(object):
 repoman_logger = None
 log = None
 try:
-    repoman_logger = Logger()
+    repoman_logger = Logger.get_instance()
     log = repoman_logger.get_logger()
 except RepomanError, e:
     print e

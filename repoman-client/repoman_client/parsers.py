@@ -3,6 +3,14 @@ from repoman_client.exceptions import RepomanError
 
 
 class RepomanCLI(object):
+    _instance = None
+
+    @staticmethod
+    def get_instance():
+        if RepomanCLI._instance == None:
+            RepomanCLI._instance = RepomanCLI()
+        return RepomanCLI._instance
+
     def __init__(self):
         self.arg_parser = None
         self.sub_arg_parser = None
@@ -53,7 +61,7 @@ class RepomanCLI(object):
 # Singleton instance of RepomanCLI:
 repoman_cli = None
 try:
-    repoman_cli = RepomanCLI()
+    repoman_cli = RepomanCLI.get_instance()
 except RepomanError, e:
     print e
     sys.exit(1)
