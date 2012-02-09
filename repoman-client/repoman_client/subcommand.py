@@ -21,6 +21,7 @@ class SubCommand(object):
     """
     command = None # the command
     alias = None # a short alias for the command
+    usage = None # the command usage; override this only if needed
     short_description = None
     description = "" # a description string that will show up in a
 
@@ -36,6 +37,7 @@ class SubCommand(object):
         self.arg_parser = repoman_cli.get_sub_arg_parser().add_parser(self.command, 
                                                                       description = self.description,
                                                                       help = h, 
+                                                                      usage = self.usage,
                                                                       add_help = False)
         self.init_arg_parser()
 
@@ -45,19 +47,22 @@ class SubCommand(object):
             alias_sp = repoman_cli.get_sub_arg_parser().add_parser(self.alias,
                                                                    description = self.description,
                                                                    help = "Alias for %s" % (self.command),
+                                                                   usage = self.usage,
                                                                    add_help=False, 
                                                                    parents=[self.arg_parser])
 
     def init_arg_parser(self):
         # Raise an exception to make sure people override this in the subclass
-        raise Exception("You need to override the 'init_arg_parser' class method")
+        raise NotImplementedError("You need to override the 'init_arg_parser' class method")
 
     def validate_args(self, args):
         # Default implementation is to do no validation on the arguments.
         # Override this method in the child class where needed and it will
         # automatically get called.
+        #
+        # Implementations of this method should throw a RepomanInvalidArgument
+        # exception when an argument fails validation.
         log.debug('No argument validation implemented for the %s subcommand.' % (self.command))
-        pass
 
     def get_arg_parser(self):
         return self.arg_parser
@@ -84,7 +89,7 @@ class SubCommand(object):
     # calling the subcommand's __call__ method.
     def delegator(self, args):
         log.info('repoman subcommand called: %s' % (self.command))
-        log.debug('nargs: %s' % (args))
+        log.debug('args: %s' % (args))
         # Validate CLI arguments first
         log.debug('Validating arguments...')
         self.validate_args(args)
@@ -94,7 +99,7 @@ class SubCommand(object):
 
     def __call__(self, args):
         # Raise an exception to make sure people override this in the subclass
-        raise Exception("You need to override the '__call__' class method")
+        raise NotImplementedError("You need to override the '__call__' class method")
 
     def print_help(self):
         self.arg_parser.print_help()

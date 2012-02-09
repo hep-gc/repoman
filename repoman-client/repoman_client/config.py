@@ -3,6 +3,7 @@ import os
 import sys
 import logging
 from repoman_client.utils import get_userid
+from repoman_client.exceptions import RepomanError, ClientConfigurationError
 
 DEFAULT_CONFIG_TEMPLATE="""\
 # Configuration file for the repoman client scripts
@@ -10,11 +11,13 @@ DEFAULT_CONFIG_TEMPLATE="""\
 [Repository]
 #
 # repository: Fully qualified domain name of the host that the Repoman
-#                  repository resides on. (ie, localhost or vmrepo.tld.org)
+#             repository resides on. (ie, localhost or vmrepo.tld.org)
+
 #repository: %(repository)s
 
 #
-# port: Port number that Repoman repsoitory is being served on
+# port: Port number that Repoman repsoitory is being served on.
+#       Default: %(port)d
 #
 #port: %(port)d
 
@@ -34,7 +37,9 @@ DEFAULT_CONFIG_TEMPLATE="""\
 
 [Logger]
 #
-# enabled:          If True, then logs will be generated and placed in 'dir'
+# enabled:          If True, then logs will be generated and placed in the
+#                   location defined by 'dir'.
+#                   Default: %(logging_enabled)s
 #
 #enabled: %(logging_enabled)s
 
@@ -42,39 +47,60 @@ DEFAULT_CONFIG_TEMPLATE="""\
 # dir:              Name of directory that logs will be placed in.
 #                   If this is NOT an absolute path, then the directory is
 #                   assumed to reside in the base directory of this config file.
-#                   Defaults to '$HOME'/.repoman/logs
+#                   Default: %(logging_dir)s
 #
 #dir: %(logging_dir)s
 
 #
 # The logging level.
 # Possible values: DEBUG, INFO, WARNING, ERROR, CRITICAL
-# Defaults to INFO
+# Default: %(logging_level)s
 #
 #level: %(logging_level)s
 
 
 
 [ThisImage]
-#
-# lockfile:        The lockfile used by Repoman to synchronize the image
-#                  snapshot process.
-#
-#lockfile: %(lockfile)s
 
 #
-# snapshot:        Full path to a file that will be created to snapshot the
-#                  running system to. (ie, /tmp/fscopy.img)
+# snapshot_dir:    The location where the lockfile, snapshot and mountpoint
+#                  will be created.
+#                  Default: %(snapshot_dir)s
 #
-#snapshot: %(snapshot)s
+#snapshot_dir: %(snapshot_dir)s
 
 #
-# mountpoint:      Full path that 'snapshot' will be mounted at. (ie, /tmp/fscopy)
+# system_excludes:  Blank separated list of paths to be excluded from a snapshot 
+#                   of the operating system during a repoman save-image.  A
+#                   directory path specification ending in ´/*´ will cause
+#                   the directory to be created in the saved image, but none
+#                   of it's contents to be copied to the saved image.
+#                   Default: %(system_excludes)s
 #
-#mountpoint: %(mountpoint)s
-
+# * WARNING: Please edit this variable only if you really unserstand what
+# you are doing. *
+#
 #system_excludes: %(system_excludes)s
+
+#
+# user_excludes:  Blank separated list of paths to be excluded from 
+#                 a snapshot of the operating system during a repoman 
+#                 save-image.  A directory path specification ending in
+#                 ´/*´ will cause the directory to be created in the 
+#                 saved image, but none of it's contents to be copied to
+#                 the saved image.  Defaults to an empty list.
+#
+#                 Note: The system-excludes and user-excludes parameters 
+#                 perform precisely the same function.  However, because 
+#                 certain specifications are required to create a functional
+#                 image, these specifications are established by default in
+#                 the system-excludes parameter. It is recommended that
+#                 other exclusions be made by modifying the user-excludes
+#                 parameter only.
+#
 #user_excludes: %(user_excludes)s
+
+
 """
 
 
@@ -82,16 +108,30 @@ DEFAULT_CONFIG_TEMPLATE="""\
 
 
 class Config(object):
+    _instance = None
+
+    @staticmethod
+    def get_instance():
+        if Config._instance == None:
+            Config._instance = Config()
+        return Config._instance
+
+    # The following data struture will hold the default values for the
+    # repoman client configuration.
+    # If you need to change a default value, do it here, as this will also
+    # affect the default configuration file generation.
+    #
     config_defaults = {'repository' : '',
                        'port' : 443,
                        'proxy_cert' : '',
                        'logging_enabled' : True,
                        'logging_dir' : '$HOME/.repoman/logs',
-                       'logging_level' : 'INFO', 
-                       'lockfile' : '/tmp/repoman-sync.lock',
-                       'snapshot' : '/tmp/fscopy.img',
-                       'mountpoint' : '/tmp/fscopy',
-                       'system_excludes' : '/cvmfs/* /dev/* /mnt/* /proc/* /root/.ssh /sys/* /tmp/*',
+                       'logging_level' : 'INFO',
+                       'snapshot_dir' : '/tmp',
+                       'lockfile' : 'repoman-sync.lock',
+                       'snapshot' : 'repoman-fscopy.img',
+                       'mountpoint' : 'repoman-fscopy',
+                       'system_excludes' : '/dev/* /mnt/* /proc/* /root/.ssh /sys/* /tmp/*',
                        'user_excludes' : ''}
 
 
@@ -136,9 +176,7 @@ class Config(object):
             return files_parsed
 
         except Exception, e:
-            print 'Error reading configuration file(s).\n%s' % (e)
-            sys.exit(1)
-
+            raise ClientConfigurationError('Error reading configuration file(s).\n%s' % (e))
 
             
     # Validates the current configuration.
@@ -150,15 +188,12 @@ class Config(object):
     @property
     def host(self):
         if len(self.files_parsed) == 0:
-            print 'Could not find a repoman configuration file on your system.'
-            print 'Please run "repoman make-config" to create a configuration file.'
-            sys.exit(1)
+            raise ClientConfigurationError('Could not find a repoman configuration file on your system.\nPlease run "repoman make-config" to create a configuration file.')
             
         if self._config.has_option('Repository', 'repository') and len(self._config.get('Repository', 'repository')) > 0:
             return self._config.get('Repository', 'repository')
         else:
-            print 'Missing repository entry in repoman configuration [%s].\nPlease edit the repository entry in your repoman configuration file and try again.' % (self.files_parsed[-1])
-            sys.exit(1)
+            raise ClientConfigurationError('Missing repository entry in repoman configuration [%s].\nPlease edit the repository entry in your repoman configuration file and try again.' % (self.files_parsed[-1]))
 
     @property
     def port(self):
@@ -205,25 +240,54 @@ class Config(object):
             return numeric_level
 
     @property
-    def lockfile(self):
-        if self._config.has_section('ThisImage') and self._config.has_option('ThisImage', 'lockfile'):
-            return self._config.get('ThisImage', 'lockfile')
+    def snapshot_dir(self):
+        if self._config.has_section('ThisImage') and self._config.has_option('ThisImage', 'snapshot_dir'):
+            return self._config.get('ThisImage', 'snapshot_dir')
         else:
-            return self.config_defaults['lockfile']
+            return self.config_defaults['snapshot_dir']
+
+    @property
+    def lockfile(self):
+        v = None
+        if self._config.has_section('ThisImage') and self._config.has_option('ThisImage', 'lockfile'):
+            v = self._config.get('ThisImage', 'lockfile')
+        else:
+            v = self.config_defaults['lockfile']
+
+        # Prepend snapshot_dir if not absolute path.
+        if not os.path.isabs(v):
+            v = os.path.join(self.snapshot_dir, v)
+
+        return v
+
 
     @property
     def snapshot(self):
+        v = None
         if self._config.has_section('ThisImage') and self._config.has_option('ThisImage', 'snapshot'):
-            return self._config.get('ThisImage', 'snapshot')
+            v = self._config.get('ThisImage', 'snapshot')
         else:
-            return self.config_defaults['snapshot']
+            v = self.config_defaults['snapshot']
+
+        # Prepend snapshot_dir if not absolute path.
+        if not os.path.isabs(v):
+            v = os.path.join(self.snapshot_dir, v)
+
+        return v
 
     @property
     def mountpoint(self):
+        v = None
         if self._config.has_section('ThisImage') and self._config.has_option('ThisImage', 'mountpoint'):
-            return self._config.get('ThisImage', 'mountpoint')
+            v = self._config.get('ThisImage', 'mountpoint')
         else:
-            return self.config_defaults['mountpoint']
+            v = self.config_defaults['mountpoint']
+
+        # Prepend snapshot_dir if not absolute path.
+        if not os.path.isabs(v):
+            v = os.path.join(self.snapshot_dir, v)
+
+        return v
 
     @property
     def system_excludes(self):
@@ -239,23 +303,17 @@ class Config(object):
         else:
             return self.config_defaults['user_excludes']
 
+    # Change this method's return value if you need to change the acceptable
+    # image name syntax.  
+    def get_image_name_regex(self):
+        return '^[a-zA-Z0-9_\-\.]+$'
+
 
 
     # This method will generate the default config and try to write it
     # to the path defined by self._user_config_file.
     def generate_config(self, args):
-        # Override default with given command line args
         values = self.config_defaults.copy()
-        if args.system_excludes:
-            values['system_excludes'] = args.system_excludes
-        if args.user_excludes:
-            values['user_excludes'] = args.user_excludes
-        if args.repository:
-            values['repository'] = args.repository
-        if args.port:
-            values['port'] = args.port
-        if args.proxy:
-            values['proxy_cert'] = args.proxy
 
         config_content = DEFAULT_CONFIG_TEMPLATE % values
 
@@ -267,8 +325,7 @@ class Config(object):
                 try:
                     os.makedirs(os.path.dirname(self._user_config_file))
                 except OSError, e:
-                    print 'Error creating configuration target directory.\n%s ' % (e)
-                    sys.exit(1)
+                    raise ClientConfigurationError('Error creating configuration target directory.\n%s ' % (e))
 
             # Make a backup of the existing config file if present
             if os.path.isfile(self._user_config_file):
@@ -282,11 +339,15 @@ class Config(object):
                 f.close()
                 print 'New repoman configuration file written to %s' % (self._user_config_file)
             except Exception, e:
-                print 'Error writing Repoman configuration file at %s\n%s' % (self._user_config_file, e)
-                sys.exit(1)
+                raise ClientConfigurationError('Error writing Repoman configuration file at %s\n%s' % (self._user_config_file, e))
         
 
 
 # Globally accessible Config() singleton instance.
-config = Config()
+config = None
+try:
+    config = Config.get_instance()
+except RepomanError, e:
+    print e
+    sys.exit(1)
 

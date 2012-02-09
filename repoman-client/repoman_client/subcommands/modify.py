@@ -1,5 +1,6 @@
 from repoman_client.subcommand import SubCommand
-from repoman_client.client import RepomanClient, RepomanError
+from repoman_client.client import RepomanClient
+from repoman_client.exceptions import RepomanError, InvalidArgumentError, SubcommandFailure
 from repoman_client.config import config
 from repoman_client.subcommands.permissions import valid_permissions
 from repoman_client.logger import log
@@ -26,16 +27,11 @@ class ModifyUser(SubCommand):
     def validate_args(self, args):
         if args.new_name:
             # Temporary error message until renaming a user gets implemented (or feature removed).
-            print 'Sorry, this version of the repoman client does not support renaming an existing user.'
-            sys.exit(1)
-        if args.new_name and not re.match('^[a-zA-Z0-9_-]+$', args.new_name):
-            log.info('Invalid new username detected: %s' % (args.new_name))
-            print 'Error: Invalid new username.  Please see "repoman help %s" for acceptable username syntax.' % (self.command)
-            sys.exit(1)
+            raise InvalidArgumentError('Sorry, this version of the repoman client does not support renaming an existing user.')
+        if args.new_name and not re.match(config.get_image_name_regex(), args.new_name):
+            raise InvalidArgumentError('Invalid new username.  Please see "repoman help %s" for acceptable username syntax.' % (self.command))
         if args.email and not re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", args.email):
-            log.info('Invalid user email address detected: %s' % (args.user))
-            print 'Error: Invalid email address.  Please use a valid email address and try again.'
-            sys.exit(1)
+            raise InvalidArgumentError('Invalid email address.  Please use a valid email address and try again.')
 
 
     def __call__(self, args):
@@ -53,8 +49,7 @@ class ModifyUser(SubCommand):
             self.get_repoman_client(args).modify_user(args.user, **kwargs)
             print "[OK]     Modifying user."
         except RepomanError, e:
-            print "[FAILED] Modifying user.\n\t-%s" % e
-            sys.exit(1)
+            raise SubcommandFailure(self, "Could not modify user '%s'" % (args.user), e)
 
 
 
@@ -76,15 +71,12 @@ class ModifyGroup(SubCommand):
         
     def validate_args(self, args):
         if args.new_name and not re.match('^[a-zA-Z0-9_-]+$', args.new_name):
-            log.info('Invalid group name syntax detected: %s' % (args.new_name))
-            print 'Error: Invalid group name syntax.  Please see "repoman help %s" for acceptable username syntax.' % (self.command)
-            sys.exit(1)
+            raise InvalidArgumentError('Invalid group name syntax.  Please see "repoman help %s" for acceptable username syntax.' % (self.command))
         if args.permissions:
             for permission in args.permissions.split(','):
                 if permission not in valid_permissions:
                     log.info('Invalid permission detected: %s' % (permission))
-                    print 'Invalid permission: %s\nPlease chose one or more permission from the following list:\n[%s]' % (permission, ', '.join(valid_permissions))
-                    sys.exit(1)
+                    raise InvalidArgumentError('Invalid permission: %s\nPlease chose one or more permission from the following list:\n[%s]' % (permission, ', '.join(valid_permissions)))
 
 
     def __call__(self, args):
@@ -100,8 +92,7 @@ class ModifyGroup(SubCommand):
             self.get_repoman_client(args).modify_group(args.group, **kwargs)
             print "[OK]     Modifying group."
         except RepomanError, e:
-            print "[FAILED] Modifying group.\n\t-%s" % e
-            sys.exit(1)
+            raise SubcommandFailure(self, "Could not modify group '%s'" % (args.group), e)
 
 
 
@@ -118,7 +109,7 @@ class ModifyImage(SubCommand):
         self.get_arg_parser().add_argument('-a', '--unauthenticated_access', choices=['true', 'false'], help = 'Defaults  to  false.  If  set  to  true, the image may be retrieved by anybody who has the correct URL.')
         self.get_arg_parser().add_argument('-d', '--description', metavar = 'value', help = 'Description of the image.')
         self.get_arg_parser().add_argument('-h', '--hypervisor', metavar = 'value', help = 'The hypervisor. Ex: xen, kvm, etc.')
-        self.get_arg_parser().add_argument('-n', '--new_name', metavar = 'value', help = 'The new name of the image-slot on the repository.  This  will be used to reference the image when running other repoman commands. It must be unique  to  the  owner\'s domain and can only contain ([a-Z][0-9][_][-]) characters.') 
+        self.get_arg_parser().add_argument('-n', '--new_name', metavar = 'value', help = 'The new name of the image-slot on the repository.  This  will be used to reference the image when running other repoman commands. It must be unique  to  the  owner\'s domain and can only contain ([a-Z][0-9][_][-][.]) characters.') 
         self.get_arg_parser().add_argument('-N', '--new_owner', metavar = 'user', help = 'The new owner of the named image. Use "repoman list-users" to see possible values.')
         self.get_arg_parser().add_argument('-o', '--owner', metavar = 'user', help = 'The owner of the named image. The default is the ID of the current repoman user which can be determined with the "repoman whoami" command.')
         self.get_arg_parser().add_argument('--os_arch', choices = ['x86', 'x86_64'], help = 'The  operating  system  architecture.')
@@ -127,10 +118,8 @@ class ModifyImage(SubCommand):
 
 
     def validate_args(self, args):
-        if args.new_name and not re.match('^[a-zA-Z0-9_-]+$', args.new_name):
-            log.info('Invalid image name syntax detected: %s' % (args.new_name))
-            print 'Error: Invalid image name syntax.  Please see "repoman help %s" for acceptable image name syntax.' % (self.command)
-            sys.exit(1)
+        if args.new_name and not re.match(config.get_image_name_regex(), args.new_name):
+            raise InvalidArgumentError('Image name parameter contains invalid characters. Use only alphanumeric characters and the following special characters: ._-')
 
 
     def __call__(self, args):
@@ -146,8 +135,7 @@ class ModifyImage(SubCommand):
         if args.new_name:
             kwargs['name'] = args.new_name
         if args.new_owner:
-            print 'Changing the owner of an image has not been implemented yet.'
-            sys.exit(1)
+            raise NotImplementedError('Changing the owner of an image has not been implemented yet.')
             #kwargs['owner'] = args.owner
         if args.os_arch:
             kwargs['os_arch'] = args.os_arch
@@ -164,6 +152,4 @@ class ModifyImage(SubCommand):
             self.get_repoman_client(args).modify_image(args.image, **kwargs)
             print "[OK]     Modifying image."
         except RepomanError, e:
-            print "[FAILED] Modifying image.\n\t-%s" % e
-            sys.exit(1)
-
+            raise SubcommandFailure(self, "Could not modify image '%s'" % (args.image), e)

@@ -3,6 +3,7 @@ import sys
 
 from repoman_client.logger import log, repoman_logger
 from repoman_client.parsers import repoman_cli
+from repoman_client.exceptions import RepomanError
 
 # Import all modules implementing repoman subcommands here:
 from repoman_client.subcommands.config import MakeConfig
@@ -16,7 +17,7 @@ from repoman_client.subcommands.permissions import AddPermission, RemovePermissi
 from repoman_client.subcommands.remove import RemoveUser, RemoveGroup, RemoveImage
 from repoman_client.subcommands.save import Save
 from repoman_client.subcommands.sharing import ShareImageWithGroups, ShareImageWithUsers, UnshareImageWithGroups, UnshareImageWithUsers
-from repoman_client.subcommands.up_down import DownloadImage, UploadImage
+from repoman_client.subcommands.up_down import UploadImage
 from repoman_client.subcommands.version import Version
 
 
@@ -34,7 +35,6 @@ repoman_cli.add_subcommand(RemoveUserFromGroup())
 repoman_cli.add_subcommand(ListUsers())
 repoman_cli.add_subcommand(ListGroups())
 repoman_cli.add_subcommand(ListImages())
-repoman_cli.add_subcommand(DownloadImage())
 repoman_cli.add_subcommand(UploadImage())
 repoman_cli.add_subcommand(ModifyUser())
 repoman_cli.add_subcommand(ModifyGroup())
@@ -69,7 +69,11 @@ if args.debug:
     repoman_logger.enable_debug()
 
 # Run the subcommand function
-args.func(args)
+try:
+    args.func(args)
+except RepomanError, e:
+    print e
+    sys.exit(1)
 
 # We're done!
 sys.exit(0)

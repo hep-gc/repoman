@@ -21,7 +21,7 @@
 .de image_new_name
 \fB-n\fP, \fB--new_name\fP \fIvalue\fP
 \- The new name of the image-slot on the repository. This will be used to reference the image when running
-other repoman commands. It must be unique to the owner's domain and can only contain ([a-Z][0-9][_][-]) characters.
+other repoman commands. It must be unique to the owner's domain and can only contain ([a-Z][0-9][_][-][.]) characters.
 ..
 .de image_new_owner
 \fB-N\fP, \fB--new_owner\fP \fIuser\fP
@@ -124,26 +124,10 @@ Show the help dialog. If no subcommand is specified, a general overview of all s
 Before other repoman subcommands can be used, a configuration file must be created. The following subcommand will create the
 configuration file for you.
 .TP
-\fBmc\fP, \fBmake-config\fP [\fB--user-excludes\fP \fIuser_paths\fP] [\fB--system-excludes\fP \fIsystem_paths\fP] [\fB--stdout\fP]
+\fBmc\fP, \fBmake-config\fP [\fB--stdout\fP]
 \#-----------------------------------------------------------------------------------------------------
 
 Options:
-
-\fB-e\fP, \fB--user-excludes\fP \fIuser_paths\fP
-Blank separated list of paths to be excluded from a snapshot of the
-operating system during a \fBrepoman save-image\fP. A directory path specification ending in \'/*\' will cause the directory
-to be created in the saved image, but none of it's contents to be copied to the saved image.
-Defaults to an empty list.
-\fBNote:\fP The \fBsystem-excludes\fP and \fBuser-excludes\fP parameters perform precisely the same function. However, because certain specifications
-are required to create a functional image, these specifications are established by default in the \fBsystem-excludes\fP parameter. It is recommended
-that other exclusions be made by modifying the \fBuser-excludes\fP parameter only.
-
-\fB-E\fP, \fB--system-excludes\fP \fIsystem_paths\fP
-Blank separated list of paths to be excluded from a snapshot of the
-operating system during a \fBrepoman save-image\fP. A directory path specification ending in \'/*\' will cause the directory
-to be created in the saved image, but none of it's contents to be copied to the saved image.
-Defaults to \'/cvmfs/* /dev/* /mnt/* /proc/* /root/.ssh /sys/* /tmp/*\'.
-See note under \fBuser-excludes\fP.
 
 \fB--stdout\fP
 Send the configuration to stdout instead of writing it to a file under the current user's home directory.
@@ -164,7 +148,7 @@ Mandatory Parameters:
 .image_image
 The name of the newly created image-slot on the repository.
 This will be used to reference the image when running other repoman commands.
-It must be unique within the owner's domain and can only contain ([a-Z][0-9][_][-]) characters.
+It must be unique within the owner's domain and can only contain ([a-Z][0-9][_][-][.]) characters.
 
 Options:
 
@@ -186,23 +170,7 @@ The path to the image file that will be uploaded to the repository.
 .image_os_variant
 
 .TP
-\fBgi\fP, \fBget-image\fP \fIimage\fP [\fB--owner\fP \fIuser\fP] [\fB--path\FP \fIpath\fP]
-\#-----------------------------------------------------------------------------------------------------
-Download an image from the repository to the specified path.
-
-Mandatory Parameters:
-
-.image_image
-The image to download. Use \fBrepoman list-images\fP to see possible values.
-
-Options:
-
-.image_owner
-
-.image_path
-
-.TP
-\fBli\fP, \fBlist-images\fP [\fB--full\fP | \fB--long\fP | \fB--url\fP] [\fB--all\fP | \fB--group\fP \fIgroup\fP | \fB--user\fP \fIuser\fP | \fBimage\fP]  
+\fBli\fP, \fBlist-images\fP [\fB--owner\fP \fIuser\fP] [\fB--long\fP | \fB--url\fP] [\fB--all\fP | \fB--group\fP \fIgroup\fP | \fB--user\fP \fIuser\fP | \fBimage\fP]  
 \#-----------------------------------------------------------------------------------------------------
 List images stored in the repository. By default, only images owned by the current user are listed.
 
@@ -210,13 +178,13 @@ Options:
 
 \fB-a\fP, \fB--all\fP \- List all images accessible by you.
 
-\fB-f\fP, \fB--full\fP \- Display full image metadata.
-
 \fB-g\fP, \fB--group\fP \fIgroup\fP \- List all images shared between you and the named group.
 
-\fBimage\fP \- If given, information about this image only will be displayed. To view information about an image owned by another user, preprend "<owner>/" to your image name. For example: "repoman list-images -l john/imageA"
+\fBimage\fP \- If given, information about this image only will be displayed.
 
 \fB-l\fP, \fB--long\fP \- List images, together with additional information, in a table.
+
+.image_owner
 
 \fB-u\fP, \fB--user\fP \fIuser\fP \- List all images shared between you and the named user.
 
@@ -258,7 +226,7 @@ Example:
     - renames myImage to myNewImage and updates the description 
 
 .TP
-\fBpi\fP, \fBput-image\fP \fIfile\fP \fIimage\fP [\fB--owner\fP \fIuser\fP]
+\fBpi\fP, \fBput-image\fP \fIfile\fP \fIimage\fP [--force] [\fB--owner\fP \fIuser\fP]
 \#-----------------------------------------------------------------------------------------------------
 Upload an image file from local disk space to the repoman repository and associate it with an existing image-slot.
 
@@ -270,6 +238,8 @@ Mandatory Parameters:
 The name of the image slot to be used. Use \fBrepoman list-images\fP to see possible values. 
 
 Options:
+
+\fB--force\fP \- Overwrite destination image (if present) without confirmation.
 
 .image_owner
 
@@ -302,7 +272,7 @@ Mandatory Parameters:
 .image_image
 The name of the newly created or existing image-slot on the repository.
 This will be used to reference the image when running other repoman commands.
-It can only contain ([a-Z][0-9][_][-]) characters.
+It can only contain ([a-Z][0-9][_][-][.]) characters.
 
 Options:
 
@@ -414,13 +384,11 @@ Options:
 .user_full_name
 
 .TP
-\fBlu\fP, \fBlist-users\fP [\fB--group\fP \fIgroup\fP] [\fB--full\fP | \fB--long\fP] [\fBuser\fP]
+\fBlu\fP, \fBlist-users\fP [\fB--group\fP \fIgroup\fP] [\fB--long\fP] [\fBuser\fP]
 \#-----------------------------------------------------------------------------------------------------
 List repoman users.
 
 Options:
-
-\fB-f\fP, \fB--full\fP \- Display full user metadata.
 
 \fB-g\fP, \fB--group\fP \fIgroup\fP \- Only display users that belong to the group \fIgroup\fP
 
@@ -507,15 +475,13 @@ Options:
 .group_users
 
 .TP
-\fBlg\fP, \fBlist-groups\fP [\fB--full\fP | \fB--long\fP] [\fB--all\fP | \fB--user\fP \fIuser\fP | \fBgroup\fP]
+\fBlg\fP, \fBlist-groups\fP [\fB--long\fP] [\fB--all\fP | \fB--user\fP \fIuser\fP | \fBgroup\fP]
 \#-----------------------------------------------------------------------------------------------------
 List user groups on the repoman repository.  By default, this command will only list groups that you belong to.
 
 Options:
 
 \fB-a\fP, \fB--all\fP \- Display all groups.
-
-\fB-f\fP, \fB--full\fP \- Display full group metadata.
 
 \fBgroup\fP \- If given, information about this group only will be displayed.
 

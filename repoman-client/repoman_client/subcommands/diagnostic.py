@@ -1,5 +1,6 @@
 from repoman_client.subcommand import SubCommand
-from repoman_client.client import RepomanClient, RepomanError
+from repoman_client.client import RepomanClient
+from repoman_client.exceptions import RepomanError, SubcommandFailure
 from repoman_client.config import config
 from repoman_client import display
 from repoman_client.__version__ import version
@@ -22,8 +23,7 @@ class Whoami(SubCommand):
             me = self.get_repoman_client(args).whoami()
             print me.get('user_name')
         except RepomanError, e:
-            print e
-            sys.exit(1)
+            raise SubcommandFailure(self, 'Error getting current user\'s information.', e)
 
 
 
@@ -45,6 +45,7 @@ class About(SubCommand):
                 'proxy':config.proxy,
                 'snapshot':config.snapshot,
                 'mountpoint':config.mountpoint,
+                'lockfile':config.lockfile,
                 'system_excludes':config.system_excludes,
                 'user_excludes':config.user_excludes,
                 'version':version}
@@ -62,6 +63,7 @@ config files in use: %(config_file)s
     user_proxy_cert: %(proxy)s
            snapshot: %(snapshot)s
          mountpoint: %(mountpoint)s
+           lockfile: %(lockfile)s
     system_excludes: %(system_excludes)s
       user_excludes: %(user_excludes)s
             logging: %(logging)s

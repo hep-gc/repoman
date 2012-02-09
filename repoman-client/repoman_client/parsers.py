@@ -1,7 +1,16 @@
 import argparse
+from repoman_client.exceptions import RepomanError
 
 
 class RepomanCLI(object):
+    _instance = None
+
+    @staticmethod
+    def get_instance():
+        if RepomanCLI._instance == None:
+            RepomanCLI._instance = RepomanCLI()
+        return RepomanCLI._instance
+
     def __init__(self):
         self.arg_parser = None
         self.sub_arg_parser = None
@@ -21,7 +30,8 @@ class RepomanCLI(object):
         self.arg_parser.add_argument('-P', '--proxy', help = 'The path to your proxy certificate to be used for authentication.  Overrides the "proxy" setting in the configuration file.  Defaults to "/tmp/x509up_uNNNN", where "NNNN" is your effective UID.')
         self.arg_parser.add_argument('--debug', action='store_true', default = False, help=argparse.SUPPRESS)
 
-        self.sub_arg_parser = self.arg_parser.add_subparsers(dest='subcommand')
+        self.sub_arg_parser = self.arg_parser.add_subparsers(title = 'Subcommands', 
+                                                             dest = 'subcommand')
 
         
     def get_arg_parser(self):
@@ -49,5 +59,10 @@ class RepomanCLI(object):
             self.subcommands[subcommand.alias] = subcommand
 
 # Singleton instance of RepomanCLI:
-repoman_cli = RepomanCLI()
+repoman_cli = None
+try:
+    repoman_cli = RepomanCLI.get_instance()
+except RepomanError, e:
+    print e
+    sys.exit(1)
 

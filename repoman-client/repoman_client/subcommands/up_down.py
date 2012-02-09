@@ -1,5 +1,6 @@
 from repoman_client.subcommand import SubCommand
-from repoman_client.client import RepomanClient, RepomanError
+from repoman_client.client import RepomanClient
+from repoman_client.exceptions import RepomanError, SubcommandFailure
 from repoman_client.config import config
 from repoman_client.utils import yes_or_no
 from repoman_client import imageutils
@@ -17,6 +18,7 @@ class UploadImage(SubCommand):
 
     def init_arg_parser(self):
         self.get_arg_parser().add_argument('file', help = 'The local image file to upload to the repository.')
+        self.get_arg_parser().add_argument('-f', '--force', action='store_true', default=False, help='Overwrite destination image (if present) without confirmation.')
         self.get_arg_parser().add_argument('image', help = 'The name of the image slot to be used.  Use "repoman list-images" to see possible values.')
         self.get_arg_parser().add_argument('-o', '--owner', metavar = 'user', help = 'The owner of the named image.  The default is the ID of the current repoman user whih can be determined with the "repoman whoami" command.')
 
@@ -25,12 +27,17 @@ class UploadImage(SubCommand):
             image_name = args.image
             if args.owner:
                 image_name = "%s/%s" % (args.owner, args.image)
+
+            # Check if destination image already contains an image.
+            image = self.get_repoman_client(args).describe_image(image_name)
+            if image['raw_file_uploaded'] == True and not args.force:
+                if not yes_or_no("Image '%s' already contains an image file.  Overwrite? [yes]/[n]o:" % (args.image)):
+                    return
             print "Uploading %s to image '%s'..." % (args.file, args.image)
             self.get_repoman_client(args).upload_image(image_name, args.file)
             print "[OK]     %s uploaded to image '%s'" % (args.file, args.image)
         except RepomanError, e:
-            print "[FAILED] Uploading %s to image '%s'.\n\t-%s" % (args.file, args.image, e)
-            sys.exit(1)
+            raise SubcommandFailure(self, "Could not upload %s to image '%s'..." % (args.file, args.image), e)
 
 
 class DownloadImage(SubCommand):
@@ -55,7 +62,5 @@ class DownloadImage(SubCommand):
             self.get_repoman_client(args).download_image(image_name, args.path)
             print "[OK]     Image %s downloaded." % (args.image)
         except RepomanError, e:
-            print "[FAILED] Downloading image '%s'.\n\t-%s" % (args.image, e)
-            sys.exit(1)
-
+            raise SubcommandFailure(self, "Could not download image '%s'..." % (args.image), e)
 

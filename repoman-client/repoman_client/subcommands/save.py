@@ -1,11 +1,13 @@
 from repoman_client.subcommand import SubCommand
-from repoman_client.client import RepomanClient, RepomanError
+from repoman_client.client import RepomanClient
 from repoman_client.config import config
 from repoman_client.utils import yes_or_no
-from repoman_client.imageutils import ImageUtils, ImageUtilError
+from repoman_client.imageutils import ImageUtils
 from repoman_client.logger import log
+from repoman_client.exceptions import RepomanError, ImageUtilError, SubcommandFailure
 import sys
 import re
+import os
 
 
 
@@ -21,7 +23,7 @@ class Save(SubCommand):
         SubCommand.__init__(self)
 
     def init_arg_parser(self):
-        self.get_arg_parser().add_argument('image', help = 'The name of the newly created or existing image-slot on the repository.  This will be used to  reference the image when running other repoman commands.  It can only contain ([a-Z][0-9][_][-]) characters.')
+        self.get_arg_parser().add_argument('image', help = 'The name of the newly created or existing image-slot on the repository.  This will be used to  reference the image when running other repoman commands.  It can only contain ([a-Z][0-9][_][-][.]) characters.')
         self.get_arg_parser().add_argument('-u', '--unauthenticated_access', choices=['true', 'false'], help = 'Defaults  to false. If set to true, the image may be retrieved by anybody who has the correct URL.')
         self.get_arg_parser().add_argument('--clean', action = 'store_true', default = False, help = 'Remove any existing local snapshots before creating a new one.')
         self.get_arg_parser().add_argument('-c', '--comment', metavar = 'comment', help='Add/Replace the image comment at the end of the description.')
@@ -38,10 +40,8 @@ class Save(SubCommand):
 
 
     def validate_args(self, args):
-        if not re.match('^[a-zA-Z0-9_-]+$', args.image):
-            log.info('Invalid image name syntax detected: %s' % (args.image))
-            print 'Error: Invalid image name syntax.  Please see "repoman help %s" for acceptable image name syntax.' % (self.command)
-            sys.exit(1)
+        if not re.match(config.get_image_name_regex(), args.image):
+            raise InvalidArgumentError('Image name parameter contains invalid characters. Use only alphanumeric characters and the following special characters: ._-')
 
 
     def write_metadata(self, metadata, metafile):
@@ -52,6 +52,10 @@ class Save(SubCommand):
         metafile.close()
 
     def __call__(self, args):
+        # Check if sudo...
+        if os.getuid() != 0:
+            raise SubcommandFailure(self, "Error.  This command requires root privlidges, try again with sudo.")
+
         kwargs={}
 
         name = args.image
@@ -81,8 +85,7 @@ class Save(SubCommand):
             else:
                 log.error("Unexpected response occurred when testing if image exists.")
                 log.error("%s" % e)
-                print "Unexpected response from server.  exiting."
-                sys.exit(1)
+                raise SubcommandFailure(self, "Unexpected response from server occurred when testing if image exists.", e)
         
         if exists:
             if args.force:       
@@ -91,7 +94,7 @@ class Save(SubCommand):
                 print "An image with that name already exists."
                 if not yes_or_no('Do you want to overwrite? [yes]/[n]o: '):
                     print "Aborting.  Please select a new image name or force overwrite"
-                    sys.exit(1)
+                    return
                 else:
                     log.info("User has confirmed overwritting existing image.")
                     print "Image will be overwritten."
@@ -126,17 +129,14 @@ class Save(SubCommand):
         except IOError, e:
             log.error("Unable to write to root fs.")
             log.error("%s" % e)
-            print "[Failed] could not write to %s, are you root?" % self.metadata_file
-            sys.exit(1)
+            raise SubcommandFailure(self, "Could not write to %s, are you root?" % (self.metadata_file), e)
             
         try:
             print "Starting the snapshot process.  Please be patient, this will take a while."
             image_utils.snapshot_system(verbose=args.verbose, clean=args.clean)
         except ImageUtilError, e:
-            print e
-            log.error("An error occured during the snapshot process")
             log.error(e)
-            sys.exit(1)
+            raise SubcommandFailure(self, "An error occured during the snapshot process.", e)
             
         if not exists:
             try:
@@ -145,8 +145,7 @@ class Save(SubCommand):
             except RepomanError, e:
                 log.error("Error while creating image slot on server")
                 log.error(e)
-                print e
-                sys.exit(1)
+                raise SubcommandFailure(self, "Error while creating image slot on server.", e)
             
         #upload
         print "Uploading snapshot"
@@ -155,39 +154,40 @@ class Save(SubCommand):
         except RepomanError, e:
             log.error("Error while uploading the image")
             log.error(e)
-            print e
-            sys.exit(1)
+            raise SubcommandFailure(self, "Error while uploading the image.", e)
 
         if args.comment:
+            image = None
             try:
                 image = self.get_repoman_client(args).describe_image(name)
-                if image:
-                    # Here we will search for an existing comment and replace it
-                    # with the new comment (if it exist).  If it does not exist,
-                    # then a new comment will be added at the end of the existing
-                    # description.
-                    comment_re = '\[\[Comment: .+\]\]'
-                    comment_string = '[[Comment: %s]]' % (args.comment)
-                    old_description = image.get('description')
-                    new_description = ''
-                    if image.get('description') is None:
-                        new_description = comment_string
-                    elif re.search(comment_re, old_description):
-                        new_description = re.sub(comment_re, comment_string, old_description)
-                    else:
-                        new_description = '%s %s' % (old_description, comment_string)
-                    kwargs = {'description':new_description}
-                    try:
-                        self.get_repoman_client(args).modify_image(image.get('name'), **kwargs)
-                    except RepomanError, e:
-                        print "Failed to add/update image save comment.\n\t-%s" % e
-                        sys.exit(1)
-
             except RepomanError,e:
                 if e.status == 404:
-                    log.debug("Did not find the image to update the save commant.  This might be caused by someone else who deleted the image just before we were able to update the comment.")
+                    log.debug("Did not find the image to update the save comment.  This might be caused by someone else who deleted the image just before we were able to update the comment.")
+                    raise SubcommandFailure(self, 'Error updating save comment.', e)
                 else:
                     log.error("Unexpected response occurred when testing if image exists.")
                     log.error("%s" % e)
-                    print "Unexpected response from server.  Image save comment not updated."
+                    raise SubcommandFailure(self, "Unexpected response from server.  Image save comment not updated.", e)
+
+            if image:
+                # Here we will search for an existing comment and replace it
+                # with the new comment (if it exist).  If it does not exist,
+                # then a new comment will be added at the end of the existing
+                # description.
+                comment_re = '\[\[Comment: .+\]\]'
+                comment_string = '[[Comment: %s]]' % (args.comment)
+                old_description = image.get('description')
+                new_description = ''
+                if image.get('description') is None:
+                    new_description = comment_string
+                elif re.search(comment_re, old_description):
+                    new_description = re.sub(comment_re, comment_string, old_description)
+                else:
+                    new_description = '%s %s' % (old_description, comment_string)
+                kwargs = {'description':new_description}
+                try:
+                    self.get_repoman_client(args).modify_image(image.get('name'), **kwargs)
+                except RepomanError, e:
+                    raise SubcommandFailure(self, "Failed to add/update image save comment.", e)
+
             

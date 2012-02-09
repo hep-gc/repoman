@@ -1,5 +1,6 @@
 from repoman_client.subcommand import SubCommand
-from repoman_client.client import RepomanClient, RepomanError
+from repoman_client.client import RepomanClient
+from repoman_client.exceptions import RepomanError, SubcommandFailure
 from repoman_client.config import config
 import logging
 
@@ -23,7 +24,7 @@ class AddUserToGroup(SubCommand):
                 self.get_repoman_client(args).add_user_to_group(user, args.group)
                 print '[OK]     %s' % status
             except RepomanError, e:
-                print '[FAILED] %s\n\t-%s' % (status, e.message)
+                raise SubcommandFailure(self, "Could not add user: `%s` to group: '%s'" % (user, args.group), e)
 
 
 
@@ -46,5 +47,4 @@ class RemoveUserFromGroup(SubCommand):
                 self.get_repoman_client(args).remove_user_from_group(user, args.group)
                 print '[OK]     %s' % status
             except RepomanError, e:
-                print '[FAILED] %s\n\t-%s' % (status, e.message)
-
+                raise SubcommandFailure(self, "Could not remove user: `%s` from  group: '%s'" % (user, args.group), e)
