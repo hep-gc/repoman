@@ -45,6 +45,7 @@ class About(SubCommand):
                 'proxy':config.proxy,
                 'snapshot':config.snapshot,
                 'mountpoint':config.mountpoint,
+                'lockfile':config.lockfile,
                 'system_excludes':config.system_excludes,
                 'user_excludes':config.user_excludes,
                 'version':version}
@@ -62,6 +63,7 @@ config files in use: %(config_file)s
     user_proxy_cert: %(proxy)s
            snapshot: %(snapshot)s
          mountpoint: %(mountpoint)s
+           lockfile: %(lockfile)s
     system_excludes: %(system_excludes)s
       user_excludes: %(user_excludes)s
             logging: %(logging)s

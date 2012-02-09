@@ -61,25 +61,13 @@ DEFAULT_CONFIG_TEMPLATE="""\
 
 
 [ThisImage]
-#
-# lockfile:        The lockfile used by Repoman to synchronize the image
-#                  snapshot process.
-#                  Default: %(lockfile)s
-#
-#lockfile: %(lockfile)s
 
 #
-# snapshot:        Full path to a file that will be created to snapshot the
-#                  running system to. (ie, /tmp/fscopy.img)
-#                  Default: %(snapshot)s
+# snapshot_dir:    The location where the lockfile, snapshot and mountpoint
+#                  will be created.
+#                  Default: %(snapshot_dir)s
 #
-#snapshot: %(snapshot)s
-
-#
-# mountpoint:      Full path that 'snapshot' will be mounted at. (ie, /tmp/fscopy)
-#                  Default: %(mountpoint)s
-#
-#mountpoint: %(mountpoint)s
+#snapshot_dir: %(snapshot_dir)s
 
 #
 # system_excludes:  Blank separated list of paths to be excluded from a snapshot 
@@ -138,10 +126,11 @@ class Config(object):
                        'proxy_cert' : '',
                        'logging_enabled' : True,
                        'logging_dir' : '$HOME/.repoman/logs',
-                       'logging_level' : 'INFO', 
-                       'lockfile' : '/tmp/repoman-sync.lock',
-                       'snapshot' : '/tmp/fscopy.img',
-                       'mountpoint' : '/tmp/fscopy',
+                       'logging_level' : 'INFO',
+                       'snapshot_dir' : '/tmp',
+                       'lockfile' : 'repoman-sync.lock',
+                       'snapshot' : 'repoman-fscopy.img',
+                       'mountpoint' : 'repoman-fscopy',
                        'system_excludes' : '/dev/* /mnt/* /proc/* /root/.ssh /sys/* /tmp/*',
                        'user_excludes' : ''}
 
@@ -251,25 +240,54 @@ class Config(object):
             return numeric_level
 
     @property
-    def lockfile(self):
-        if self._config.has_section('ThisImage') and self._config.has_option('ThisImage', 'lockfile'):
-            return self._config.get('ThisImage', 'lockfile')
+    def snapshot_dir(self):
+        if self._config.has_section('ThisImage') and self._config.has_option('ThisImage', 'snapshot_dir'):
+            return self._config.get('ThisImage', 'snapshot_dir')
         else:
-            return self.config_defaults['lockfile']
+            return self.config_defaults['snapshot_dir']
+
+    @property
+    def lockfile(self):
+        v = None
+        if self._config.has_section('ThisImage') and self._config.has_option('ThisImage', 'lockfile'):
+            v = self._config.get('ThisImage', 'lockfile')
+        else:
+            v = self.config_defaults['lockfile']
+
+        # Prepend snapshot_dir if not absolute path.
+        if not os.path.isabs(v):
+            v = os.path.join(self.snapshot_dir, v)
+
+        return v
+
 
     @property
     def snapshot(self):
+        v = None
         if self._config.has_section('ThisImage') and self._config.has_option('ThisImage', 'snapshot'):
-            return self._config.get('ThisImage', 'snapshot')
+            v = self._config.get('ThisImage', 'snapshot')
         else:
-            return self.config_defaults['snapshot']
+            v = self.config_defaults['snapshot']
+
+        # Prepend snapshot_dir if not absolute path.
+        if not os.path.isabs(v):
+            v = os.path.join(self.snapshot_dir, v)
+
+        return v
 
     @property
     def mountpoint(self):
+        v = None
         if self._config.has_section('ThisImage') and self._config.has_option('ThisImage', 'mountpoint'):
-            return self._config.get('ThisImage', 'mountpoint')
+            v = self._config.get('ThisImage', 'mountpoint')
         else:
-            return self.config_defaults['mountpoint']
+            v = self.config_defaults['mountpoint']
+
+        # Prepend snapshot_dir if not absolute path.
+        if not os.path.isabs(v):
+            v = os.path.join(self.snapshot_dir, v)
+
+        return v
 
     @property
     def system_excludes(self):
