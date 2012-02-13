@@ -34,6 +34,7 @@ def auth_403(message):
 class RawController(BaseController):
 
     def get_raw_by_user(self, user, image, hypervisor='xen', format='json'):
+        log.info('tada')
         image_q = meta.Session.query(Image)
         image = image_q.filter(Image.name==image)\
                        .filter(Image.owner.has(User.user_name==user))\

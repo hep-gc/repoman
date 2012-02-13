@@ -30,7 +30,7 @@ def display_image(image, long_output=False, full_output=False, urls=False, forma
         image_copy['expires'] = datetime.datetime.fromtimestamp(calendar.timegm(time.strptime(image['expires']))).ctime()
 
     if long_output:
-        print format_string % (image_copy['name'], image_copy['owner'], str(image_copy['size']), image_copy['modified'], image_copy['description'])
+        print format_string % (image_copy['name'], image_copy['owner'], image_copy['hypervisor'], str(image_copy['size']), image_copy['modified'], image_copy['description'])
     elif full_output:
         describe_image(image_copy)
     elif urls:
@@ -74,10 +74,11 @@ def display_image_list(images, long_output=False, full_output=False, urls=False)
     if long_output:
         column_headers = ['Image Name',
                           'Owner',
+                          'Hypervisor', 
                           'Size',
                           'Last Modified',
                           'Description']
-        (format_string, header) = get_format_string(images_copy, ['name', 'owner', 'size', 'modified', 'description'], column_headers, ['l', 'l', 'r', 'l', 'l'])
+        (format_string, header) = get_format_string(images_copy, ['name', 'owner', 'hypervisor', 'size', 'modified', 'description'], column_headers, ['l', 'l', 'l', 'r', 'l', 'l'])
         print header
         
     # Let's print each image.
