@@ -27,7 +27,7 @@ class Image(Base):
     os_arch = Column(String(100))               # x86, x86_64
     hypervisor = Column(String(100))            # xen, kvm, etc.
 
-    path = Column(String(256), default='')      # path to file
+    path = Column(String(1024), default='')      # path to file (';' seperated for multi-hypervisor images)
 
     # flags
     deleted = Column(Boolean(), default=False)          # image deleted?

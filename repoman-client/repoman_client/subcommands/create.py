@@ -143,6 +143,8 @@ class CreateImage(SubCommand):
                 kwargs['description'] = args.description
             if args.hypervisor:
                 kwargs['hypervisor'] = args.hypervisor
+            else:
+                kwargs['hypervisor'] = 'xen'
             if args.owner:
                 kwargs['owner'] = args.owner
             if args.os_arch:

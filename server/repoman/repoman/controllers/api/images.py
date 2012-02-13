@@ -46,25 +46,50 @@ class ImagesController(BaseController):
         image_q = meta.Session.query(Image)
         image = image_q.filter(Image.name==image)\
                        .filter(Image.owner.has(User.user_name==user)).first()
+        
+        # Determine which hypervisors this image is valid for.
+        # Many hypervisors can be specified by using a '+' delimiter.
+        # Note:
+        #  Multi-hypervisors images are a special case; most of the time
+        #  images will be associated with only 1 hypervisor.
+        hypervisors = image.hypervisor.split('+')
 
         if image:
             inline_auth(OwnsImage(image), auth_403)
             image_file = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE')
             if image_file:
                 try:
-                    file_name = user + '_' + image.name
-                    final_path = path.join(app_globals.image_storage, file_name)
-                    shutil.move(image_file, final_path)
+                    # Save a copy for each supported hypervisors.
+                    file_names = []
+                    for h in hypervisors:
+                        file_name = '%s_%s_%s' % (user, h, image.name)
+                        file_names.append(file_name)
+                        final_path = path.join(app_globals.image_storage, file_name)
+                        shutil.move(image_file, final_path)
                 except Exception, e:
                     remove(image_file)
                     abort(500, '500 Internal Error - Error uploading file %s' %e)
 
+                # If image supports multiple hypervisors, mount each of the images and
+                # set the grub.conf symlink accordingly.
+                if len(hypervisors) > 1:
+                    # TODO
+                    pass
+
+                # IMPORTANT:
+                # Don't forget to update the image's size and hash also after the symlink has been
+                # updated.
+                if len(hypervisors) > 1:
+                    image.checksum.cvalue = None # Reset to no checksum for now...
+                    image.size = path.getsize(path.join(app_globals.image_storage, '%s_%s_%s' % (user, hypervisors[0], image.name)))
+                else:
+                    image.checksum.cvalue = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_HASH')
+                    image.size = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_LENGTH')
+
                 image.checksum.ctype = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_HASH_TYPE')
-                image.checksum.cvalue = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_HASH')
-                image.size = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_LENGTH')
                 image.raw_uploaded = True
                 image.uploaded = datetime.utcfromtimestamp(time())
-                image.path = file_name
+                image.path = ';'.join(file_names) # For multi-hypervisor images, this will be ';' delimited
                 image.version += 1
                 image.modified = datetime.utcfromtimestamp(time())
                 meta.Session.commit()
@@ -190,24 +215,46 @@ class ImagesController(BaseController):
 
         if image:
             inline_auth(OwnsImage(image), auth_403)
-            try:
-                temp_file = request.params['file']
-                file_name = user + '_' + image.name
-                temp_storage = file_name + '.tmp'
-                final_path = path.join(app_globals.image_storage, file_name)
-                temp_path = path.join(app_globals.image_storage, temp_storage)
-                permanent_file = open(temp_path, 'w')
-                shutil.copyfileobj(temp_file.file, permanent_file)
-                permanent_file.close()
-                temp_file.file.close()
-                rename(temp_path, final_path)
-            except Exception, e:
-                remove(temp_path)
-                remove(final_path)
-                abort(500, '500 Internal Error - Error uploading file %s' %e)
+            file_names = []
+            for hypervisor in image.hypervisor.split('+'):
+                try:
+                    temp_file = request.params['file']
+                    file_name = '%s_%s_%s' % (user, image.hypervisor, image.name)
+                    file_names.append(file_name)
+                    temp_storage = file_name + '.tmp'
+                    final_path = path.join(app_globals.image_storage, file_name)
+                    temp_path = path.join(app_globals.image_storage, temp_storage)
+                    permanent_file = open(temp_path, 'w')
+                    shutil.copyfileobj(temp_file.file, permanent_file)
+                    permanent_file.close()
+                    temp_file.file.close()
+                    rename(temp_path, final_path)
+                except Exception, e:
+                    remove(temp_path)
+                    remove(final_path)
+                    abort(500, '500 Internal Error - Error uploading file %s' %e)
 
+            # If image supports multiple hypervisors, mount each of the images and
+            # set the grub.conf symlink accordingly.
+            #
+            if len(image.hypervisor.split('+')) > 1:
+                # TODO
+                pass
+
+            # IMPORTANT:
+            # Don't forget to update the image's size and hash also after the symlink has been
+            # updated.
+            if len(image.hypervisor.split('+')) > 1:
+                image.checksum.cvalue = None # Reset to no checksum for now...
+                image.size = path.getsize(path.join(app_globals.image_storage, '%s_%s_%s' % (user, hypervisors[0], image.name)))
+            else:
+                image.checksum.cvalue = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_HASH')
+                image.size = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_LENGTH')
+
+
+            # No update of size and/or checksum?  TODO: Investigate... (Andre)
             image.raw_uploaded = True
-            image.path = file_name
+            image.path = ';'.join(file_names)
             image.version += 1
             image.modified = datetime.utcfromtimestamp(time())
             meta.Session.commit()
