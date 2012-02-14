@@ -24,6 +24,7 @@ from pylons import app_globals
 from time import time
 from datetime import datetime
 from os import path, remove, rename
+import sys
 import shutil
 ###
 
@@ -270,7 +271,9 @@ class ImagesController(BaseController):
         image = image_q.filter(Image.name==image)\
                        .filter(Image.owner.has(User.user_name==user))\
                        .first()
-
+        print('TADA!', file=sys.stderr)
+        log.info('TADA!')
+        
         if image:
             inline_auth(AnyOf(OwnsImage(image), SharedWith(image)), auth_403)
             if format == 'json':
