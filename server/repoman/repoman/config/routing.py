@@ -165,9 +165,9 @@ def make_map(config):
                 action='get_raw_by_user',
                 conditions=dict(method=['GET']))
 
-#    map.connect('raw_by_user', '/api/images/raw/:(user)/:(image)', controller='api/raw',
-#                action='get_raw_by_user',
-#                conditions=dict(method=['GET']))
+    map.connect('raw_by_user2', '/api/images/raw/:(user)/:(image)', controller='api/raw',
+                action='get_raw_by_user',
+                conditions=dict(method=['GET']))
 
 #    map.connect(None, '/api/images/raw/:(user)/:(image)', controller='api/images',
 #                action='upload_raw_by_user',
