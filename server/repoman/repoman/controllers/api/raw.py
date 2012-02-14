@@ -24,6 +24,7 @@ from time import time
 from datetime import datetime
 from os import path, remove, rename
 import shutil
+import sys
 ###
 
 log = logging.getLogger(__name__)
@@ -38,7 +39,7 @@ class RawController(BaseController):
         image = image_q.filter(Image.name==image)\
                        .filter(Image.owner.has(User.user_name==user))\
                        .first()
-        log.error('TADA!')
+        print('TADA!', file=sys.stderr)
         if not image:
             abort(404, '404 Not Found')
         else:
