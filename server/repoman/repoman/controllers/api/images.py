@@ -24,7 +24,6 @@ from pylons import app_globals
 from time import time
 from datetime import datetime
 from os import path, remove, rename
-import sys
 import shutil
 ###
 

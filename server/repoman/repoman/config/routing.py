@@ -6,6 +6,8 @@ refer to the routes manual at http://routes.groovie.org/docs/
 """
 from routes import Mapper
 
+log = logging.getLogger(__name__)
+
 def make_map(config):
     """Create, configure and return the routes Mapper"""
     map = Mapper(directory=config['pylons.paths']['controllers'],
@@ -229,6 +231,8 @@ def make_map(config):
 
     map.connect('/{controller}/{action}')
     map.connect('/{controller}/{action}/{id}')
+
+    log.info('Routing map created.')
 
     return map
 
