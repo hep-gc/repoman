@@ -271,7 +271,6 @@ class ImagesController(BaseController):
         image = image_q.filter(Image.name==image)\
                        .filter(Image.owner.has(User.user_name==user))\
                        .first()
-        print('TADA!', file=sys.stderr)
         log.info('TADA!')
         
         if image:
