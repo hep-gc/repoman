@@ -33,8 +33,7 @@ def auth_403(message):
 
 class RawController(BaseController):
 
-    def get_raw_by_user(self, user, image, hypervisor='xen', format='json'):
-        log.info('tada')
+    def get_raw_by_user(self, user, image, hypervisor=None, format='json'):
         image_q = meta.Session.query(Image)
         image = image_q.filter(Image.name==image)\
                        .filter(Image.owner.has(User.user_name==user))\
@@ -51,7 +50,10 @@ class RawController(BaseController):
                 inline_auth(AnyOf(AllOf(OwnsImage(image), IsAthuenticated()),
                                   AllOf(SharedWith(image), IsAthuenticated())),
                                   auth_403)
-            
+
+            if hypervisor == None:
+                hypervisor = image.hypervisor
+
             file_path = path.join(app_globals.image_storage, '%s_%s_%s' % (user, hypervisor, image))
             try:
             	content_length = path.getsize(file_path)
@@ -67,7 +69,7 @@ class RawController(BaseController):
             except:
                 abort(500, '500 Internal Error')
 
-    def get_raw(self, image, hypervisor='xen', format='json'):
+    def get_raw(self, image, hypervisor=None, format='json'):
         user = request.environ['REPOMAN_USER'].user_name
         return self.get_raw_by_user(user=user, image=image, hypervisor=hypervisor, format=format)
 
