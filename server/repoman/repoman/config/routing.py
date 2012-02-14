@@ -161,11 +161,11 @@ def make_map(config):
                 action='group_unshare',
                 conditions=dict(method=['DELETE']))
 
-    map.connect('raw_by_user', '/api/images/raw/:(user)/:(hypervisor)/:(image)', controller='api/raw',
+    map.connect('raw_by_user_wh', '/api/images/raw/:(user)/:(hypervisor)/:(image)', controller='api/raw',
                 action='get_raw_by_user',
                 conditions=dict(method=['GET']))
 
-    map.connect('raw_by_user2', '/api/images/raw/:(user)/:(image)', controller='api/raw',
+    map.connect('raw_by_user', '/api/images/raw/:(user)/:(image)', controller='api/raw',
                 action='get_raw_by_user',
                 conditions=dict(method=['GET']))
 
