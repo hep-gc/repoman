@@ -403,7 +403,7 @@ class ImagesController(BaseController):
         meta.Session.commit()
 
         response.headers['content-type'] = app_globals.json_content_type
-        response.headers['Location'] = url('raw_by_user',
+        response.headers['Location'] = url('raw_by_user_wh',
                                            user=user.user_name, hypervisor=image.hypervisor,
                                            image=new_image.name)
         response.status = ("201 Object created.  upload raw file to 'Location'")
