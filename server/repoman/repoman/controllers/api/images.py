@@ -52,7 +52,7 @@ class ImagesController(BaseController):
         # Note:
         #  Multi-hypervisors images are a special case; most of the time
         #  images will be associated with only 1 hypervisor.
-        hypervisors = image.hypervisor.split('+')
+        hypervisors = image.hypervisor.split(',')
 
         if image:
             inline_auth(OwnsImage(image), auth_403)
@@ -216,7 +216,7 @@ class ImagesController(BaseController):
         if image:
             inline_auth(OwnsImage(image), auth_403)
             file_names = []
-            for hypervisor in image.hypervisor.split('+'):
+            for hypervisor in image.hypervisor.split(','):
                 try:
                     temp_file = request.params['file']
                     file_name = '%s_%s_%s' % (user, image.hypervisor, image.name)
@@ -237,14 +237,14 @@ class ImagesController(BaseController):
             # If image supports multiple hypervisors, mount each of the images and
             # set the grub.conf symlink accordingly.
             #
-            if len(image.hypervisor.split('+')) > 1:
+            if len(image.hypervisor.split(',')) > 1:
                 # TODO
                 pass
 
             # IMPORTANT:
             # Don't forget to update the image's size and hash also after the symlink has been
             # updated.
-            if len(image.hypervisor.split('+')) > 1:
+            if len(image.hypervisor.split(',')) > 1:
                 image.checksum.cvalue = None # Reset to no checksum for now...
                 image.size = path.getsize(path.join(app_globals.image_storage, '%s_%s_%s' % (user, hypervisors[0], image.name)))
             else:
