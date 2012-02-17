@@ -62,7 +62,8 @@ class RawController(BaseController):
             try:
             	content_length = path.getsize(file_path)
             	response.headers['X-content-length'] = str(content_length)
-            except:
+            except Exception, e:
+                print '%s' % (e)
             	abort(500, '500 Internal Error')
             	
             etag_cache(('%s_%s_%s' % (user, hypervisor, image.name)) + '_' + str(image.version))
@@ -70,7 +71,8 @@ class RawController(BaseController):
             image_file = open(file_path, 'rb')
             try:
                 return h.stream_img(image_file)
-            except:
+            except Exception, e:
+                print '%s' % (e)
                 abort(500, '500 Internal Error')
 
     def get_raw(self, image, hypervisor=None, format='json'):
