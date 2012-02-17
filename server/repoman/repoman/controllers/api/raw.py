@@ -35,11 +35,12 @@ def auth_403(message):
 class RawController(BaseController):
 
     def get_raw_by_user(self, user, image, hypervisor=None, format='json'):
+        print 'in get_raw_by_user'
         image_q = meta.Session.query(Image)
         image = image_q.filter(Image.name==image)\
                        .filter(Image.owner.has(User.user_name==user))\
                        .first()
-        log.info('TADA2!')
+
         if not image:
             abort(404, '404 Not Found')
         else:
@@ -56,6 +57,8 @@ class RawController(BaseController):
                 hypervisor = image.hypervisor
 
             file_path = path.join(app_globals.image_storage, '%s_%s_%s' % (user, hypervisor, image))
+            print 'file_path: %s' % (file_path)
+
             try:
             	content_length = path.getsize(file_path)
             	response.headers['X-content-length'] = str(content_length)

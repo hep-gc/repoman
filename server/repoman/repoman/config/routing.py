@@ -234,7 +234,6 @@ def make_map(config):
     map.connect('/{controller}/{action}/{id}')
 
     log.info('Routing map created.')
-    print('TADA!')
 
     return map
 
