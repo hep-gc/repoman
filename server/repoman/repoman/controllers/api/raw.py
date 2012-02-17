@@ -60,15 +60,22 @@ class RawController(BaseController):
             print 'file_path: %s' % (file_path)
 
             try:
+                print 'A'
             	content_length = path.getsize(file_path)
+                print 'B'
             	response.headers['X-content-length'] = str(content_length)
+                print 'C'
             except Exception, e:
                 print '%s' % (e)
             	abort(500, '500 Internal Error')
-            	
+
+            print 'D'
             etag_cache(('%s_%s_%s' % (user, hypervisor, image.name)) + '_' + str(image.version))
+            print 'E'
 
             image_file = open(file_path, 'rb')
+            print 'F'
+
             try:
                 return h.stream_img(image_file)
             except Exception, e:
