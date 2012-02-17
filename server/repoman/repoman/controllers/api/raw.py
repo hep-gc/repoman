@@ -70,7 +70,7 @@ class RawController(BaseController):
             	abort(500, '500 Internal Error')
 
             print 'D'
-            etag_cache(('%s_%s_%s' % (user, hypervisor, image.name)) + '_' + str(image.version))
+            etag_cache(str(('%s_%s_%s' % (user, hypervisor, image.name)) + '_' + str(image.version)))
             print 'E'
 
             image_file = open(file_path, 'rb')
