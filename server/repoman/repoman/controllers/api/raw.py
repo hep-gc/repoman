@@ -79,6 +79,7 @@ class RawController(BaseController):
             try:
                 return h.stream_img(image_file)
             except Exception, e:
+                print 'G'
                 print '%s' % (e)
                 abort(500, '500 Internal Error')
 
