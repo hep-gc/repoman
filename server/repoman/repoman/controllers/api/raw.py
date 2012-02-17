@@ -57,6 +57,10 @@ class RawController(BaseController):
 
             file_path = path.join(app_globals.image_storage, '%s_%s_%s' % (user, hypervisor, image.name))
 
+            # Check if file actually exists
+            if not path.exists(file_path):
+                abort(404, '404 Not Found')
+
             try:
             	content_length = path.getsize(file_path)
             	response.headers['X-content-length'] = str(content_length)
