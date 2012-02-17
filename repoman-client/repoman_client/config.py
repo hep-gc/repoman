@@ -72,7 +72,7 @@ DEFAULT_CONFIG_TEMPLATE="""\
 #
 # system_excludes:  Blank separated list of paths to be excluded from a snapshot 
 #                   of the operating system during a repoman save-image.  A
-#                   directory path specification ending in ´/*´ will cause
+#                   directory path specification ending in '/*' will cause
 #                   the directory to be created in the saved image, but none
 #                   of it's contents to be copied to the saved image.
 #                   Default: %(system_excludes)s
@@ -86,7 +86,7 @@ DEFAULT_CONFIG_TEMPLATE="""\
 # user_excludes:  Blank separated list of paths to be excluded from 
 #                 a snapshot of the operating system during a repoman 
 #                 save-image.  A directory path specification ending in
-#                 ´/*´ will cause the directory to be created in the 
+#                 '/*' will cause the directory to be created in the 
 #                 saved image, but none of it's contents to be copied to
 #                 the saved image.  Defaults to an empty list.
 #
