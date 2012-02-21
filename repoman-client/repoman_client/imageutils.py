@@ -320,6 +320,7 @@ class ImageUtils(object):
         elif exists:
             log.info("Existing image found, attempting to use.")
             image_stats = self.stat(self.imagepath)
+            log.debug("Image stats:\n%s" % (image_stats))
             if self.imagesize:
                 # requested size does not match current size
                 if self.imagesize != image_stats['size']:
