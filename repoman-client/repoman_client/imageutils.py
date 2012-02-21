@@ -80,7 +80,7 @@ class ImageUtils(object):
     def create_bootable_partition(self, path):
         cmd = "sfdisk %s" % (path)
         log.debug("Creating bootable partition on %s" % (path))
-        p = subprocess.Popen(cmd, shell=True, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
+        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT)
         if not p:
             log.error("Error calling: %s" % (cmd))
             raise ImageUtilError("Error creating bootable partition.")
@@ -141,7 +141,7 @@ class ImageUtils(object):
     def install_mbr(self, path):
         cmd = "grub"
         log.debug("Creating MBR on %s" % (path))
-        p = subprocess.Popen(cmd, shell=True, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
+        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT)
         if not p:
             log.error("Error calling: %s" % (cmd))
             raise ImageUtilError("Error creating bootable partition.")
