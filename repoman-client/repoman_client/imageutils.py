@@ -169,6 +169,8 @@ class ImageUtils(object):
             os.makedirs(self.mountpoint)
         cmd = None
         if self.partition:
+            if not self.device_map:
+                self.device_map = self.create_device_map(self.imagepath)
             cmd = "mount %s %s" % (self.device_map, self.mountpoint)
         else:
             cmd = "mount -o loop %s %s" % (self.imagepath, self.mountpoint)
@@ -185,6 +187,9 @@ class ImageUtils(object):
         if subprocess.Popen(cmd, shell=True).wait():
             raise ImageUtilError("Unable to unmount image")
         log.debug("Image unmounted: '%s'" % cmd)
+        if self.partition and self.device_map != None:
+            log.debug("Deleting %s device map for image %s" % (self.device_map, self.imagepath))
+            self.delete_device_map(self.imagepath)
 
     def check_mounted(self):
         for line in open("/etc/mtab"):
@@ -303,9 +308,6 @@ class ImageUtils(object):
             self.destroy_lock()
             log.info("Unmounting Image")
             self.umount_image()
-            if self.partition and self.device_map != None:
-                log.debug("Deleting %s device map for image %s" % (self.device_map, self.imagepath))
-                self.delete_device_map(self.imagepath)
         if self.partition and snapshot_success:
                 self.install_mbr(self.imagepath)
         
@@ -340,6 +342,7 @@ class ImageUtils(object):
             self.destroy_files(self.imagepath, self.mountpoint)
             log.info("Creating new image")
             self.create_image(self.imagepath, self.imagesize)
+
         
         log.info("Mounting image")
         self.mount_image()
