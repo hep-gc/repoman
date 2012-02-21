@@ -174,6 +174,7 @@ class ImageUtils(object):
             cmd = "mount %s %s" % (self.device_map, self.mountpoint)
         else:
             cmd = "mount -o loop %s %s" % (self.imagepath, self.mountpoint)
+        log.debug("running [%s]" % (cmd))
         if subprocess.Popen(cmd, shell=True).wait():
             raise ImageUtilError("Unable to Mount image")
         log.debug("Image mounted: '%s'" % cmd)
