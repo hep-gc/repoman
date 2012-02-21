@@ -153,9 +153,12 @@ class ImageUtils(object):
         p.stdin.write('setup (hd0)\n')
         p.stdin.write('quit\n')
         p.stdin.close()
-        stdout = p.communicate()[0]
-        log.debug("[%s] output:\n%s" % (cmd, stdout))
-        log.debug("MBR created on %s" % (path))
+        p.wait()
+        if p.returncode == 0:
+            log.debug("MBR created on %s" % (path))
+        else:
+            log.error("Error creating MBR on %s\nReturn code: %d" % (path, p.returncode))
+            raise ImageUtilError("Error creating MBR.")
         
     def mount_image(self):
         if self.check_mounted():
