@@ -120,7 +120,7 @@ class ImageUtils(object):
             log.error("Device map creation command returned error: %d" % (p.returncode))
             raise ImageUtilError("Error creating device map.")
         # Search the output to extract the location of the new device map
-        m = re.match('add map (\w+) ', stdout)
+        m = re.match('^add map (\w+) .+$', stdout, flags=re.M)
         if not m:
             log.error("Error extracting location of new device map from:\n%s" % (stdout))
             raise ImageUtilError("Error extracting location of new device map.")
