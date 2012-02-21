@@ -86,8 +86,10 @@ class ImageUtils(object):
             raise ImageUtilError("Error creating bootable partition.")
         p.stdin.write(',,L,*\n')
         p.stdin.close()
-        stdout = p.communicate()[0]
-        log.debug("[%s] output:\n%s" % (cmd, stdout))
+        p.wait()
+        if p.returncode != 0:
+            log.error("Command to create bootable partition returned error: %d" % (p.returncode))
+            raise ImageUtilError("Error creating bootable partition.")
         log.debug("Bootable partition created on %s" % (path))
 
     
