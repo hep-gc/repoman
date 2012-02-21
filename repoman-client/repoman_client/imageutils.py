@@ -1,4 +1,5 @@
 import os, sys
+import re
 import stat
 import subprocess
 import logging
