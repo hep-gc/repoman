@@ -323,7 +323,7 @@ class ImageUtils(object):
             if self.imagesize:
                 # requested size does not match current size
                 if self.imagesize != image_stats['size']:
-                    log.warning("Requested size does not match current file.  Starting from scratch.")
+                    log.warning("Requested size (%d) does not match current file (%d).  Starting from scratch." % (self.imagesize, image_stats['size']))
                     start_fresh = True
             else:
                 # image size does not match partition size
