@@ -328,8 +328,8 @@ class ImageUtils(object):
                     start_fresh = True
             else:
                 # image size does not match partition size
-                log.warning("Root partition size does not match image size.  Starting from scratch")
                 if image_stats['size'] != self.statvfs()['size']:
+                    log.warning("Root partition size does not match image size.  Starting from scratch")
                     start_fresh = True
 
         if start_fresh:
