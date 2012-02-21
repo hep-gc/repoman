@@ -382,7 +382,10 @@ class ImagesController(BaseController):
         new_image.os_variant = params['os_variant']
         new_image.os_type = params['os_type']
         new_image.os_arch = params['os_arch']
-        new_image.hypervisor = params['hypervisor']
+        if params['hypervisor']:
+            new_image.hypervisor = params['hypervisor']
+        else:
+             new_image.hypervisor = 'xen'
         new_image.description = params['description']
         new_image.expires = params['expires']
         new_image.read_only = params['read_only']
