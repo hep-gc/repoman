@@ -48,7 +48,7 @@ class ImagesController(BaseController):
                        .filter(Image.owner.has(User.user_name==user)).first()
         
         # Determine which hypervisors this image is valid for.
-        # Many hypervisors can be specified by using a '+' delimiter.
+        # Many hypervisors can be specified by using a ',' delimiter.
         # Note:
         #  Multi-hypervisors images are a special case; most of the time
         #  images will be associated with only 1 hypervisor.
@@ -65,10 +65,12 @@ class ImagesController(BaseController):
                         file_name = '%s_%s_%s' % (user, h, image.name)
                         file_names.append(file_name)
                         final_path = path.join(app_globals.image_storage, file_name)
-                        shutil.move(image_file, final_path)
+                        shutil.copy2(image_file, final_path)
                 except Exception, e:
-                    remove(image_file)
                     abort(500, '500 Internal Error - Error uploading file %s' %e)
+                finally:
+                    remove(image_file)
+
 
                 # If image supports multiple hypervisors, mount each of the images and
                 # set the grub.conf symlink accordingly.
