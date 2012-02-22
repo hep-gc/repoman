@@ -1,61 +1,71 @@
 from repoman_client.subcommand import SubCommand
-from repoman_client.client import RepomanClient, RepomanError
+from repoman_client.client import RepomanClient
+from repoman_client.exceptions import RepomanError, SubcommandFailure
 from repoman_client.config import config
 from repoman_client import display
 from repoman_client.__version__ import version
-from argparse import ArgumentParser
+from repoman_client.logger import repoman_logger
 import sys
 
 class Whoami(SubCommand):
-    command_group = 'advanced'
     command = 'whoami'
     alias = None
-    description = 'Display information about the current user (ie, you)'
+    description = 'Display information about the current user (ie, you).'
 
-    def get_parser(self):
-        p = ArgumentParser(self.description)
-        return p
+    def __init__(self):
+        SubCommand.__init__(self)
 
-    def __call__(self, args, extra_args=None):
-        repo = RepomanClient(config.host, config.port, config.proxy)
+    def init_arg_parser(self):
+        pass
+
+    def __call__(self, args):
         try:
-            me = repo.whoami()
+            me = self.get_repoman_client(args).whoami()
             print me.get('user_name')
         except RepomanError, e:
-            print e
-            sys.exit(1)
+            raise SubcommandFailure(self, 'Error getting current user\'s information.', e)
 
 
 
 class About(SubCommand):
-    validate_config = False
-    command_group = 'advanced'
     command = 'about'
     alias = None
-    description = 'Display information about this program.'
+    description = 'Display the repoman client version and configuration information.'
 
-    def get_parser(self):
-        p = ArgumentParser(self.description)
-        return p
+    def __init__(self):
+        SubCommand.__init__(self)
 
-    def __call__(self, args, extra_args=None):
-        keys = {'config_file':config.config_file,
-                'host':config.repository_host,
-                'port':config.repository_port,
-                'proxy':config.user_proxy_cert,
+    def init_arg_parser(self):
+        pass
+
+    def __call__(self, args):
+        keys = {'config_file': ', '.join(config.files_parsed),
+                'host':config.host,
+                'port':config.port,
+                'proxy':config.proxy,
                 'snapshot':config.snapshot,
                 'mountpoint':config.mountpoint,
-                'exclude':config.exclude_dirs,
+                'lockfile':config.lockfile,
+                'system_excludes':config.system_excludes,
+                'user_excludes':config.user_excludes,
                 'version':version}
+
+        if not repoman_logger.is_enabled():
+            keys['logging'] = 'Disabled'
+        else:
+            keys['logging'] = 'Log sent to: %s' % (repoman_logger.get_log_filename())
+
         print """\
-version:    %(version)s
-configuration:
-    config_file in use: %(config_file)s
-    repository_host:    %(host)s
-    repository_port:    %(port)s
-    user_proxy_cert:    %(proxy)s
-    snapshot:           %(snapshot)s
-    mountpoint:         %(mountpoint)s
-    exclude_dirs:       %(exclude)s
+     client version: %(version)s
+config files in use: %(config_file)s
+    repository_host: %(host)s
+    repository_port: %(port)s
+    user_proxy_cert: %(proxy)s
+           snapshot: %(snapshot)s
+         mountpoint: %(mountpoint)s
+           lockfile: %(lockfile)s
+    system_excludes: %(system_excludes)s
+      user_excludes: %(user_excludes)s
+            logging: %(logging)s
 """ % keys
 

@@ -1,243 +1,353 @@
 import ConfigParser
 import os
 import sys
-import subprocess
+import logging
+from repoman_client.utils import get_userid
+from repoman_client.exceptions import RepomanError, ClientConfigurationError
 
-DEFAULT_CONFIG="""\
+DEFAULT_CONFIG_TEMPLATE="""\
 # Configuration file for the repoman client scripts
-[Logger]
-# NOTE: Logging is currently not implimented.  enabling logging will not yield 
-#       any logs yet.
-#
-# enabled:          If True, then logs will be generated and placed in 'log_dir'
-# log_dir:          Name of directory that logs will be placed in.
-#                   If this is NOT an absolute path, then the directory is
-#                   assumed to reside in the base directory of this config file.
-# 
-logging_enabled: true
-logging_dir: repoman_logs
-
 
 [Repository]
-# repository_host: Fully qualified domain name of the host that the Repoman
-#                  repository resides on. (ie, localhost or vmrepo.tld.org)
 #
-# repository_port: Port number that Repoman repsoitory is being served on
+# repository: Fully qualified domain name of the host that the Repoman
+#             repository resides on. (ie, localhost or vmrepo.tld.org)
+
+#repository: %(repository)s
+
 #
-repository_host:
-repository_port: 443
+# port: Port number that Repoman repsoitory is being served on.
+#       Default: %(port)d
+#
+#port: %(port)d
 
 
 [User]
-# user_proxy_cert: Full path to an RFC compliant proxy certificate.
-#                  Order of proxy certificate precidence:
-#                       1. command line '--proxy' argument
+#
+# proxy_cert: Full path to an RFC compliant proxy certificate.
+#             Order of proxy certificate precedence:
+#                       1. command line '-P|--proxy' argument
 #                       2. value in this file
 #                       3. $X509_USER_PROXY
 #                       4. /tmp/x509up_u`id -u` 
-#                       Note: number-4 will respect $SUDO_UID if available
+#                       Note: Item 4 above will respect $SUDO_UID if available
 #
-user_proxy_cert:
+#proxy_cert: %(proxy_cert)s
+
+
+[Logger]
+#
+# enabled:          If True, then logs will be generated and placed in the
+#                   location defined by 'dir'.
+#                   Default: %(logging_enabled)s
+#
+#enabled: %(logging_enabled)s
+
+#
+# dir:              Name of directory that logs will be placed in.
+#                   If this is NOT an absolute path, then the directory is
+#                   assumed to reside in the base directory of this config file.
+#                   Default: %(logging_dir)s
+#
+#dir: %(logging_dir)s
+
+#
+# The logging level.
+# Possible values: DEBUG, INFO, WARNING, ERROR, CRITICAL
+# Default: %(logging_level)s
+#
+#level: %(logging_level)s
+
 
 
 [ThisImage]
-# snapshot:        Full path to a file that will be created to snapshot the
-#                  running system to. (ie, /tmp/fscopy.img)
+
 #
-# mountpoint:      Full path that 'snapshot' will be mounted at. (ie, /tmp/fscopy)
+# snapshot_dir:    The location where the lockfile, snapshot and mountpoint
+#                  will be created.
+#                  Default: %(snapshot_dir)s
 #
-# sysdirs_emptied:   A list of system directories which must exist in the snapshot
-#                    for the system to function correctly, but emptied during the snapshot
-#                    process.
-#                    Each directory must be the full path.
-#                    Each item in the list is seperated by a space.
-#                    Note: Expressions containing wildcards (*) are not supported.
+#snapshot_dir: %(snapshot_dir)s
+
 #
+# system_excludes:  Blank separated list of paths to be excluded from a snapshot 
+#                   of the operating system during a repoman save-image.  A
+#                   directory path specification ending in '/*' will cause
+#                   the directory to be created in the saved image, but none
+#                   of it's contents to be copied to the saved image.
+#                   Default: %(system_excludes)s
 #
-# exclude_dirs:    A list of directories that will be excluded when creating the
-#                  snapshot of the running system.
-#                  Each directory must be the full path.
-#                  Each item in the list is seperated by a space.
-#                  Wildcards (*) are supported.
-#                  Note: use '/mydir' to exclude a directory completely, while '/mydir/*' to exclude the content
-#                        of a directory but still create an empty '/mydir' directory in the snapshot.
+# * WARNING: Please edit this variable only if you really unserstand what
+# you are doing. *
 #
-lockfile: /tmp/repoman-sync.lock
-snapshot: /tmp/fscopy.img
-mountpoint: /tmp/fscopy
-sysdirs_emptied: /dev /mnt /proc /sys /tmp
-exclude_dirs: /lustre/* /root/.ssh
+#system_excludes: %(system_excludes)s
+
+#
+# user_excludes:  Blank separated list of paths to be excluded from 
+#                 a snapshot of the operating system during a repoman 
+#                 save-image.  A directory path specification ending in
+#                 '/*' will cause the directory to be created in the 
+#                 saved image, but none of it's contents to be copied to
+#                 the saved image.  Defaults to an empty list.
+#
+#                 Note: The system-excludes and user-excludes parameters 
+#                 perform precisely the same function.  However, because 
+#                 certain specifications are required to create a functional
+#                 image, these specifications are established by default in
+#                 the system-excludes parameter. It is recommended that
+#                 other exclusions be made by modifying the user-excludes
+#                 parameter only.
+#
+#user_excludes: %(user_excludes)s
+
+
 """
 
 
+
+
+
 class Config(object):
-    def __init__(self, config_file=None):
-        self._errors_found = False
-        self._error_messages = []
-        self.required_options = [('Repository', 'repository_host'),
-                                 ('Repository', 'repository_port'),
-                                 ('User', 'user_proxy_cert'),
-                                 ('ThisImage', 'mountpoint'),
-                                 ('ThisImage', 'snapshot'),
-                                 ('ThisImage', 'exclude_dirs'),
-                                 ('ThisImage', 'sysdirs_emptied'),
-                                 ('ThisImage', 'lockfile'),
-                                 ('Logger', 'logging_enabled'),
-                                 ('Logger', 'logging_dir')]
+    _instance = None
 
-        self._config_locations = ['$REPOMAN_CLIENT_CONFIG',
-                                  '$HOME/.repoman/repoman.conf']
+    @staticmethod
+    def get_instance():
+        if Config._instance == None:
+            Config._instance = Config()
+        return Config._instance
+
+    # The following data struture will hold the default values for the
+    # repoman client configuration.
+    # If you need to change a default value, do it here, as this will also
+    # affect the default configuration file generation.
+    #
+    config_defaults = {'repository' : '',
+                       'port' : 443,
+                       'proxy_cert' : '',
+                       'logging_enabled' : True,
+                       'logging_dir' : '$HOME/.repoman/logs',
+                       'logging_level' : 'INFO',
+                       'snapshot_dir' : '/tmp',
+                       'lockfile' : 'repoman-sync.lock',
+                       'snapshot' : 'repoman-fscopy.img',
+                       'mountpoint' : 'repoman-fscopy',
+                       'system_excludes' : '/dev/* /mnt/* /proc/* /root/.ssh /sys/* /tmp/*',
+                       'user_excludes' : ''}
+
+
+    def __init__(self):
+        # The internal configuration value container.  In this case, we use
+        # a ConfigParser object.
+        self._config = None
+
+        self.files_parsed = None
+
+        # The possible paths of configuration files.
+        # These path can include env variables.
+        self._global_config_file = os.path.expandvars('/etc/repoman/repoman.conf')
+        if 'SUDO_UID' in os.environ:
+            self._user_config_file = os.path.expanduser('~%s/.repoman/repoman.conf' % os.environ.get('SUDO_USER'))
+        else:
+            self._user_config_file = os.path.expanduser('~/.repoman/repoman.conf')
+        self._config_env_var = os.path.expandvars('$REPOMAN_CLIENT_CONFIG')
+
+        self.files_parsed = self._read_config()
+        if len(self.files_parsed) > 0:
+            self._validate()
+
+
+    # Read the config files and populate the internal ConfigParser
+    # instance.
+    # It will attempt to read the config files in the following order:
+    #  1. the global config file
+    #  2. the file pointed to by the config file env variable
+    #  3. the user's config file
+    #
+    # Returns a list of config files successfully parsed.
+    #
+    # This method will exit with an error if a config file exist that 
+    # could not be parsed successfully.
+    def _read_config(self):
+        self._config = ConfigParser.ConfigParser()
+        try:
+            files_parsed = self._config.read([self._global_config_file,
+                                              self._config_env_var,
+                                              self._user_config_file])
+            return files_parsed
+
+        except Exception, e:
+            raise ClientConfigurationError('Error reading configuration file(s).\n%s' % (e))
+
+            
+    # Validates the current configuration.
+    def _validate(self):
+        pass
+
         
-        user_id = os.environ.get('SUDO_UID')
-        if not user_id:
-            user_id = os.getuid()
-
-        if config_file:
-            self._config_locations.insert(0, config_file)
-
-        self._default_config_dir = os.path.expanduser('~/.repoman')
-        self._default_proxy = os.environ.get('X509_USER_PROXY')
-        if not self._default_proxy:
-            self._default_proxy = "/tmp/x509up_u%s" % user_id
-
-        #Read the config file if possible
-        self._read_config()
-        self._validate_options()
-        self._check_logging()
-
-    #short cut properties
+    # shortcut properties
     @property
     def host(self):
-        return self.repository_host
+        if len(self.files_parsed) == 0:
+            raise ClientConfigurationError('Could not find a repoman configuration file on your system.\nPlease run "repoman make-config" to create a configuration file.')
+            
+        if self._config.has_option('Repository', 'repository') and len(self._config.get('Repository', 'repository')) > 0:
+            return self._config.get('Repository', 'repository')
+        else:
+            raise ClientConfigurationError('Missing repository entry in repoman configuration [%s].\nPlease edit the repository entry in your repoman configuration file and try again.' % (self.files_parsed[-1]))
 
     @property
     def port(self):
-        return self.repository_port
+        if self._config.has_option('Repository', 'port'):
+            return self._config.getint('Repository', 'port')
+        else:
+            return self.config_defaults['port']
 
     @property
     def proxy(self):
-        return self.user_proxy_cert
+        if self._config.has_option('User', 'proxy_cert'):
+            return self._config.get('User', 'proxy_cert')
+        else:
+            default_proxy = os.environ.get('X509_USER_PROXY')
+            if not default_proxy:
+                default_proxy = "/tmp/x509up_u%s" % get_userid()
+            return default_proxy
 
-    def validate(self, verbose=False, exit=True):
-        self.verbose = verbose
-        if not self.config_file:
-            print "No configuration file found."
-            self.generate_config()
-            print "Generating new config file at '%s'" % self.config_file
-            self._read_config()
-        self._validate_options()
-        self._check_logging()
-        self._check_proxy()
-        if self._errors_found:
-            for error in self._error_messages:
-                print error
-            if exit:
-                sys.exit(1)
+    @property
+    def logging_enabled(self):
+        if not self._config.has_section('Logger') or not self._config.has_option('Logger', 'enabled'):
+            return self.config_defaults['logging_enabled']
+        return self._config.getboolean('Logger', 'enabled')
 
-    def generate_config(self):
-        if not os.path.isdir(self._default_config_dir):
+    @property
+    def logging_dir(self):
+        if self._config.has_section('Logger') and self._config.has_option('Logger', 'dir'):
+            return self._config.get('Logger', 'dir')
+        else:
+            return os.path.expandvars(self.config_defaults['logging_dir'])
+
+    @property
+    def logging_level(self):
+        level_string = None
+        if self._config.has_section('Logger') and self._config.has_option('Logger', 'level'):
+            level_string = self._config.get('Logger', 'level')
+        else:
+            level_string = self.config_defaults['logging_level']
+
+        numeric_level = getattr(logging, level_string.upper(), None)
+        if not isinstance(numeric_level, int):
+            raise ValueError('Invalid log level: %s' % loglevel)
+        else:
+            return numeric_level
+
+    @property
+    def snapshot_dir(self):
+        if self._config.has_section('ThisImage') and self._config.has_option('ThisImage', 'snapshot_dir'):
+            return self._config.get('ThisImage', 'snapshot_dir')
+        else:
+            return self.config_defaults['snapshot_dir']
+
+    @property
+    def lockfile(self):
+        v = None
+        if self._config.has_section('ThisImage') and self._config.has_option('ThisImage', 'lockfile'):
+            v = self._config.get('ThisImage', 'lockfile')
+        else:
+            v = self.config_defaults['lockfile']
+
+        # Prepend snapshot_dir if not absolute path.
+        if not os.path.isabs(v):
+            v = os.path.join(self.snapshot_dir, v)
+
+        return v
+
+
+    @property
+    def snapshot(self):
+        v = None
+        if self._config.has_section('ThisImage') and self._config.has_option('ThisImage', 'snapshot'):
+            v = self._config.get('ThisImage', 'snapshot')
+        else:
+            v = self.config_defaults['snapshot']
+
+        # Prepend snapshot_dir if not absolute path.
+        if not os.path.isabs(v):
+            v = os.path.join(self.snapshot_dir, v)
+
+        return v
+
+    @property
+    def mountpoint(self):
+        v = None
+        if self._config.has_section('ThisImage') and self._config.has_option('ThisImage', 'mountpoint'):
+            v = self._config.get('ThisImage', 'mountpoint')
+        else:
+            v = self.config_defaults['mountpoint']
+
+        # Prepend snapshot_dir if not absolute path.
+        if not os.path.isabs(v):
+            v = os.path.join(self.snapshot_dir, v)
+
+        return v
+
+    @property
+    def system_excludes(self):
+        if self._config.has_section('ThisImage') and self._config.has_option('ThisImage', 'system_excludes'):
+            return self._config.get('ThisImage', 'system_excludes')
+        else:
+            return self.config_defaults['system_excludes']
+
+    @property
+    def user_excludes(self):
+        if self._config.has_section('ThisImage') and self._config.has_option('ThisImage', 'user_excludes'):
+            return self._config.get('ThisImage', 'user_excludes')
+        else:
+            return self.config_defaults['user_excludes']
+
+    # Change this method's return value if you need to change the acceptable
+    # image name syntax.  
+    def get_image_name_regex(self):
+        return '^[a-zA-Z0-9_\-\.]+$'
+
+
+
+    # This method will generate the default config and try to write it
+    # to the path defined by self._user_config_file.
+    def generate_config(self, args):
+        values = self.config_defaults.copy()
+
+        config_content = DEFAULT_CONFIG_TEMPLATE % values
+
+        if args.stdout:
+            print config_content
+        else:
+            # Create destination directory if needed
+            if not os.path.isdir(os.path.dirname(self._user_config_file)):
+                try:
+                    os.makedirs(os.path.dirname(self._user_config_file))
+                except OSError, e:
+                    raise ClientConfigurationError('Error creating configuration target directory.\n%s ' % (e))
+
+            # Make a backup of the existing config file if present
+            if os.path.isfile(self._user_config_file):
+                backup_file = self._user_config_file + '.bak'
+                os.rename(self._user_config_file, backup_file)
+                print 'Note: Existing config file has been copied to %s' % (backup_file)
+
             try:
-                os.mkdir(self._default_config_dir)
-            except:
-                print "Unable to create configuration directory at '%s'" % self._default_config_dir
-                sys.exit(1)
-
-        try:
-            config_file = os.path.join(self._default_config_dir, 'repoman.conf')
-            print "Generating new config file %s ... " % (config_file)
-            config = open(config_file, 'w')
-            config.write(DEFAULT_CONFIG)
-            self.config_file = config_file
-        except:
-            print "Unable to generate configuration in '%s'" % self._config_dir
-            sys.exit(1)
-
-    def _check_logging(self):
-        if not self.logging_enabled:
-            return
-        elif self.logging_enabled and not self.logging_dir:
-            self._error_messages = True
-            self._error_messages.append("Specify a logging directory")
-            return
-        elif not os.path.isabs(self.logging_dir):
-            self.logging_dir = os.path.join(os.path.dirname(self.config_file),
-                                            self.logging_dir)
-
-        if not os.path.isdir(self.logging_dir):
-            try:
-                os.mkdir(self.logging_dir)
-                uid = os.environ.get('SUDO_UID', os.getuid())
-                gid = os.environ.get('SUDO_GID', os.getgid())
-                os.chown(self.logging_dir, int(uid), int(gid))
-            except:
-                self._errors_found = True
-                self._error_messages.append("Logging dir does not exist and I am unable to create it.")
-
-        test_file = os.path.join(self.logging_dir, 'TEST_LOG.DELETE_ME')
-        try:
-            test = open(test_file, 'w')
-            test.close()
-            os.remove(test_file)
-        except:
-            self._errors_found = True
-            self._error_messages.append("The logging directory is not writable.")
-
-    def _validate_options(self):
-        for option in self.required_options:
-            if not getattr(self, option[1], None):
-                print "You must set the '%s' config value in '%s'" % (option[1], self.config_file)
-                sys.exit(1)
-
-    def _get_config_file(self):
-        for cfg in self._config_locations:
-            cfg = os.path.expandvars(os.path.expanduser(cfg))
-            if os.path.isfile(cfg):
-                self.config_file = cfg
-                return cfg
-        # If we get here, this means that no config file could be found.
-        # Let's create one for the user...
-        print "No configuration file found."
-        self.generate_config()
-        return self.config_file
-
-    def _read_config(self):
-        config_file = self._get_config_file()
-        config = ConfigParser.ConfigParser()
-        try:
-            config.read(config_file)
-        except Exception, e:
-            print str(e)
-            sys.exit(1)
-
-        for option in self.required_options:
-            if config.has_section(option[0]):
-                if config.has_option(option[0], option[1]):
-                    value = config.get(option[0], option[1])
-                    if value.isdigit():
-                        value = int(value)
-                    setattr(self, option[1], value)
-                else:
-                    setattr(self, option[1], None)
-            else:
-                print "Missing the '[%s]' section header in %s file" % (option[0],self.config_file)
-                sys.exit(1)
-
-        if not self.user_proxy_cert:
-            self.user_proxy_cert = self._default_proxy
-
-    def _check_proxy(self):
-        if not os.path.isfile(self.user_proxy_cert):
-            self._errors_found = True
-            self._error_messages.append("The proxy certificate: '%s' does not exist.\nGenerate a new cert or manually specify with '--proxy'" % self.user_proxy_cert)
-            return
-
-        # Test expiration
-        cmd = "openssl x509 -in %s -noout -checkend 0" % self.user_proxy_cert
-        retcode = subprocess.call(cmd, shell=True)
-        if retcode:
-            self._errors_found = True
-            self._error_messages.append("The proxy certificate: '%s' is expired" % self.user_proxy_cert)
+                f = open(self._user_config_file, 'w')
+                f.write(config_content)
+                f.close()
+                print 'New repoman configuration file written to %s' % (self._user_config_file)
+            except Exception, e:
+                raise ClientConfigurationError('Error writing Repoman configuration file at %s\n%s' % (self._user_config_file, e))
+        
 
 
-config = Config()
+# Globally accessible Config() singleton instance.
+config = None
+try:
+    config = Config.get_instance()
+except RepomanError, e:
+    print e
+    sys.exit(1)
 

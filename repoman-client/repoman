@@ -1,0 +1,80 @@
+#!/usr/bin/env python
+import sys
+
+from repoman_client.logger import log, repoman_logger
+from repoman_client.parsers import repoman_cli
+from repoman_client.exceptions import RepomanError
+
+# Import all modules implementing repoman subcommands here:
+from repoman_client.subcommands.config import MakeConfig
+from repoman_client.subcommands.create import CreateImage, CreateUser, CreateGroup
+from repoman_client.subcommands.diagnostic import Whoami, About
+from repoman_client.subcommands.group_membership import AddUserToGroup, RemoveUserFromGroup
+from repoman_client.subcommands.help import Help
+from repoman_client.subcommands.listing import ListUsers, ListGroups, ListImages
+from repoman_client.subcommands.modify import ModifyUser, ModifyGroup, ModifyImage
+from repoman_client.subcommands.permissions import AddPermission, RemovePermission
+from repoman_client.subcommands.remove import RemoveUser, RemoveGroup, RemoveImage
+from repoman_client.subcommands.save import Save
+from repoman_client.subcommands.sharing import ShareImageWithGroups, ShareImageWithUsers, UnshareImageWithGroups, UnshareImageWithUsers
+from repoman_client.subcommands.up_down import UploadImage
+from repoman_client.subcommands.version import Version
+
+
+# Add all subcommands here:
+repoman_cli.add_subcommand(Help())
+repoman_cli.add_subcommand(Version())
+repoman_cli.add_subcommand(MakeConfig())
+repoman_cli.add_subcommand(Whoami())
+repoman_cli.add_subcommand(About())
+repoman_cli.add_subcommand(CreateImage())
+repoman_cli.add_subcommand(CreateUser())
+repoman_cli.add_subcommand(CreateGroup())
+repoman_cli.add_subcommand(AddUserToGroup())
+repoman_cli.add_subcommand(RemoveUserFromGroup())
+repoman_cli.add_subcommand(ListUsers())
+repoman_cli.add_subcommand(ListGroups())
+repoman_cli.add_subcommand(ListImages())
+repoman_cli.add_subcommand(UploadImage())
+repoman_cli.add_subcommand(ModifyUser())
+repoman_cli.add_subcommand(ModifyGroup())
+repoman_cli.add_subcommand(ModifyImage())
+repoman_cli.add_subcommand(RemoveUser())
+repoman_cli.add_subcommand(RemoveGroup())
+repoman_cli.add_subcommand(RemoveImage())
+repoman_cli.add_subcommand(Save())
+repoman_cli.add_subcommand(ShareImageWithGroups())
+repoman_cli.add_subcommand(ShareImageWithUsers())
+repoman_cli.add_subcommand(UnshareImageWithGroups())
+repoman_cli.add_subcommand(UnshareImageWithUsers())
+repoman_cli.add_subcommand(AddPermission())
+repoman_cli.add_subcommand(RemovePermission())
+
+
+
+
+# Check if no arguments were given.  In this case,
+# we display a simple help message.
+# We do this so that we do not get the default help message,
+# which in the case of this application, is too verbal.
+if len(sys.argv) == 1:
+    print 'repoman: error: too few arguments'
+    print 'use "repoman help" for more information'
+    sys.exit(1)
+
+# Ask the parser and subparsers to parse the command line arguments.
+args = repoman_cli.get_arg_parser().parse_args()
+
+if args.debug:
+    repoman_logger.enable_debug()
+
+# Run the subcommand function
+try:
+    args.func(args)
+except RepomanError, e:
+    print e
+    sys.exit(1)
+
+# We're done!
+sys.exit(0)
+

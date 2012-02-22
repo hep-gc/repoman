@@ -1,62 +1,66 @@
 from repoman_client.subcommand import SubCommand
-from repoman_client.client import RepomanClient, RepomanError
+from repoman_client.client import RepomanClient
+from repoman_client.exceptions import RepomanError, SubcommandFailure
 from repoman_client.config import config
 from repoman_client import display
+from repoman_client.logger import log
 import argparse
-from argparse import ArgumentParser
 import sys
-import logging
 
 class ListUsers(SubCommand):
-    command_group = "advanced"
     command = "list-users"
     alias = 'lu'
-    description = 'List user accounts on repoman'
+    description = 'List repoman users.'
 
-    def get_parser(self):
-        p = ArgumentParser(self.description)
-        p.add_argument('-l', '--long', action='store_true', default=False, help='display extra information')
-        p.add_argument('-g', '--group', help='only display users in GROUP')
-        return p
+    def __init__(self):
+        SubCommand.__init__(self)
 
-    def __call__(self, args, extra_args=None):
-        log = logging.getLogger('ListUsers')
-        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
-    
-        repo = RepomanClient(config.host, config.port, config.proxy)
-        if args.group:
-            kwargs = {'group':args.group}
-        else:
-            kwargs = {}
-            
-        log.debug("kwargs: '%s'" % kwargs)
+    def init_arg_parser(self):
+        group = self.get_arg_parser().add_mutually_exclusive_group()
+        group.add_argument('-l', '--long', action = 'store_true', default = False, help = 'Display a table with extra information.')
+        self.get_arg_parser().add_argument('-g', '--group', metavar = 'group', help = 'Only display users that belong to the given group.')
+        self.get_arg_parser().add_argument('user', metavar = 'user', nargs = '?', help = 'If given, information about this user only will be displayed.')
+        
 
+
+    def __call__(self, args):
         try:
-            users = repo.list_users(**kwargs)
-            display.display_user_list(users, long=args.long)
+            users = []
+            full_output = False
+            if args.user:
+                users.append(self.get_repoman_client(args).describe_user(args.user))
+                full_output = True
+            else:
+                users_urls = self.get_repoman_client(args).list_users(group = args.group)
+                # Fetch metadata for each user.
+                # TODO: Create a server method that will return the metadata
+                # of all users and use that instead. (Andre)
+                for user_url in users_urls:
+                    users.append(self.get_repoman_client(args).describe_user(user_url.rsplit('/',1)[-1]))
+
+            display.display_user_list(users, long_output=args.long, full_output=full_output)
         except RepomanError, e:
-            print e.message
-            sys.exit(1)
+            raise SubcommandFailure(self, 'Error listing user(s).', e)
 
 
 class ListGroups(SubCommand):
-    command_group = "advanced"
     command = "list-groups"
     alias = 'lg'
-    description = 'List existing user groups on the repository'
+    short_description = 'List user groups on the repoman repository.'
+    description = 'List user groups on the repoman repository.  By default, this command will only list groups that you belong to.'
 
-    def get_parser(self):
-        p = ArgumentParser(self.description)
-        p.add_argument('-l', '--long', action='store_true', default=False, help='display extra information')
-        p.add_argument('-a', '--all', help='Display all groups', action='store_true')
-        p.add_argument('-u', '--user', help='display group membership for USER')
-        return p
+    def __init__(self):
+        SubCommand.__init__(self)
 
-    def __call__(self, args, extra_args=None):
-        log = logging.getLogger('ListGroups')
-        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
-    
-        repo = RepomanClient(config.host, config.port, config.proxy)
+    def init_arg_parser(self):
+        group = self.get_arg_parser().add_mutually_exclusive_group()
+        group.add_argument('-l', '--long', action = 'store_true', default = False, help = 'Display extra information in a table.')
+        group2 = self.get_arg_parser().add_mutually_exclusive_group()
+        group2.add_argument('-a', '--all', action = 'store_true', default = False, help = 'Display all groups.')
+        group2.add_argument('-u', '--user', metavar = 'user', help = 'Display group membership for the given user.')
+        group2.add_argument('group', nargs = '?', help = 'If given, information about this group only will be displayed.')
+
+    def __call__(self, args):
         if args.all:
             kwargs = {'list_all':True}
         elif args.user:
@@ -64,101 +68,143 @@ class ListGroups(SubCommand):
         else:
             kwargs = {}
 
-        log.debug("kwargs: '%s'" % kwargs)
+        groups = []
+        full_output = False
 
         try:
-            groups = repo.list_groups(**kwargs)
-            display.display_group_list(groups, long=args.long)
+            if args.group:
+                groups.append(self.get_repoman_client(args).describe_group(args.group))
+                full_output = True
+            else:
+                groups_urls = self.get_repoman_client(args).list_groups(**kwargs)
+                # Fetch metadata for each group.
+                # TODO: Create a server method that will return the metadata
+                # of all groups and use that instead. (Andre)
+                for group_url in groups_urls:
+                    groups.append(self.get_repoman_client(args).describe_group(group_url.rsplit('/',1)[-1]))
+
+            display.display_group_list(groups, long_output=args.long, full_output=full_output)
         except RepomanError, e:
-            print e.message
-            sys.exit(1)
+            raise SubcommandFailure(self, 'Error listing group(s).', e)
 
 
 
 
 class ListImages(SubCommand):
-    command_group = "advanced"
     command = 'list-images'
     alias = 'li'
-    description = 'List a users images stored in the repository'
+    description = 'List images stored in the repository.  By default, only images owned by the current user are listed.'
+    # We need to override the usage else argparse will not formet the second
+    # mutually exclusive group correctly. (bug in argparse?)
+    usage = '%(prog)s [-o owner] [-l | -U] [-a | -g group | -u user | image]'
 
-    def get_parser(self):
-        p = ArgumentParser(self.description)
-        p.formatter_class = argparse.RawDescriptionHelpFormatter
-        p.add_argument('-a', '--all', action='store_true', default=False,
-                       help="Display all images")
-        p.add_argument('-l', '--long', action='store_true', default=False,
-                       help='Display extra information for each image')
-        p.add_argument('--sharedwith', action='store_true', default=False,
-                       help='modifier flag.  See epilog for examples.')
-        g = p.add_mutually_exclusive_group()
-        g.add_argument('-u', '--user', help='List images owned by USER')
-        g.add_argument('-g', '--group', help="List images shared with GROUP.")
-        p.epilog = """\
-Example Usages:
+    def __init__(self):
+        SubCommand.__init__(self)
 
-    repoman list
-        list the current users images
+    def init_arg_parser(self):
+        # This argument should be on its own, outside of the 2 mutually exclusive groups
+        # defined below.
+        # Note that adding this argument causes the second mutually exclusive
+        # group to be broken up. Bug in argparse?  Maybe...
+        self.get_arg_parser().add_argument('-o', '--owner', metavar = 'owner', help='The owner of the given image.  The default is the ID of the current repoman user which can be determined with the "repoman whoami" command.  This option is only used if an image is given as argument.')
 
-    repoman list --sharedwith
-        list all images shared with the current user
+        # First mutually exclusive group
+        group = self.get_arg_parser().add_mutually_exclusive_group()
+        group.add_argument('-l', '--long',  action = 'store_true', default = False, help = 'List images, together with additional information, in a table.')
+        group.add_argument('-U', '--url', action = 'store_true', default = False, help = 'List images and associated URLs.')
 
-    repoman list --user bob
-        list all images owned by the user 'bob'
+        # Second mutually exclusive group
+        group2 = self.get_arg_parser().add_mutually_exclusive_group()
+        group2.add_argument('-a', '--all', action = 'store_true', default = False, help = 'List all images accessible by you.')
+        group2.add_argument('-g', '--group', metavar = 'group', help = 'List all images shared between you and the named group.')
+        group2.add_argument('-u', '--user', metavar = 'user', help = 'List all images shared between you and the named user.')
+        group2.add_argument('image', nargs = '?', help = 'If given, information about this image only will be displayed.')
 
-    repoman list --sharedwith --user bob
-        list all images shared with the user 'bob'
 
-    repoman list --group babar
-        list all images accessible by members of the 'babar' group
-
-    repoman list --sharedwith --group babar
-        has the same effect as the previous example."""
-
-        return p
-
-    def __call__(self, args, extra_args=None):
-        log = logging.getLogger('ListImages')
-        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
-    
-        #TODO: impliment sharedwith calls
-        repo = RepomanClient(config.host, config.port, config.proxy)
-        if args.all:
-            func = repo.list_all_images
-            kwargs = {}
-        elif args.group and not args.user:
-            func = repo.list_images_shared_with_group
-            kwargs = {'group':args.group}
-        elif args.user and not args.group:
-            if args.sharedwith:
-                func = repo.list_images_shared_with_user
-                kwargs = {'user':args.user}
-            else:
-                func = repo.list_user_images
-                kwargs = {'user':args.user}
-        else:
-            if args.sharedwith:
-                # shared with you
-                func = repo.list_images_shared_with_user
-                kwargs = {}
-            else:
-                func = repo.list_current_user_images
-                kwargs = {}
-
-        log.debug("function: '%s'" % func)
-        log.debug("kwargs: '%s'" % kwargs)
+    def __call__(self, args):
+        #
+        # TODO: We need to implement some smarter server-side image listing
+        # commands and then cleanup this method to use these new functions.
+        # (Andre)
+        #
+        images = []
+        images_metadata = []
+        full_output = False
 
         try:
-            images = func(**kwargs)
-            display.display_image_list(images, long=args.long)
+            if args.image:
+                image_name = args.image
+                full_output = True
+                if args.owner:
+                    image_name = "%s/%s" % (args.owner, args.image)
+                log.debug('Fetching info of single image "%s"' % (image_name))
+                images_metadata.append(self.get_repoman_client(args).describe_image(image_name))
+            else:
+                if args.all:
+                    # List images that the user has access to.
+                    # (either via ownership, or shared by user or group membership.)
+                    # For a repoman admin, this will be all images on the server.
+                    #func = repo.list_all_images
+                    log.debug('Listing all images...')
+                    kwargs = {}
+                    images = self.get_repoman_client(args).list_current_user_images(**kwargs)
+                    images += self.get_repoman_client(args).list_images_shared_with_user(**kwargs)
+                elif args.group:
+                    # List images accessible by you and by members of the named group.
+                    # First check if the user is a member of the group.  If not, then
+                    # return an empty list.
+                    log.debug('Listing all images for group "%s"' % (args.group))
+                    kwargs = {'group':args.group}
+                    groups = self.get_repoman_client(args).whoami()['groups']
+                    for group in groups:
+                        if group.split('/')[-1] == args.group:
+                            images = self.get_repoman_client(args).list_images_shared_with_group(**kwargs)
+                elif args.user:
+                    log.debug('Listing all current user\'s images shared with user %s' % (args.user))
+                    current_user = self.get_repoman_client(args).whoami()['user_name']
+                    # List all current user's images shared with the given user, AND all of the
+                    # given user's images shared with the current user.
+                    kwargs = {'user':args.user}
+                    all_images_shared_with_given_user = self.get_repoman_client(args).list_images_shared_with_user(**kwargs)
+                    for image in all_images_shared_with_given_user:
+                        if image.split('/')[-2] == current_user:
+                            images.append(image)
+
+                    kwargs = {'user':current_user}
+                    all_images_shared_with_me = self.get_repoman_client(args).list_images_shared_with_user(**kwargs)
+                    for image in all_images_shared_with_me:
+                        if image.split('/')[-2] == args.user:
+                            images.append(image)
+
+                else:
+                    # List only images owned by current user.
+                    log.debug('Listing images owned by current user.')
+                    kwargs = {}
+                    images = self.get_repoman_client(args).list_current_user_images(**kwargs)
+
+                # Get the metadata of each image.
+                # TODO: This is a non-efficient hack that will be cleaned-up later. (Andre)
+                log.debug('Images:\n%s\n' % (images))
+                for image in images:
+                    try:
+                        name = image.rsplit('/', 2)
+                        log.debug('Fetching image metadata for "%s" [%s]' % (image, name))
+                        images_metadata.append(self.get_repoman_client(args).describe_image("%s/%s" % (name[-2], name[-1])))
+                    except RepomanError, e:
+                        print "Warning: Error in retreiving information about image '%s'.  Skipping..." % (image)
+                    except Exception, e:
+                        raise RepomanError(self, "Error in retreiving information about image '%s'." % (image), e)
+
         except RepomanError, e:
-            print e.message
-            sys.exit(1)
+            raise SubcommandFailure(self, 'Error listing image(s).', e)
 
+        # Remove duplicates first
+        images_metadata_dedup = []
+        for i in images_metadata:
+            if i not in images_metadata_dedup:
+                images_metadata_dedup.append(i)
 
-class List(ListImages):
-    # Subclassed from ListImages because it's the same command.
-    command_group = None
-    command = "list"
+        display.display_image_list(images_metadata_dedup, long_output=args.long, full_output=full_output, urls=args.url)
+
 
 

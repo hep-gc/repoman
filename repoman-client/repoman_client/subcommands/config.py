@@ -1,21 +1,20 @@
+import sys
 import ConfigParser
 from repoman_client.subcommand import SubCommand
 from repoman_client.config import config
-from argparse import ArgumentParser
 
 class MakeConfig(SubCommand):
-    validate_config = False
     command = 'make-config'
     alias = 'mc'
-    description = 'Generate a configuration file'
+    description = 'Create a repoman client configuration file under your home directory.'
 
-    def get_parser(self):
-        p = ArgumentParser(self.description)
-        return p
+    def __init__(self):
+        SubCommand.__init__(self)
 
-    def __call__(self, args, extra_args=None):
-        print "Generating new default configuration file"
-        config.generate_config()
-        print "Customization can be done be editing '%s'" % config.config_file
+    def init_arg_parser(self):
+        self.get_arg_parser().add_argument('--stdout', action='store_true', help = 'Send the configuration to stdout instead of writing it to a file under the current user\'s home directory.')
 
 
+    def __call__(self, args):
+        config.generate_config(args)
+            

@@ -1,65 +1,66 @@
 from repoman_client.subcommand import SubCommand
-from repoman_client.client import RepomanClient, RepomanError
+from repoman_client.client import RepomanClient
+from repoman_client.exceptions import RepomanError, SubcommandFailure
 from repoman_client.config import config
-from repoman_client.parsers import parse_unknown_args, ArgumentFormatError
 from repoman_client.utils import yes_or_no
 from repoman_client import imageutils
-from argparse import ArgumentParser
 import sys
 import logging
 
 
 class UploadImage(SubCommand):
-    command_group = 'advanced'
-    command = 'upload-image'
-    alias = 'up'
-    description = 'Upload an image file to the repository at an existing location'
+    command = 'put-image'
+    alias = 'pi'
+    description = 'Upload an image file from local disk space to the repoman repository and associate it with an existing image-slot.'
 
-    def get_parser(self):
-        p = ArgumentParser(self.description)
-        p.add_argument('image', help='The image you want to upload to')
-        p.add_argument('--file', help='Path to the image you are uploading')
-        return p
+    def __init__(self):
+        SubCommand.__init__(self)
 
-    def __call__(self, args, extra_args=None):
-        log = logging.getLogger('UploadImage')
-        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
-    
-        repo = RepomanClient(config.host, config.port, config.proxy)
+    def init_arg_parser(self):
+        self.get_arg_parser().add_argument('file', help = 'The local image file to upload to the repository.')
+        self.get_arg_parser().add_argument('-f', '--force', action='store_true', default=False, help='Overwrite destination image (if present) without confirmation.')
+        self.get_arg_parser().add_argument('image', help = 'The name of the image slot to be used.  Use "repoman list-images" to see possible values.')
+        self.get_arg_parser().add_argument('-o', '--owner', metavar = 'user', help = 'The owner of the named image.  The default is the ID of the current repoman user whih can be determined with the "repoman whoami" command.')
+
+    def __call__(self, args):
         try:
-            repo.upload_image(args.image, args.file)
+            image_name = args.image
+            if args.owner:
+                image_name = "%s/%s" % (args.owner, args.image)
+
+            # Check if destination image already contains an image.
+            image = self.get_repoman_client(args).describe_image(image_name)
+            if image['raw_file_uploaded'] == True and not args.force:
+                if not yes_or_no("Image '%s' already contains an image file.  Overwrite? [yes]/[n]o:" % (args.image)):
+                    return
+            print "Uploading %s to image '%s'..." % (args.file, args.image)
+            self.get_repoman_client(args).upload_image(image_name, args.file)
+            print "[OK]     %s uploaded to image '%s'" % (args.file, args.image)
         except RepomanError, e:
-            print e
-            sys.exit(1)
+            raise SubcommandFailure(self, "Could not upload %s to image '%s'..." % (args.file, args.image), e)
 
 
 class DownloadImage(SubCommand):
-    command_group = 'advanced'
-    command = 'download-image'
-    alias = 'down'
-    description = 'Download the specified image file'
+    command = 'get-image'
+    alias = 'gi'
+    description = 'Download an image from the repository to the specified path.'
 
-    def get_parser(self):
-        p = ArgumentParser(self.description)
-        p.add_argument('image')
-        p.add_argument('-d', '--dest', metavar='PATH',
-                       help='Optional destination to save image to.')
-        return p
+    def __init__(self):
+        SubCommand.__init__(self)
 
-    def __call__(self, args, extra_args=None):
-        log = logging.getLogger('DownloadImage')
-        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
-    
-        repo = RepomanClient(config.host, config.port, config.proxy)
+    def init_arg_parser(self):
+        self.get_arg_parser().add_argument('image', help = 'The image to download.  Use "repoman list-images" to see possible values.') 
+        self.get_arg_parser().add_argument('-o', '--owner', metavar = 'user', help = 'The owner of the named image.  The default is the ID of the current repoman user which can be determined with the "repoman whoami" command.')
+        self.get_arg_parser().add_argument('-p', '--path', metavar = 'path', help = 'The destination of the downloaded image.  If omitted, the image is downloaded to a file with the same name as the image into your current working directory.')
+
+    def __call__(self, args):
         try:
-            repo.download_image(args.image, args.dest)
+            image_name = args.image
+            if args.owner:
+                image_name = "%s/%s" % (args.owner, args.image)
+            print "Downloading image '%s'..." % (args.image)
+            self.get_repoman_client(args).download_image(image_name, args.path)
+            print "[OK]     Image %s downloaded." % (args.image)
         except RepomanError, e:
-            print e
-            sys.exit(1)
-
-
-class Get(DownloadImage):
-    command_group = None
-    command = 'get'
-    alias = None
+            raise SubcommandFailure(self, "Could not download image '%s'..." % (args.image), e)
 

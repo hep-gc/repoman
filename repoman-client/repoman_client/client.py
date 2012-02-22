@@ -1,57 +1,29 @@
+import sys, os, time, errno
+from repoman_client.logger import log
 from repoman_client.config import config
 from repoman_client import imageutils
-import simplejson
+from repoman_client.exceptions import RepomanError, FormattingError, ProxyExpiredError, ProxyNotFoundError
+import pprint
+if sys.version_info < (2, 6):
+    try:
+        import simplejson as json
+    except:
+        raise "Please install the simplejson lib for python 2.4 or 2.5"
+else:
+    import json
+
 import httplib
 import urllib
 import socket
 import subprocess
-#import ssl
-import sys, os, time
-import logging
 
-log = logging.getLogger('client')
+# Note: the following module is not available in python 2.4
+#import ssl
 
 
 HEADERS = {"Content-type":"application/x-www-form-urlencoded", "Accept": "*"}
 
 
-class RepomanError(Exception):
-    def __init__(self, message, resp):
-        self.resp = resp            # Origonal response
-        self.message = message      # User friendly message
-        self.exit = True            # Should the client abort on this error?
-        self.status = None
-        if resp:
-            try:
-                self.status = resp.status
-            except:
-                pass
-
-    def __str__(self):
-        return self.message
-
-    def __repr__(self):
-        return str(self)
-
-
-class FormattingError(RepomanError):
-    def __init__(self, message, body=None, format='json', resp=None):
-        self.format = format
-        self.body = body
-        self.resp = resp
-        self.message = message
-        self.status = None
-        if resp:
-            try:
-                self.status = resp.status
-            except:
-                pass
-
-    def __str__(self):
-        return self.message
-
-    def __repr__(self):
-        return str(self)
 
 
 class RepomanResponse(object):
@@ -88,26 +60,25 @@ class RepomanClient(object):
             raise(e)
         except httplib.InvalidURL, e:
             log.error("%s" % e)
-            print "Invlaid port number"
-            sys.exit(1)
+            raise RepomanError("Invalid port number")
         except httplib.HTTPException, e:
             log.error("%s" % e)
             print 'httpexception'
         except socket.gaierror, e:
             log.error("%s", e)
-            print 'Unable to connect to server.  Check Host and port \n\t\t %s' % e
-            sys.exit(1)
+            raise RepomanError('Unable to connect to server.  Check Host and port \n\t\t %s' % e)
 #        except socket.error, e:
-#            print 'Unable to connect to server.  Is the server running?\n\t%s' % e
-#            sys.exit(1)
+#            raise RepomanError('Unable to connect to server.  Is the server running?\n\t%s' % e)
 #        except ssl.SSLError, e:
-#            print "An error has occurred within open ssl."
-#            print str(e)
-#            sys.exit(1)
+#            pass
         except Exception, e:
             log.error("%s", e)
-            print "Unknown error has occurred. \n\t\t %s" % e
-            sys.exit(1)
+            if str(e).find('SSL_CTX_use_PrivateKey_file') and not os.path.exists(self.PROXY):
+                raise ProxyNotFoundError('Certificate proxy not found: %s\nPlease create a certificate proxy and try again.' % (self.PROXY))
+            elif str(e).find('certificate expired') != -1:
+                raise ProxyExpiredError('Your certificate proxy has expired.\nPlease generate a new one and try again.')
+            else:
+                raise RepomanError("Unknown error has occurred. \n\t\t %s" % e)
 
 
     def _check_response(self, resp):
@@ -136,7 +107,7 @@ class RepomanClient(object):
                        "process your request.  If problem persists, seek asistance.")
         elif resp.status == httplib.NOT_IMPLEMENTED:
             # 501
-            message = ("The requested functionality has yet to be implimented by the server")
+            message = ("The requested functionality has yet to be implemented by the server")
         else:
             # Generic error message
             message = ("Response from server cannot be handled by this client.\n\n"
@@ -160,7 +131,7 @@ class RepomanClient(object):
         body = resp.read()
         log.debug("Message body from server: '%s'" % body)
         try:
-            return simplejson.loads(body)
+            return json.loads(body)
         except:
             message = "Unable to parse response."
             raise FormattingError(message, body)
@@ -310,6 +281,15 @@ class RepomanClient(object):
             log.info("Image slot does not yet exist.")
             raise RepomanError('Image does not yet exist.  Create an image before uploading to it', resp)
 
+        # Check if the source is a directory.  If it is, then raise an
+        # exception.
+        if os.path.isdir(image_file):
+            raise RepomanError('Specified source is a directory: %s\nSource must be a file.' % (image_file))
+           
+        # Check if the source file exists.
+        if not os.path.exists(image_file):
+            raise RepomanError('Specified source not found: %s' % (image_file))
+            
         url = 'https://' + config.host + '/api/images/raw/%s' % image
         try:
             if gzip:
@@ -334,7 +314,7 @@ class RepomanClient(object):
             log.info("Command complete")
         except Exception, e:
             log.error("%s" % e)
-            print e
+            raise RepomanError(str(e))
 
     def download_image(self, image, dest=None):
         if not dest:
@@ -345,6 +325,18 @@ class RepomanClient(object):
         log.info("Checking to see if image slot exists on repository before download")
         resp = self._get('/api/images/%s' % image)
 
+        # Check to make sure destination is not an existing directory.
+        if os.path.isdir(dest):
+            raise RepomanError('Cannot create %s.  Specified destination already exist and is a directory.' % (dest))
+
+        # If the destination already exists, make sure we can overwrite it.
+        if os.path.isfile(dest):
+            try:
+                fp = open(dest, 'w')
+            except IOError, e:
+                if e.errno == errno.EACCES:
+                    raise RepomanError('Cannot overwrite %s.  Specified destination already exist and you don\'t have permissions to write to it.' % (dest))
+            
         url = 'https://' + config.host + '/api/images/raw/%s' % image
         log.info("Downloading image From:'%s' To:'%s'" % (url, dest))
         try:

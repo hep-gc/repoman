@@ -1,59 +1,50 @@
 from repoman_client.subcommand import SubCommand
-from repoman_client.client import RepomanClient, RepomanError
+from repoman_client.client import RepomanClient
+from repoman_client.exceptions import RepomanError, SubcommandFailure
 from repoman_client.config import config
-from argparse import ArgumentParser
 import logging
 
 
 class AddUserToGroup(SubCommand):
-    command_group = 'advanced'
     command = 'add-users-to-group'
-    alias = 'autg'
-    description = 'Add make specifed users members of a group'
+    alias = 'aug'
+    description = 'Add specifed users to a group.'
 
-    def get_parser(self):
-        p = ArgumentParser(self.description)
-        p.add_argument('group', help='group to add users to')
-        p.add_argument('-u', '--users', nargs='+', metavar='USER', help='users to add')
-        return p
+    def __init__(self):
+        SubCommand.__init__(self)
 
-    def __call__(self, args, extra_args=None):
-        log = logging.getLogger('AddUserToGroup')
-        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
-        
-        repo = RepomanClient(config.host, config.port, config.proxy)
+    def init_arg_parser(self):
+        self.get_arg_parser().add_argument('group', help = 'The group to add the specified user(s) to.')
+        self.get_arg_parser().add_argument('users', metavar = 'user', nargs = '+', help = 'The user(s) to add to the group.')
+
+    def __call__(self, args):
         for user in args.users:
             status = "Adding user: `%s` to group: '%s'\t\t" % (user, args.group)
             try:
-                repo.add_user_to_group(user, args.group)
+                self.get_repoman_client(args).add_user_to_group(user, args.group)
                 print '[OK]     %s' % status
             except RepomanError, e:
-                print '[FAILED] %s\n\t-%s' % (status, e.message)
+                raise SubcommandFailure(self, "Could not add user: `%s` to group: '%s'" % (user, args.group), e)
 
 
 
 class RemoveUserFromGroup(SubCommand):
-    command_group = 'advanced'
     command = 'remove-users-from-group'
-    alias = 'rufg'
-    description = 'Remove specifed users from group'
+    alias = 'rug'
+    description = 'Remove specifed users from a group.'
 
-    def get_parser(self):
-        p = ArgumentParser(self.description)
-        p.add_argument('group', help='group to add users to')
-        p.add_argument('-u', '--users', nargs='+', metavar='USER', help='users to add')
-        return p
+    def __init__(self):
+        SubCommand.__init__(self)
 
-    def __call__(self, args, extra_args=None):
-        log = logging.getLogger('RemoveUserFromGroup')
-        log.debug("args: '%s' extra_args: '%s'" % (args, extra_args))
-        
-        repo = RepomanClient(config.host, config.port, config.proxy)
+    def init_arg_parser(self):
+        self.get_arg_parser().add_argument('group', help = 'The group to remove the specified user(s) from.')
+        self.get_arg_parser().add_argument('users', metavar = 'user', nargs = '+', help = 'The user(s) to remove from the group.')
+
+    def __call__(self, args):
         for user in args.users:
             status = "Removing user: `%s` from  group: '%s'\t\t" % (user, args.group)
             try:
-                repo.remove_user_from_group(user, args.group)
+                self.get_repoman_client(args).remove_user_from_group(user, args.group)
                 print '[OK]     %s' % status
             except RepomanError, e:
-                print '[FAILED] %s\n\t-%s' % (status, e.message)
-
+                raise SubcommandFailure(self, "Could not remove user: `%s` from  group: '%s'" % (user, args.group), e)

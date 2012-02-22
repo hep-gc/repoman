@@ -1,4 +1,5 @@
 import os, sys
+import subprocess
 
 def yes_or_no(message="Confirm deletion [yes]/[n]o: "):
     answer = raw_input(message)
@@ -15,12 +16,8 @@ def yes_or_no(message="Confirm deletion [yes]/[n]o: "):
         return False
 
 
-
-def check_sudo(exit=False):
-    # if uid = 0, return true
-    if os.getuid() == 0:
-        return True
-    if exit:
-        print "Error.  This command requires root privlidges, try again with sudo."
-        sys.exit(1)
-    return False
+def get_userid():
+    user_id = os.environ.get('SUDO_UID')
+    if not user_id:
+        user_id = os.getuid()
+    return user_id
