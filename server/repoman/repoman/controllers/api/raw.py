@@ -55,7 +55,7 @@ class RawController(BaseController):
             if hypervisor == None:
                 hypervisor = image.hypervisor
 
-            file_path = path.join(app_globals.image_storage, '%s_%s_%s' % (user, hypervisor, image.name))
+            file_path = path.join(app_globals.image_storage, '%s_%s_%s' % (user, image.name, hypervisor))
 
             # Check if file actually exists
             if not path.exists(file_path):
@@ -67,7 +67,7 @@ class RawController(BaseController):
             except Exception, e:
             	abort(500, '500 Internal Error')
 
-            etag_cache(str(('%s_%s_%s' % (user, hypervisor, image.name)) + '_' + str(image.version)))
+            etag_cache(str(('%s_%s_%s' % (user, image.name, hypervisor)) + '_' + str(image.version)))
 
             image_file = open(file_path, 'rb')
 

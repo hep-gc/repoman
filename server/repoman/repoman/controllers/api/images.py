@@ -62,7 +62,7 @@ class ImagesController(BaseController):
                     # Save a copy for each supported hypervisors.
                     file_names = []
                     for h in hypervisors:
-                        file_name = '%s_%s_%s' % (user, h, image.name)
+                        file_name = '%s_%s_%s' % (user, image.name, h)
                         file_names.append(file_name)
                         final_path = path.join(app_globals.image_storage, file_name)
                         shutil.copy2(image_file, final_path)
@@ -83,7 +83,7 @@ class ImagesController(BaseController):
                 # updated.
                 if len(hypervisors) > 1:
                     image.checksum.cvalue = None # Reset to no checksum for now...
-                    image.size = path.getsize(path.join(app_globals.image_storage, '%s_%s_%s' % (user, hypervisors[0], image.name)))
+                    image.size = path.getsize(path.join(app_globals.image_storage, '%s_%s_%s' % (user, image.name, hypervisors[0])))
                 else:
                     image.checksum.cvalue = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_HASH')
                     image.size = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_LENGTH')
@@ -221,7 +221,7 @@ class ImagesController(BaseController):
             for hypervisor in image.hypervisor.split(','):
                 try:
                     temp_file = request.params['file']
-                    file_name = '%s_%s_%s' % (user, image.hypervisor, image.name)
+                    file_name = '%s_%s_%s' % (user, image.name, image.hypervisor)
                     file_names.append(file_name)
                     temp_storage = file_name + '.tmp'
                     final_path = path.join(app_globals.image_storage, file_name)
@@ -248,7 +248,7 @@ class ImagesController(BaseController):
             # updated.
             if len(image.hypervisor.split(',')) > 1:
                 image.checksum.cvalue = None # Reset to no checksum for now...
-                image.size = path.getsize(path.join(app_globals.image_storage, '%s_%s_%s' % (user, hypervisors[0], image.name)))
+                image.size = path.getsize(path.join(app_globals.image_storage, '%s_%s_%s' % (user, image.name, hypervisors[0])))
             else:
                 image.checksum.cvalue = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_HASH')
                 image.size = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_LENGTH')
