@@ -25,6 +25,10 @@ from time import time
 from datetime import datetime
 from os import path, remove, rename
 import shutil
+import tempfile
+import subprocess
+import re
+import os
 ###
 
 log = logging.getLogger(__name__)
@@ -75,20 +79,31 @@ class ImagesController(BaseController):
                 # If image supports multiple hypervisors, mount each of the images and
                 # set the grub.conf symlink accordingly.
                 if len(hypervisors) > 1:
-                    # TODO
-                    pass
+                    for hypervisor in hypervisors:
+                        try:
+                            image_path = path.join(app_globals.image_storage, '%s_%s_%s' % (user, image.name, hypervisor))
+                            # Mount image
+                            mountpoint = self.mount_image(image_path)
+                            # Create symlink
+                            cmd = "ln -sf %s/boot/grub/grub.conf-%s %s/boot/grub/grub.conf" % (mountpoint, hypervisor)
+                            if subprocess.Popen(cmd, shell=True).wait():
+                                raise Exception("Unable to create grub.conf symlink for image %s" % (image_path))
+                            finally:
+                                # Unmount image
+                                self.unmount_image(image_path, True)
+
+                image.checksum.cvalue = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_HASH')
+                image.checksum.ctype = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_HASH_TYPE')
+                image.size = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_LENGTH')
 
                 # IMPORTANT:
-                # Don't forget to update the image's size and hash also after the symlink has been
-                # updated.
+                # If we created a grub.conf symlink in the image, don't forget to update the image's 
+                # hash also after the symlink has been updated.
                 if len(hypervisors) > 1:
                     image.checksum.cvalue = None # Reset to no checksum for now...
-                    image.size = path.getsize(path.join(app_globals.image_storage, '%s_%s_%s' % (user, image.name, hypervisors[0])))
-                else:
-                    image.checksum.cvalue = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_HASH')
-                    image.size = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_LENGTH')
+                    # TODO
 
-                image.checksum.ctype = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_HASH_TYPE')
+
                 image.raw_uploaded = True
                 image.uploaded = datetime.utcfromtimestamp(time())
                 image.path = ';'.join(file_names) # For multi-hypervisor images, this will be ';' delimited
@@ -218,10 +233,11 @@ class ImagesController(BaseController):
         if image:
             inline_auth(OwnsImage(image), auth_403)
             file_names = []
-            for hypervisor in image.hypervisor.split(','):
+            hypervisors = image.hypervisor.split(',')
+            for hypervisor in hypervisors:
                 try:
                     temp_file = request.params['file']
-                    file_name = '%s_%s_%s' % (user, image.name, image.hypervisor)
+                    file_name = '%s_%s_%s' % (user, image.name, hypervisor)
                     file_names.append(file_name)
                     temp_storage = file_name + '.tmp'
                     final_path = path.join(app_globals.image_storage, file_name)
@@ -239,20 +255,29 @@ class ImagesController(BaseController):
             # If image supports multiple hypervisors, mount each of the images and
             # set the grub.conf symlink accordingly.
             #
-            if len(image.hypervisor.split(',')) > 1:
-                # TODO
-                pass
+            if len(hypervisors) > 1:
+                for hypervisor in hypervisors:
+                    try:
+                        image_path = path.join(app_globals.image_storage, '%s_%s_%s' % (user, image.name, hypervisor))
+                        # Mount image
+                        mountpoint = self.mount_image(image_path)
+                        # Create symlink
+                        cmd = "ln -sf %s/boot/grub/grub.conf-%s %s/boot/grub/grub.conf" % (mountpoint, hypervisor)
+                        if subprocess.Popen(cmd, shell=True).wait():
+                            raise Exception("Unable to create grub.conf symlink for image %s" % (image_path))
+                        finally:
+                            # Unmount image
+                            self.unmount_image(image_path, True)
+
+            image.checksum.cvalue = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_HASH')
+            image.size = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_LENGTH')
 
             # IMPORTANT:
-            # Don't forget to update the image's size and hash also after the symlink has been
-            # updated.
-            if len(image.hypervisor.split(',')) > 1:
+            # If we created a grub.conf symlink in the image, don't forget to update the image's 
+            # hash also after the symlink has been updated.
+            if len(hypervisors) > 1:
                 image.checksum.cvalue = None # Reset to no checksum for now...
-                image.size = path.getsize(path.join(app_globals.image_storage, '%s_%s_%s' % (user, image.name, hypervisors[0])))
-            else:
-                image.checksum.cvalue = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_HASH')
-                image.size = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_LENGTH')
-
+                # TODO
 
             # No update of size and/or checksum?  TODO: Investigate... (Andre)
             image.raw_uploaded = True
@@ -272,7 +297,6 @@ class ImagesController(BaseController):
         image = image_q.filter(Image.name==image)\
                        .filter(Image.owner.has(User.user_name==user))\
                        .first()
-        log.info('TADA!')
         
         if image:
             inline_auth(AnyOf(OwnsImage(image), SharedWith(image)), auth_403)
@@ -415,3 +439,71 @@ class ImagesController(BaseController):
         response.status = ("201 Object created.  upload raw file to 'Location'")
         return h.render_json(beautify.image(new_image))
 
+
+    def mount_image(self, imagepath, mountpoint = None):
+        """
+        This method will mount a partitioned image.
+        It will first create a device map using kpartx, and
+        then mount that device map to the given mountpoint.
+        If no mountpoint is given, a temporary directory will be
+        created and used as mountpoint.  It is up to the caller
+        to clean up any temporary directory created by this method.
+        Returns: mountpoint
+        """
+        if mountpoint == None:
+            mountpoint = tempfile.mkdtemp()
+        if not os.path.exists(mountpoint):
+            log.debug("Creating mount point")
+            os.makedirs(mountpoint)
+        device_map = self.create_device_map(imagepath)
+        cmd = "mount %s %s" % (device_map, mountpoint)
+        log.debug("running [%s]" % (cmd))
+        if subprocess.Popen(cmd, shell=True).wait():
+            raise Exception("Unable to Mount image")
+        log.debug("Image mounted: '%s'" % cmd)
+        return mountpoint
+            
+    def umount_image(self, mountpoint, delete_mountpoint = False):
+        cmd = "umount %s" % mountpoint
+        if subprocess.Popen(cmd, shell=True).wait():
+            raise Exception("Unable to unmount image")
+        log.debug("Image unmounted: '%s'" % cmd)
+        log.debug("Deleting device map for image mounted at %s" % (mountpoint))
+        self.delete_device_map(mountpoint)
+        if delete_mountpoint:
+            log.debug("Deleting mountpoint %s" % (mountpoint))
+            os.rmdir(mountpoint)
+
+    def create_device_map(self, path):
+        cmd = "kpartx -av %s" % (path)
+        log.debug("Creating device map for %s" % (path))
+        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        if not p:
+            log.error("Error calling: %s" % (cmd))
+            raise Exception("Error creating device map.")
+        stdout = p.communicate()[0]
+        log.debug("[%s] output:\n%s" % (cmd, stdout))
+        if p.returncode != 0:
+            log.error("Device map creation command returned error: %d" % (p.returncode))
+            raise Exception("Error creating device map.")
+        # Search the output to extract the location of the new device map
+        m = re.search('^add map (\w+) .+$', stdout, flags=re.M)
+        if not m:
+            log.error("Error extracting location of new device map from:\n%s" % (stdout))
+            raise Exception("Error extracting location of new device map.")
+        log.debug("Device map created for %s" % (path))
+        return '/dev/mapper/%s' % (m.group(1))
+
+    def delete_device_map(self, path):
+        cmd = "kpartx -d %s" % (path)
+        log.debug("Deleting device map for %s" % (path))
+        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        if not p:
+            log.error("Error calling: %s" % (cmd))
+            raise Exception("Error deleting device map.")
+        stdout = p.communicate()[0]
+        log.debug("[%s] output:\n%s" % (cmd, stdout))
+        if p.returncode != 0:
+            log.error("Error deleting device map for %s" % (path))
+            raise Exception("Error deleting device map.")
+        log.debug("Device map deleted for %s" % (path))
