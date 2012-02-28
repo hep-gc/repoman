@@ -88,9 +88,9 @@ class ImagesController(BaseController):
                             cmd = "ln -sf %s/boot/grub/grub.conf-%s %s/boot/grub/grub.conf" % (mountpoint, hypervisor)
                             if subprocess.Popen(cmd, shell=True).wait():
                                 raise Exception("Unable to create grub.conf symlink for image %s" % (image_path))
-                            finally:
-                                # Unmount image
-                                self.unmount_image(image_path, True)
+                        finally:
+                            # Unmount image
+                            self.unmount_image(image_path, True)
 
                 image.checksum.cvalue = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_HASH')
                 image.checksum.ctype = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_HASH_TYPE')
