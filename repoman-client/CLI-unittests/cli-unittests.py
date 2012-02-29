@@ -212,17 +212,17 @@ class CreateImageTest(RepomanCLITest):
 	
     # Test the optional parameter '--os_arch'
     # For this test, a random operating system architecture ('x86') is selected
-    def test_os_arch(self):
+    def test_create_image_os_arch(self):
 	CreateImageTest.CreateImage(self, '--os_arch x86')	
 
     # Test the optional parameter '--os_type'
     # For this test, a random operating system type ('linux') is selected
-    def test_os_type(self):
+    def test_create_image_os_type(self):
         CreateImageTest.CreateImage(self, '--os_type linux')
 
     # Test the optional parameter '--os_variant'
     # For this test, a random operating system type ('ubuntu') is selected
-    def test_os_variant(self):
+    def test_create_image_os_variant(self):
         CreateImageTest.CreateImage(self, '--os_variant ubuntu')
 
 
