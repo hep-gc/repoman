@@ -6,6 +6,11 @@ from repoman.model.meta import Base
 from repoman.model.associations import imageshare_user_association
 from repoman.model.associations import imageshare_group_association
 from repoman.model.checksum import Checksum
+from pylons import app_globals
+import os
+import logging
+
+log = logging.getLogger(__name__)
 
 class Image(Base):
     __tablename__ = "image"
@@ -60,6 +65,16 @@ class Image(Base):
     def __init__(self):
         self.checksum = Checksum()
         self.shared = ImageShare()
+
+    def delete_image_files(self):
+        for hypervisor in self.hypervisor.split(','):
+            try:
+                path = os.path.join(app_globals.image_storage, 
+                                    '%s_%s_%s' % (self.owner.user_name, self.name, hypervisor))
+                os.remove(path)
+                log.debug("Image file %s deleted." % (path))
+            except Exception, e:
+                log.error("Error deleting image file(s) for %s\n%s" % (self.name, e))
 
 
 

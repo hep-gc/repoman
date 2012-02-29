@@ -86,7 +86,7 @@ class ImagesController(BaseController):
                             image_path = path.join(app_globals.image_storage, '%s_%s_%s' % (user, image.name, hypervisor))
                             self.create_grub_symlink(image_path, hypervisor)
                         except Exception, e:
-                            pass
+                            abort(500, '500 Internal Error - Error creating grub symlinks for image %s\n%s' % (image.name, e))
 
                 image.checksum.cvalue = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_HASH')
                 image.checksum.ctype = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_HASH_TYPE')
@@ -258,7 +258,7 @@ class ImagesController(BaseController):
                         image_path = path.join(app_globals.image_storage, '%s_%s_%s' % (user, image.name, hypervisor))
                         self.create_grub_symlink(image_path, hypervisor)
                     except Exception, e:
-                        pass
+                        abort(500, '500 Internal Error - Error creating grub symlinks for image %s\n%s' % (image.name, e))
 
 
             image.checksum.cvalue = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_HASH')
@@ -342,7 +342,7 @@ class ImagesController(BaseController):
             inline_auth(AnyOf(OwnsImage(image), HasPermission('image_delete')), auth_403)
             if image.raw_uploaded:
                 try:
-                    storage.delete_image(image)
+                    image.delete_image_files()
                 except Exception, e:
                     abort(500, 'Unable to remove image file from storage')
             meta.Session.delete(image.checksum)
@@ -437,10 +437,11 @@ class ImagesController(BaseController):
         log.debug("Creating grub.conf symlink on %s" % (imagepath))
         cmd = "guestfish -a %s -i ln-sf /boot/grub/grub.conf-%s /boot/grub/grub.conf" % (imagepath, hypervisor)
         log.debug("Symlink creation command: %s" % (cmd))
-        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        if not p:
-            log.error("Error calling: %s" % (cmd))
-            raise Exception("Error creating grub.conf symlink on %s" % (imagepath))
+        try:
+            p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        except OSError, e:
+            log.error("Error calling: %s\n%s" % (cmd, e))
+            raise e
         stdout = p.communicate()[0]
         log.debug("[%s] output:\n%s" % (cmd, stdout))
         if p.returncode != 0:
