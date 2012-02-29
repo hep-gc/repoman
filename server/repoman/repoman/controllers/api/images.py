@@ -29,7 +29,6 @@ import tempfile
 import subprocess
 import re
 import os
-import guestfs
 ###
 
 log = logging.getLogger(__name__)
