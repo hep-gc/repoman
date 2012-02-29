@@ -435,7 +435,7 @@ class ImagesController(BaseController):
 
     def create_grub_symlink(self, imagepath, hypervisor):
         log.debug("Creating grub.conf symlink on %s" % (imagepath))
-        cmd = "guestfish -a %s -i : ln-sf /boot/grub/grub.conf-%s /boot/grub/grub.conf" % (imagepath, hypervisor)
+        cmd = "guestfish -a %s -i ln-sf /boot/grub/grub.conf-%s /boot/grub/grub.conf" % (imagepath, hypervisor)
         log.debug("Symlink creation command: %s" % (cmd))
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         if not p:

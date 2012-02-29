@@ -347,5 +347,11 @@ class ImageUtils(object):
         
         log.info("Mounting image")
         self.mount_image()
-        log.info("Syncing file system")
-        self.sync_fs(verbose)
+        try:
+            log.info("Syncing file system")
+            self.sync_fs(verbose)
+        except ImageUtilError, e:
+            # Cleanup after failed sync
+            self.unmount_image()
+            self.destroy_files(self.imagepath, self.mountpoint)
+            raise e
