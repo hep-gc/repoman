@@ -29,6 +29,7 @@ import tempfile
 import subprocess
 import re
 import os
+import guestfs
 ###
 
 log = logging.getLogger(__name__)
@@ -69,7 +70,7 @@ class ImagesController(BaseController):
                         file_name = '%s_%s_%s' % (user, image.name, h)
                         file_names.append(file_name)
                         final_path = path.join(app_globals.image_storage, file_name)
-                        shutil.copy2(image_file, final_path)
+                        shutil.copy2(image_file, final_path) # Is this slow?  Investigate...
                 except Exception, e:
                     abort(500, '500 Internal Error - Error uploading file %s' %e)
                 finally:
@@ -82,15 +83,9 @@ class ImagesController(BaseController):
                     for hypervisor in hypervisors:
                         try:
                             image_path = path.join(app_globals.image_storage, '%s_%s_%s' % (user, image.name, hypervisor))
-                            # Mount image
-                            mountpoint = self.mount_image(image_path)
-                            # Create symlink
-                            cmd = "ln -sf %s/boot/grub/grub.conf-%s %s/boot/grub/grub.conf" % (mountpoint, hypervisor)
-                            if subprocess.Popen(cmd, shell=True).wait():
-                                raise Exception("Unable to create grub.conf symlink for image %s" % (image_path))
-                        finally:
-                            # Unmount image
-                            self.unmount_image(image_path, True)
+                            self.create_grub_symlink(image_path, hypervisor)
+                        except Exception, e:
+                            pass
 
                 image.checksum.cvalue = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_HASH')
                 image.checksum.ctype = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_HASH_TYPE')
@@ -259,15 +254,10 @@ class ImagesController(BaseController):
                 for hypervisor in hypervisors:
                     try:
                         image_path = path.join(app_globals.image_storage, '%s_%s_%s' % (user, image.name, hypervisor))
-                        # Mount image
-                        mountpoint = self.mount_image(image_path)
-                        # Create symlink
-                        cmd = "ln -sf %s/boot/grub/grub.conf-%s %s/boot/grub/grub.conf" % (mountpoint, hypervisor)
-                        if subprocess.Popen(cmd, shell=True).wait():
-                            raise Exception("Unable to create grub.conf symlink for image %s" % (image_path))
-                    finally:
-                        # Unmount image
-                        self.unmount_image(image_path, True)
+                        self.create_grub_symlink(image_path, hypervisor)
+                    except Exception, e:
+                        pass
+
 
             image.checksum.cvalue = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_HASH')
             image.size = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_LENGTH')
@@ -507,3 +497,19 @@ class ImagesController(BaseController):
             log.error("Error deleting device map for %s" % (path))
             raise Exception("Error deleting device map.")
         log.debug("Device map deleted for %s" % (path))
+
+    def create_grub_symlink(self, imagepath, hypervisor):
+        log.debug("Creating grub.conf symlink on %s" % (imagepath))
+        cmd = "guestfish -a %s -i : ln-sf /boot/grub/grub.conf-%s /boot/grub/grub.conf" % (imagepath, hypervisor)
+        log.debug("Symlink creation command: %s" % (cmd))
+        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        if not p:
+            log.error("Error calling: %s" % (cmd))
+            raise Exception("Error creating grub.conf symlink on %s" % (imagepath))
+        stdout = p.communicate()[0]
+        log.debug("[%s] output:\n%s" % (cmd, stdout))
+        if p.returncode != 0:
+            log.error("grub.conf symlink creation command returned error: %d" % (p.returncode))
+            raise Exception("Error creating grub.conf symlink.")
+        else:
+            log.debug("Symlink creation command returned successfully.")
