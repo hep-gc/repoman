@@ -233,7 +233,7 @@ def make_map(config):
     map.connect('/{controller}/{action}')
     map.connect('/{controller}/{action}/{id}')
 
-    log.info('Routing map created.')
+    log.debug('Routing map created.')
 
     return map
 

@@ -69,10 +69,12 @@ class ImagesController(BaseController):
                         file_name = '%s_%s_%s' % (user, image.name, h)
                         file_names.append(file_name)
                         final_path = path.join(app_globals.image_storage, file_name)
-                        shutil.copy2(image_file, final_path) # Is this slow?  Investigate...
+                        log.debug("Copying %s to %s" % (image_file, final_path))
+                        shutil.copy2(image_file, final_path)
                 except Exception, e:
                     abort(500, '500 Internal Error - Error uploading file %s' %e)
                 finally:
+                    log.debug("Cleaning up: deleting %s" % (image_file))
                     remove(image_file)
 
 
@@ -94,6 +96,7 @@ class ImagesController(BaseController):
                 # If we created a grub.conf symlink in the image, don't forget to update the image's 
                 # hash also after the symlink has been updated.
                 if len(hypervisors) > 1:
+                    log.debug("Recomputing image checksum after symlink creation.")
                     image.checksum.cvalue = None # Reset to no checksum for now...
                     # TODO
 
@@ -429,73 +432,6 @@ class ImagesController(BaseController):
         return h.render_json(beautify.image(new_image))
 
 
-    def mount_image(self, imagepath, mountpoint = None):
-        """
-        This method will mount a partitioned image.
-        It will first create a device map using kpartx, and
-        then mount that device map to the given mountpoint.
-        If no mountpoint is given, a temporary directory will be
-        created and used as mountpoint.  It is up to the caller
-        to clean up any temporary directory created by this method.
-        Returns: mountpoint
-        """
-        if mountpoint == None:
-            mountpoint = tempfile.mkdtemp()
-        if not os.path.exists(mountpoint):
-            log.debug("Creating mount point")
-            os.makedirs(mountpoint)
-        device_map = self.create_device_map(imagepath)
-        cmd = "mount %s %s" % (device_map, mountpoint)
-        log.debug("running [%s]" % (cmd))
-        if subprocess.Popen(cmd, shell=True).wait():
-            raise Exception("Unable to Mount image")
-        log.debug("Image mounted: '%s'" % cmd)
-        return mountpoint
-            
-    def umount_image(self, mountpoint, delete_mountpoint = False):
-        cmd = "umount %s" % mountpoint
-        if subprocess.Popen(cmd, shell=True).wait():
-            raise Exception("Unable to unmount image")
-        log.debug("Image unmounted: '%s'" % cmd)
-        log.debug("Deleting device map for image mounted at %s" % (mountpoint))
-        self.delete_device_map(mountpoint)
-        if delete_mountpoint:
-            log.debug("Deleting mountpoint %s" % (mountpoint))
-            os.rmdir(mountpoint)
-
-    def create_device_map(self, path):
-        cmd = "kpartx -av %s" % (path)
-        log.debug("Creating device map for %s" % (path))
-        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        if not p:
-            log.error("Error calling: %s" % (cmd))
-            raise Exception("Error creating device map.")
-        stdout = p.communicate()[0]
-        log.debug("[%s] output:\n%s" % (cmd, stdout))
-        if p.returncode != 0:
-            log.error("Device map creation command returned error: %d" % (p.returncode))
-            raise Exception("Error creating device map.")
-        # Search the output to extract the location of the new device map
-        m = re.search('^add map (\w+) .+$', stdout, flags=re.M)
-        if not m:
-            log.error("Error extracting location of new device map from:\n%s" % (stdout))
-            raise Exception("Error extracting location of new device map.")
-        log.debug("Device map created for %s" % (path))
-        return '/dev/mapper/%s' % (m.group(1))
-
-    def delete_device_map(self, path):
-        cmd = "kpartx -d %s" % (path)
-        log.debug("Deleting device map for %s" % (path))
-        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        if not p:
-            log.error("Error calling: %s" % (cmd))
-            raise Exception("Error deleting device map.")
-        stdout = p.communicate()[0]
-        log.debug("[%s] output:\n%s" % (cmd, stdout))
-        if p.returncode != 0:
-            log.error("Error deleting device map for %s" % (path))
-            raise Exception("Error deleting device map.")
-        log.debug("Device map deleted for %s" % (path))
 
     def create_grub_symlink(self, imagepath, hypervisor):
         log.debug("Creating grub.conf symlink on %s" % (imagepath))
