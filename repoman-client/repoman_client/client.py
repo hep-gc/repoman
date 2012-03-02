@@ -312,6 +312,14 @@ class RepomanClient(object):
             for line in curl.stdout.readlines():
                 print line
             log.info("Command complete")
+            # Cleanup gzip file if needed.
+            if gzip:
+                try:
+                    log.info("Cleaning up %s" % (image_file))
+                    os.remove(image_file)
+                except Exception, e:
+                    pass
+ 
         except Exception, e:
             log.error("%s" % e)
             raise RepomanError(str(e))
