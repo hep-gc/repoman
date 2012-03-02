@@ -468,10 +468,13 @@ class ImagesController(BaseController):
         Test if a file is compressed with gzip or not.
         """
         try:
+            log.debug("Checking if %s is a gzip file..." % (path))
             f = gzip.open(path, 'rb')
             b = f.read(1)
             f.close()
+            log.debug("%s is a gzip file." % (path))
             return True
         except IOError, e:
             f.close()
+        log.debug("%s is not a gzip file." % (path))
         return False
