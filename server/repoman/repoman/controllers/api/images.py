@@ -477,7 +477,7 @@ class ImagesController(BaseController):
         else:
             log.debug("Symlink creation command returned successfully.")
 
-    def is_gzip(path):
+    def is_gzip(self, path):
         """
         Test if a file is compressed with gzip or not.
         """
@@ -490,5 +490,8 @@ class ImagesController(BaseController):
             return True
         except IOError, e:
             f.close()
+        except Exception, e:
+            f.close()
+            log.error("%s" % (e))
         log.debug("%s is not a gzip file." % (path))
         return False
