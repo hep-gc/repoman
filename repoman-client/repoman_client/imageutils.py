@@ -105,6 +105,8 @@ class ImageUtils(object):
         return None
     
     def mkfs(self, path, fs_type='ext3', label='/'):
+        if fs_type == None:
+            fs_type = 'ext3' # Default to ext3 if autodetection failed.
         cmd = "/sbin/mkfs -t %s -F -L %s %s" % (fs_type, label, path)
         log.debug("Creating file system: '%s'" % cmd)
         null_f = open('/dev/null', 'w')
