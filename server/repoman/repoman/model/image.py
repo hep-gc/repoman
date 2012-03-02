@@ -76,6 +76,24 @@ class Image(Base):
             except Exception, e:
                 log.error("Error deleting image file(s) for %s\n%s" % (self.name, e))
 
+    def delete_image_file_for_hypervisor(self, hypervisor):
+        try:
+            path = os.path.join(app_globals.image_storage, 
+                                '%s_%s_%s' % (self.owner.user_name, self.name, hypervisor))
+            os.remove(path)
+            log.debug("Image file %s deleted." % (path))
+        except Exception, e:
+            log.error("Error deleting image file for %s, hypervisor %s\n%s" % (self.name, hypervisor, e))
+        
+    def get_image_paths_by_hypervisor(self):
+        paths = {}
+        for hypervisor in self.hypervisor.split(','):
+            try:
+                path = os.path.join(app_globals.image_storage, 
+                                    '%s_%s_%s' % (self.owner.user_name, self.name, hypervisor))
+                paths[hypervisor] = path
+        return paths
+
 
 
 

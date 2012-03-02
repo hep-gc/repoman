@@ -67,7 +67,7 @@ class ImagesController(BaseController):
             if image_file:
                 # Check if we are in multi-hypervisor mode and if the image is zipped.
                 # We currently don't support multi-hypervisor on zipped images.
-                if (len(hypervisors) > 1) and is_gzip(image_file):
+                if (len(hypervisors) > 1) and self.is_gzip(image_file):
                     abort(501, 'Multi-hypervisor support with compressed images is not implemented yet.')
                 
                 try:
@@ -243,7 +243,7 @@ class ImagesController(BaseController):
 
             # Check if we are in multi-hypervisor mode and if the image is zipped.
             # We currently don't support multi-hypervisor on zipped images.
-            if (len(hypervisors) > 1) and is_gzip(request.params['file'].filename):
+            if (len(hypervisors) > 1) and self.is_gzip(request.params['file'].filename):
                 abort(501, 'Multi-hypervisor support with compressed images is not implemented yet.')
 
             for hypervisor in hypervisors:
@@ -343,9 +343,13 @@ class ImagesController(BaseController):
             # than the previous one.  If this is true, then we must cleanup the images for the
             # hypervisors that are not listed anymore, else we will end up with stale image
             # files on the server.             
-            if params['hypervisor'] and params['hypervisor'] != None:
+            if image.hypervisor != None and params['hypervisor'] and params['hypervisor'] != None:
                 previous_hypervisors = image.hypervisor.split(',')
                 new_hypervisors = params['hypervisor'].split(',')
+                for previous_hypervisor in previous_hypervisors:
+                    if previous_hypervisor not in new_hypervisors:
+                        # Cleanup
+                        image.delete_image_file_for_hypervisor(previous_hypervisor)
                 
             for k,v in params.iteritems():
                 if v != None:
