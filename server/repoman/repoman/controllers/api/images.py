@@ -47,6 +47,7 @@ class ImagesController(BaseController):
         inline_auth(IsAthuenticated(), auth_403)
 
     def put_raw_by_user(self, user, image, format='json'):
+        log.debug('put_raw_by_user')
         #return request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE')
         image_q = meta.Session.query(Image)
         image = image_q.filter(Image.name==image)\
@@ -230,6 +231,7 @@ class ImagesController(BaseController):
                                            format=format)
 
     def upload_raw_by_user(self, user, image, format='json'):
+        log.debug('upload_raw_by_user')
         image_q = meta.Session.query(Image)
         image = image_q.filter(Image.name==image)\
                        .filter(Image.owner.has(User.user_name==user)).first()
@@ -337,6 +339,14 @@ class ImagesController(BaseController):
                 if image2:
                     abort(409, 'Cannot rename an image to an existing image.  Operation aborted.')
 
+            # Here we must have some smarts to check if the new metadata has less hypervisors
+            # than the previous one.  If this is true, then we must cleanup the images for the
+            # hypervisors that are not listed anymore, else we will end up with stale image
+            # files on the server.             
+            if params['hypervisor'] and params['hypervisor'] != None:
+                previous_hypervisors = image.hypervisor.split(',')
+                new_hypervisors = params['hypervisor'].split(',')
+                
             for k,v in params.iteritems():
                 if v != None:
                     setattr(image, k, v)
