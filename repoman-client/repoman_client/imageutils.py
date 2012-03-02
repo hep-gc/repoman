@@ -263,7 +263,7 @@ class ImageUtils(object):
             self.device_map = self.create_device_map(imagepath)
             self.mkfs(self.device_map, label='root', fs_type = self.detect_fs_type('/'))
         else:
-            self.mkfs(imagepath, fs_type = self.detect_fs_type('/')
+            self.mkfs(imagepath, fs_type = self.detect_fs_type('/'))
     
     def sync_fs(self, verbose):
         #TODO: add progress bar into rsync somehow
