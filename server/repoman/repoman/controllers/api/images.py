@@ -95,7 +95,7 @@ class ImagesController(BaseController):
                             self.create_grub_symlink(image_path, hypervisor)
                         except Exception, e:
                             abort(500, '500 Internal Error - Error creating grub symlinks for image %s\n%s' % (image.name, e))
-
+                            
                 image.checksum.cvalue = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_HASH')
                 image.checksum.ctype = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_HASH_TYPE')
                 image.size = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_LENGTH')
