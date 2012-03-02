@@ -154,10 +154,9 @@ class Save(SubCommand):
         try:
             self.get_repoman_client(args).upload_image(name, config.snapshot, gzip=args.gzip)
         except RepomanError, e:
-            log.error("Error while uploading the image")
-            log.error(e)
             raise SubcommandFailure(self, "Error while uploading the image.", e)
 
+        # Set save comment if needed.
         if args.comment:
             image = None
             try:

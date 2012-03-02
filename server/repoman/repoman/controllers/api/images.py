@@ -27,6 +27,7 @@ from os import path, remove, rename
 import shutil
 import tempfile
 import subprocess
+import gzip
 import re
 import os
 ###
@@ -61,7 +62,13 @@ class ImagesController(BaseController):
         if image:
             inline_auth(OwnsImage(image), auth_403)
             image_file = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE')
+            
             if image_file:
+                # Check if we are in multi-hypervisor mode and if the image is zipped.
+                # We currently don't support multi-hypervisor on zipped images.
+                if (len(hypervisors) > 1) and is_gzip(image_file):
+                    abort(501, 'Multi-hypervisor support with compressed images is not implemented yet.')
+                
                 try:
                     # Save a copy for each supported hypervisors.
                     file_names = []
@@ -449,3 +456,16 @@ class ImagesController(BaseController):
             raise Exception("Error creating grub.conf symlink.")
         else:
             log.debug("Symlink creation command returned successfully.")
+
+    def is_gzip(path):
+        """
+        Test if a file is compressed with gzip or not.
+        """
+        try:
+            f = gzip.open(path, 'rb')
+            b = f.read(1)
+            f.close()
+            return True
+        except IOError, e:
+            f.close()
+        return False
