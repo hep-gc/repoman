@@ -238,6 +238,12 @@ class ImagesController(BaseController):
             inline_auth(OwnsImage(image), auth_403)
             file_names = []
             hypervisors = image.hypervisor.split(',')
+
+            # Check if we are in multi-hypervisor mode and if the image is zipped.
+            # We currently don't support multi-hypervisor on zipped images.
+            if (len(hypervisors) > 1) and is_gzip(request.params['file'].filename):
+                abort(501, 'Multi-hypervisor support with compressed images is not implemented yet.')
+
             for hypervisor in hypervisors:
                 try:
                     temp_file = request.params['file']
