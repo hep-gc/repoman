@@ -95,8 +95,14 @@ class ImageUtils(object):
 
     
     def detect_fs_type(self, path):
-        #TODO: fixme
-        return 'ext3'
+        try:
+            for line in open("/etc/mtab"):
+                fields = line.split(' ')
+                if (len(fields) >= 3) and (fields[1] == path):
+                    return fields[2]
+        except Exception, e:
+            log.warning("Could not detect filesystem type for %s\n%s" % (path, e))
+        return None
     
     def mkfs(self, path, fs_type='ext3', label='/'):
         cmd = "/sbin/mkfs -t %s -F -L %s %s" % (fs_type, label, path)
@@ -255,9 +261,9 @@ class ImageUtils(object):
         if self.partition:
             self.create_bootable_partition(imagepath)
             self.device_map = self.create_device_map(imagepath)
-            self.mkfs(self.device_map, label='root')
+            self.mkfs(self.device_map, label='root', fs_type = self.detect_fs_type('/'))
         else:
-            self.mkfs(imagepath)
+            self.mkfs(imagepath, fs_type = self.detect_fs_type('/')
     
     def sync_fs(self, verbose):
         #TODO: add progress bar into rsync somehow
