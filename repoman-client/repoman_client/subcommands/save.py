@@ -136,9 +136,9 @@ class Save(SubCommand):
         # Check for required grub.conf-<hypervisor> files for multi-hypervisor
         # images.
         hypervisors = []
-        if image and ('hypervisor' in image) and (image['hypervisor'] != None):
+        if exists and ('hypervisor' in image) and (image['hypervisor'] != None):
             hypervisors = image['hypervisor'].split(',')
-        elif args.hypervisor:
+        if args.hypervisor: # args.hypervisor takes precedence over the image hypervisor metadata variable
             hypervisors = args.hypervisor.split(',')
         if len(hypervisors) > 1 and not self.check_required_grub_configs(hypervisors):
             raise SubcommandFailure(self, "Missing /boot/grub/grub.conf-<hypervisor> file.  Please make sure that your local system contains a /boot/grub/grub.conf-<hypervisor> file for each hypervisor it supports (as listed in the hypervisor metadata variable).")
