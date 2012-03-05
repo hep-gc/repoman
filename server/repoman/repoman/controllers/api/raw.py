@@ -55,6 +55,12 @@ class RawController(BaseController):
             if hypervisor == None:
                 hypervisor = image.hypervisor
 
+            # If hypervisor is still None, then let's default to 'xen'.
+            # This is mostly to support images that do not have the hypervisor variable
+            # set. (pre multi-hypervisor support)
+            if hypervisor == None:
+                hypervisor = 'xen'
+
             file_path = path.join(app_globals.image_storage, '%s_%s_%s' % (user, image.name, hypervisor))
 
             # Check if file actually exists

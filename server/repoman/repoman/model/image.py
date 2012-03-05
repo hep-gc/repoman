@@ -67,14 +67,9 @@ class Image(Base):
         self.shared = ImageShare()
 
     def delete_image_files(self):
-        for hypervisor in self.hypervisor.split(','):
-            try:
-                path = os.path.join(app_globals.image_storage, 
-                                    '%s_%s_%s' % (self.owner.user_name, self.name, hypervisor))
-                os.remove(path)
-                log.debug("Image file %s deleted." % (path))
-            except Exception, e:
-                log.error("Error deleting image file(s) for %s\n%s" % (self.name, e))
+        paths = self.get_image_paths_by_hypervisor()
+        for hypervisor in paths:
+            self.delete_image_file_for_hypervisor(hypervisor)
 
     def delete_image_file_for_hypervisor(self, hypervisor):
         try:
@@ -87,7 +82,12 @@ class Image(Base):
         
     def get_image_paths_by_hypervisor(self):
         paths = {}
-        for hypervisor in self.hypervisor.split(','):
+        hypervisors = []
+        if self.hypervisor == None:
+            hypervisors = ['xen']
+        else:
+            hypervisors = self.hypervisor.split(',')
+         for hypervisor in hypervisors:
             path = os.path.join(app_globals.image_storage, 
                                 '%s_%s_%s' % (self.owner.user_name, self.name, hypervisor))
             paths[hypervisor] = path

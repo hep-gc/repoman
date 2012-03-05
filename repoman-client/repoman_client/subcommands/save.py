@@ -142,6 +142,7 @@ class Save(SubCommand):
             hypervisors = args.hypervisor.split(',')
         if len(hypervisors) > 1 and not self.check_required_grub_configs(hypervisors):
             raise SubcommandFailure(self, "Missing /boot/grub/grub.conf-<hypervisor> file.  Please make sure that your local system contains a /boot/grub/grub.conf-<hypervisor> file for each hypervisor it supports (as listed in the hypervisor metadata variable).")
+
             
         try:
             print "Starting the snapshot process.  Please be patient, this will take a while."
