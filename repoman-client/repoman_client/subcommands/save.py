@@ -159,6 +159,15 @@ class Save(SubCommand):
                 log.error("Error while creating image slot on server")
                 log.error(e)
                 raise SubcommandFailure(self, "Error while creating image slot on server.", e)
+        else:
+            # Image exist.  Let's update it's metadata if needed
+            image_name = kwargs['name']
+            if args.owner:
+                image_name = "%s/%s" % (args.owner, kwargs['name'])
+            try:
+                self.get_repoman_client(args).modify_image(kwargs['name'], **kwargs)
+            except RepomanError, e:
+                raise SubcommandFailure(self, "Could not modify image '%s'" % (kwargs['name']), e)
             
         #upload
         print "Uploading snapshot"

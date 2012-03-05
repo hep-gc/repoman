@@ -149,7 +149,7 @@ class ModifyImage(SubCommand):
             image_name = "%s/%s" % (args.owner, args.image)
 
         try:
-            self.get_repoman_client(args).modify_image(args.image, **kwargs)
+            self.get_repoman_client(args).modify_image(image_name, **kwargs)
             print "[OK]     Modifying image."
         except RepomanError, e:
             raise SubcommandFailure(self, "Could not modify image '%s'" % (args.image), e)
