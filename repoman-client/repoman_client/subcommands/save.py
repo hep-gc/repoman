@@ -133,6 +133,16 @@ class Save(SubCommand):
             log.error("%s" % e)
             raise SubcommandFailure(self, "Could not write to %s, are you root?" % (self.metadata_file), e)
             
+        # Check for required grub.conf-<hypervisor> files for multi-hypervisor
+        # images.
+        hypervisors = []
+        if image:
+            hypervisors = image.hypervisor.split(',')
+        elif args.hypervisor:
+            hypervisors = args.hypervisor.split(',')
+        if len(hypervisors) > 1 and not self.check_required_grub_configs(hypervisors):
+            raise SubcommandFailure(self, "Missing /boot/grub/grub.conf-<hypervisor> file.  Please make sure that your local system contains a /boot/grub/grub.conf-<hypervisor> file for each hypervisor it supports (as listed in the hypervisor metadata variable).")
+            
         try:
             print "Starting the snapshot process.  Please be patient, this will take a while."
             image_utils.snapshot_system(verbose=args.verbose, clean=args.clean)
@@ -191,4 +201,14 @@ class Save(SubCommand):
                 except RepomanError, e:
                     raise SubcommandFailure(self, "Failed to add/update image save comment.", e)
 
-            
+    def check_required_grub_configs(self, hypervisors):
+        """
+        This method will check the local root filesystem to see
+        if the required /boot/grub/grub.conf-<hypervisor> files are present.
+        Returns True if all required grub.conf files exist; False otherwise.
+        """
+        for hypervisor in hypervisors:
+            grub_conf_file = os.path.join('/boot/grub/', 'grub.conf-%s' % (hypervisor))
+            if not os.path.exists(grub_conf_file):
+                return False
+        return True
