@@ -336,7 +336,7 @@ class ImagesController(BaseController):
 
             # Do a check here to make sure we do not overwrite
             # any existing image. (Andre)
-            if 'name' in params:
+            if ('name' in params) and (params['name'] != image):
                 image2 = image_q.filter(Image.name==params['name'])\
                     .filter(Image.owner.has(User.user_name==user))\
                     .first()
