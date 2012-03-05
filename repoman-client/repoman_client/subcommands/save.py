@@ -136,8 +136,8 @@ class Save(SubCommand):
         # Check for required grub.conf-<hypervisor> files for multi-hypervisor
         # images.
         hypervisors = []
-        if image and (hypervisor in image) and (image[hypervisor] != None):
-            hypervisors = image[hypervisor].split(',')
+        if image and ('hypervisor' in image) and (image['hypervisor'] != None):
+            hypervisors = image['hypervisor'].split(',')
         elif args.hypervisor:
             hypervisors = args.hypervisor.split(',')
         if len(hypervisors) > 1 and not self.check_required_grub_configs(hypervisors):
