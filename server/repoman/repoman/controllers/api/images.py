@@ -101,13 +101,14 @@ class ImagesController(BaseController):
                 image.size = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_LENGTH')
 
                 # IMPORTANT:
-                # If we created a grub.conf symlink in the image, don't forget to update the image's 
-                # hash also after the symlink has been updated.
+                # Image checksum do not make any sense for multi hypervisor images as we have
+                # more than one image file per VM, and only a single checksum in the metadata.
+                # Ultimately, we could modify the image metadata to contain a list of checksums
+                # (one per hypervisor), but for now, let's simply void the checksum.
                 if len(hypervisors) > 1:
-                    log.debug("Recomputing image checksum after symlink creation.")
-                    image.checksum.cvalue = None # Reset to no checksum for now...
-                    # TODO
-
+                    log.debug("Voiding image checksum for multi-hypervisor images.")
+                    image.checksum.cvalue = None # Reset to no checksum.
+                    image.checksum.ctype = None
 
                 image.raw_uploaded = True
                 image.uploaded = datetime.utcfromtimestamp(time())
@@ -280,11 +281,14 @@ class ImagesController(BaseController):
             image.size = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_LENGTH')
 
             # IMPORTANT:
-            # If we created a grub.conf symlink in the image, don't forget to update the image's 
-            # hash also after the symlink has been updated.
+            # Image checksum do not make any sense for multi hypervisor images as we have
+            # more than one image file per VM, and only a single checksum in the metadata.
+            # Ultimately, we could modify the image metadata to contain a list of checksums
+            # (one per hypervisor), but for now, let's simply void the checksum.
             if len(hypervisors) > 1:
-                image.checksum.cvalue = None # Reset to no checksum for now...
-                # TODO
+                log.debug("Voiding image checksum for multi-hypervisor images.")
+                image.checksum.cvalue = None # Reset to no checksum.
+                image.checksum.ctype = None
 
             # No update of size and/or checksum?  TODO: Investigate... (Andre)
             image.raw_uploaded = True
