@@ -87,7 +87,7 @@ class Image(Base):
             hypervisors = ['xen']
         else:
             hypervisors = self.hypervisor.split(',')
-         for hypervisor in hypervisors:
+        for hypervisor in hypervisors:
             path = os.path.join(app_globals.image_storage, 
                                 '%s_%s_%s' % (self.owner.user_name, self.name, hypervisor))
             paths[hypervisor] = path
