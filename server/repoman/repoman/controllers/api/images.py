@@ -336,12 +336,12 @@ class ImagesController(BaseController):
 
             # Do a check here to make sure we do not overwrite
             # any existing image. (Andre)
-            if ('name' in params) and (params['name'] != image):
+            if ('name' in params) and (params['name'] != image.name):
                 image2 = image_q.filter(Image.name==params['name'])\
                     .filter(Image.owner.has(User.user_name==user))\
                     .first()
                 if image2:
-                    log.debug('Conflict detected in image renaming: %s -> %s' % (image, params['name']))
+                    log.debug('Conflict detected in image renaming: %s -> %s.  Operation aborted.' % (image.name, params['name']))
                     abort(409, 'Cannot rename an image to an existing image.  Operation aborted.')
 
             # Here we must have some smarts to check if the new metadata has less hypervisors
