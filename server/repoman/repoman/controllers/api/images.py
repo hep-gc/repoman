@@ -341,6 +341,7 @@ class ImagesController(BaseController):
                     .filter(Image.owner.has(User.user_name==user))\
                     .first()
                 if image2:
+                    log.debug('Conflict detected in image renaming: %s -> %s' % (image, params['name']))
                     abort(409, 'Cannot rename an image to an existing image.  Operation aborted.')
 
             # Here we must have some smarts to check if the new metadata has less hypervisors
