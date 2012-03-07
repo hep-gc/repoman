@@ -128,13 +128,12 @@ def CheckOptions(self, output, arg):
 class CreateImageTest(RepomanCLITest):
     new_image_name = None
 	
-    """
-    CreateImage method is called whenever the create-image command is used (with or without optional parameters)
-    Optional parameters are stored in arg. 
-    When create-image is called without options, arg is passed as an empty string
-    """
-	
     def CreateImage(self, arg):
+	"""
+    	CreateImage method is called whenever the create-image command is used (with or without optional parameters)
+    	Optional parameters are stored in arg. 
+    	When create-image is called without options, arg is passed as an empty string
+    	"""
         # Get a unique name for the new image we are going to create.
         # This will ensure it does not clash with any existing image on the
         # server.
@@ -233,14 +232,15 @@ class CreateImageTest(RepomanCLITest):
 
 class ModifyImageTest(RepomanCLITest):
     new_image_name = None
-
-    """
-    ModifyImage function is called whenever the modify-image command is used (with or without optional parameters)
-    Optional parameters are stored in arg. 
-    When modify-image is called without options, arg is passed as an empty string
-    """
-
+    	
     def ModifyImage(self, arg):
+	"""
+    	ModifyImage function is called whenever the modify-image command is used (with or without optional parameters)
+    	Optional parameters are stored in arg. 
+    	When modify-image is called without options, arg is passed as an empty string
+	"""
+
+
         # Get a unique name for the new image we are going to create.
         # This will ensure it does not clash with any existing image on the
         # server.
@@ -250,23 +250,49 @@ class ModifyImageTest(RepomanCLITest):
         (output, returncode) = self.run_repoman_command('create-image %s' % (self.new_image_name))
         self.assertEqual(output, "[OK]     Created new image '%s'\n" % (self.new_image_name))
         self.assertEqual(returncode, 0)
+	
+	# 'random_name' variable stores the new name for an image when '-n' or '--new_name' parameters are used
+	# It is used to prevent removal of the image with the original name (which wouldn't exist after the name is changed,
+	# in the tearDown method. The default is set to None
+	global random_name
+	random_name = None
+	if (arg == '--new_name ' or arg == '-n '):
+		
+		random_name = self.get_unique_image_name()
+		arg = arg + random_name	
 	# Run 'repoman modify-image' and check the output
 	(output, returncode) = self.run_repoman_command('modify-image %s %s' %(self.new_image_name, arg))
 	self.assertEqual(output, "[OK]     Modifying image.\n")
 	self.assertEqual(returncode, 0)
 	
-	(output, returncode) = self.run_repoman_command('list-images %s' % (self.new_image_name))
-	CheckOptions(self, output, arg)
+	if (arg == '--new_name %s' % (random_name) or arg == '-n %s' % (random_name)):
+		(output, returncode) = self.run_repoman_command('list-images %s' % (random_name))
+		p = re.search('^\\s*name : %s\\s*$' % (random_name), output, flags=re.MULTILINE)
+                self.assertTrue(p != None)
+		
+		
+		
+	# Call CheckOptions to check some common optional parameters of create-image and modify-image
+	if(random_name == None):
+		(output, returncode) = self.run_repoman_command('list-images %s' % (self.new_image_name))
+		CheckOptions(self, output, arg)
+	
+	
 	
     def tearDown(self):
-        # Delete the image we created to clean up properly after the test.
-        (output, returncode) = self.run_repoman_command('remove-image -f %s' % (self.new_image_name))
-
+	if (random_name != None):
+		(output, returncode) = self.run_repoman_command('remove-image -f %s' % (random_name))
+	else:
+		# Delete the image we created to clean up properly after the test.
+        	(output, returncode) = self.run_repoman_command('remove-image -f %s' % (self.new_image_name))
+		
     def test_modify_image(self):
 	ModifyImageTest.ModifyImage(self, '')
     
     # Test the alias of modify-image ('repoman mi')		
     def test_mi(self):
+	global random_name
+	random_name  = None
 	self.new_image_name = self.get_unique_image_name()
 	 # Create a new image to be modified
         (output, returncode) = self.run_repoman_command('create-image %s' % (self.new_image_name))
@@ -309,6 +335,14 @@ class ModifyImageTest(RepomanCLITest):
     def test_modify_image_h(self):
         ModifyImageTest.ModifyImage(self, '-h "xen"')
 
+    
+    # Test the optional parameter '--new_name' or '-n'
+    # A random name is kept as the new name which is generated later in the method ModifyImage
+    def test_modify_image_new_name(self, tearDown = None):
+	ModifyImageTest.ModifyImage(self, '--new_name ')
+    def test_modify_image_n(self):
+	ModifyImageTest.ModifyImage(self, '-n ')		
+
     # Test the optional parameter '--os_arch'
     # For this test, a random operating system architecture ('x86') is selected
     def test_modify_image_os_arch(self):
@@ -324,8 +358,43 @@ class ModifyImageTest(RepomanCLITest):
     def test_modify_image_os_variant(self):
         ModifyImageTest.ModifyImage(self, '--os_variant ubuntu')
 
+    
 
 
+
+
+#####################################################################
+# 		COMMAND - 'repoman list-images'
+#####################################################################
+
+class ListImagesTest(RepomanCLITest):
+
+    new_image_name = None
+    def ListImages(self, arg):
+	
+	self.new_image_name = self.get_unique_image_name()
+	(output, returncode) = self.run_repoman_command("create-image %s" % (self.new_image_name))
+	self.assertEqual(returncode, 0)
+	(output, returncode) = self.run_repoman_command("list-images %s" % (arg))
+	p = re.search(self.new_image_name, output)
+	self.assertTrue( p != None)
+	self.assertEqual(returncode, 0)
+
+    def tearDown(self):
+	(output, returncode) = self.run_repoman_command('remove-image -f %s' %(self.new_image_name))
+
+    def test_list_images(self):
+	ListImagesTest.ListImages(self, '')	
+
+    def test_li(self):
+	self.new_image_name = self.get_unique_image_name()
+        (output, returncode) = self.run_repoman_command("create-image %s" % (self.new_image_name))
+        self.assertEqual(returncode, 0)
+        (output, returncode) = self.run_repoman_command("li")
+        p = re.search(self.new_image_name, output)
+        self.assertTrue( p != None)
+        self.assertEqual(returncode, 0)
+    	
 #####################################################################
 #####################################################################
 #####################################################################
