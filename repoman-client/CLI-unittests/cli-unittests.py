@@ -224,8 +224,61 @@ class CreateImageTest(RepomanCLITest):
     def test_create_image_os_variant(self):
         CreateImageTest.CreateImage(self, '--os_variant ubuntu')
 
+    def CreateImageFile(self, arg):
+	"""
+	CreateImageFile method tests the optional parameters '--file' or '-f', which creates an image by uploading a file
+	It tests the optional parameter passed to arg. arg can be '--file' or '-f'
+	"""
+	# Get a unique name for the image and a dummy file that will be uploaded
+	self.new_image_name = self.get_unique_image_name()
+	random_file = self.get_unique_image_name()
+	# Create a dummy file of 10 MB(10485760 bytes) with a unique name
+	p = Popen('dd if=/dev/zero of=%s bs=10485760 count=1' % (random_file), shell=True, stdout=PIPE, stderr=STDOUT)
+	output = p.communicate()[0]
+	self.assertEqual(p.returncode, 0)
+	
+        # Try optional commands '--file' or '-f' with the unique name generated above as the name of the image
+	(output, returncode) = self.run_repoman_command('create-image %s %s %s' % (self.new_image_name, arg, random_file))
+	p = re.search(r'.+OK.+ Created new image.+\nUploading %s to new image.+\n.+OK.+%s uploaded to image.+' % (random_file, random_file), output)       
+	self.assertTrue(p != None)
+        self.assertEqual(returncode, 0)
+
+        # Here we actually do a 'repoman list-image' to see if the image is
+        # actually there.  We use a regular expression to inspect the output.
+        (output, returncode) = self.run_repoman_command('list-images %s' % (self.new_image_name))
+        m = re.search('^\\s+name : %s\\s*$' % (self.new_image_name), output, flags=re.MULTILINE)
+        self.assertTrue(m != None)
+	
+	# Change the unauthenticated access to true so that the file can be downloaded
+	(output, returncode) = self.run_repoman_command('modify-image %s --unauthenticated_access true' % (self.new_image_name))
+	self.assertEqual(returncode, 0)
+
+	# Retrieve the url of the file and and download it using wget
+	(output, returncode) = self.run_repoman_command('list-images %s' % (self.new_image_name))
+	self.assertEqual(returncode, 0)
+	m = re.findall(r'http://.+', output)
+	p = Popen('wget %s' % (m[0]), shell=True, stdout=PIPE, stderr=STDOUT)
+ 	output = p.communicate()[0]
+        self.assertEqual(p.returncode, 0)
+	
+	# Check if that file got uploaded and consequently downloaded matches the original file
+	p = Popen('diff %s %s' % (random_file, self.new_image_name), shell=True, stdout=PIPE, stderr=STDOUT)
+        output = p.communicate()[0]
+	self.assertEqual(p.returncode, 0)
+	
+	# Delete the dummy file (random_file) and the downloaded file
+	p = Popen('rm %s %s' % (random_file, self.new_image_name), shell=True, stdout=PIPE, stderr=STDOUT)
+        output = p.communicate()[0]
+	self.assertEqual(p.returncode, 0)
 
 
+    def test_create_image_file(self):
+	CreateImageTest.CreateImageFile(self, '--file')
+
+    def test_create_image_f(self):
+	CreateImageTest.CreateImageFile(self, '-f')
+
+		
 ######################################################################
 #               COMMAND - 'repoman modify-image'                        
 ######################################################################
