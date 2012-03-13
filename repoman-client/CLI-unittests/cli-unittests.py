@@ -434,31 +434,42 @@ class ModifyImageTest(RepomanCLITest):
 class ListImagesTest(RepomanCLITest):
 
     new_image_name = None
-    def ListImages(self, arg):
-	
+    def ListImages(self, command):
+	"""
+	The method ListImages is used for the commands 'repoman list-images' and 'repoman li' without optional parameters
+	"""
 	self.new_image_name = self.get_unique_image_name()
 	(output, returncode) = self.run_repoman_command("create-image %s" % (self.new_image_name))
 	self.assertEqual(returncode, 0)
-	(output, returncode) = self.run_repoman_command("list-images %s" % (arg))
+	if (command == 'list-images'):
+		(output, returncode) = self.run_repoman_command("list-images")
+	elif (command == 'li'):
+		(output, returncode) = self.run_repoman_command("li")
 	p = re.search(self.new_image_name, output)
 	self.assertTrue( p != None)
 	self.assertEqual(returncode, 0)
-
+	
     def tearDown(self):
 	(output, returncode) = self.run_repoman_command('remove-image -f %s' %(self.new_image_name))
 
     def test_list_images(self):
-	ListImagesTest.ListImages(self, '')	
+	ListImagesTest.ListImages(self, 'list-images')	
 
     def test_li(self):
+	ListImagesTest.ListImages(self, 'list-images')
+    
+    def test_list_images_image(self):
+	"""
+	This test runs the 'repoman list-images image' command, and checks if all the fields of the output match the expected fields of the image
+	"""
 	self.new_image_name = self.get_unique_image_name()
         (output, returncode) = self.run_repoman_command("create-image %s" % (self.new_image_name))
         self.assertEqual(returncode, 0)
-        (output, returncode) = self.run_repoman_command("li")
-        p = re.search(self.new_image_name, output)
-        self.assertTrue( p != None)
+	(output, returncode) = self.run_repoman_command("list-images %s" % (self.new_image_name))
+	p = re.search(r'checksum :.*\n\s*description :.*\n\s*expires :.*\n\s*file_url :.*\n\s*http_file_url :.*\n\s*hypervisor :.*\n\s*modified :.*\n\s*name : %s.*\n\s*os_arch :.*\n\s*os_type :.*\n\s*os_variant :.*\n\s*owner :.*\n\s*owner_user_name :.*\n\s*raw_file_uploaded :.*\n\s*read_only :.*\n\s*shared_with :.*\n\s*size :.*\n\s*unauthenticated_access :.*\n\s*uploaded :.*\n\s*uuid :.*\n\s*version :' % (self.new_image_name), output)
+	self.assertTrue( p != None)
         self.assertEqual(returncode, 0)
-    	
+	
 #####################################################################
 #####################################################################
 #####################################################################
