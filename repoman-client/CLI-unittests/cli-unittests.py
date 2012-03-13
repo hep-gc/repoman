@@ -54,6 +54,17 @@ class RepomanCLITest(unittest.TestCase):
 #
 #
 
+
+#####################################################################
+#		COMMAND - 'repoman about'
+#####################################################################
+class AboutTest(RepomanCLITest):
+    def test_about(self):
+	(output, returncode) = self.run_repoman_command('about')
+	p = re.search(r'client version:.*\n\s*config files in use:.*\n\s*repository_host:.*\n\s*repository_port:.*\n\s*user_proxy_cert:.*\n\s*snapshot:.*\n\s*mountpoint:.*\n\s*lockfile:.*\n\s*system_excludes:.*\n\s*user_excludes:.*\n\s*logging:', output)
+	self.assertEqual(returncode, 0)
+	self.assertTrue( p != None)
+
 ######################################################################
 #		COMMAND - 'repoman version'
 ######################################################################
