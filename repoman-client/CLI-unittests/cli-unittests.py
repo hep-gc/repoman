@@ -248,7 +248,7 @@ class CreateImageTest(RepomanCLITest):
 	output = p.communicate()[0]
 	self.assertEqual(p.returncode, 0)
 	
-        # Try optional commands '--file' or '-f' with the unique name generated above as the name of the image
+        # Try optional parameters '--file' or '-f' with the unique name generated above as the name of the image
 	(output, returncode) = self.run_repoman_command('create-image %s %s %s' % (self.new_image_name, arg, random_file))
 	p = re.search(r'.+OK.+ Created new image.+\nUploading %s to new image.+\n.+OK.+%s uploaded to image.+' % (random_file, random_file), output)       
 	self.assertTrue(p != None)
@@ -289,10 +289,14 @@ class CreateImageTest(RepomanCLITest):
     def test_create_image_f(self):
 	CreateImageTest.CreateImageFile(self, '-f')
 
+
+
 		
 ######################################################################
 #               COMMAND - 'repoman modify-image'                        
 ######################################################################
+
+
 
 class ModifyImageTest(RepomanCLITest):
     new_image_name = None
@@ -372,8 +376,9 @@ class ModifyImageTest(RepomanCLITest):
         #               OPTIONAL PARAMETERS                     #       
         #########################################################
 
+
     # Test the optional parameter '--unauthenticated_access' or '-a', which can be set to true or false
-    # Each case is in individual tests to ensure teardown (removing image after creating one)
+    # All the different cases are in individual tests to ensure teardown (removal of image after creating one)
     def test_modify_image_unauthenticated_access_true(self):
         ModifyImageTest.ModifyImage(self,'--unauthenticated_access true')
     def test_modify_image_a_true(self):
@@ -431,33 +436,109 @@ class ModifyImageTest(RepomanCLITest):
 # 		COMMAND - 'repoman list-images'
 #####################################################################
 
+
+
+
 class ListImagesTest(RepomanCLITest):
 
     new_image_name = None
-    def ListImages(self, command):
+    def ListImages(self, command, arg):
 	"""
-	The method ListImages is used for the commands 'repoman list-images' and 'repoman li' without optional parameters
+	The method ListImages is used for the list-images command. It is called with two arguments - command and arg. 
+	Command stores either the command name ('list-images') or its alias ('li'), and arg stores the optional parameters.
+	The optional parameters are passed as empty strings when the 'repoman list-images' and 'repoman li' are used.
 	"""
+	# Get a unique name for the image to be created
 	self.new_image_name = self.get_unique_image_name()
+
+	# Create the new image and check if it is correctly created
 	(output, returncode) = self.run_repoman_command("create-image %s" % (self.new_image_name))
 	self.assertEqual(returncode, 0)
-	if (command == 'list-images'):
-		(output, returncode) = self.run_repoman_command("list-images")
-	elif (command == 'li'):
-		(output, returncode) = self.run_repoman_command("li")
+
+	# Run the repoman command for listing images (with or without optional parameters)
+	(output, returncode) = self.run_repoman_command("%s %s" % (command, arg))
 	p = re.search(self.new_image_name, output)
 	self.assertTrue( p != None)
 	self.assertEqual(returncode, 0)
+
+	# Check the expected fields if the optional parameters '--long' or '-l' is selected
+	if ( arg == '--long' or arg == '-l'):
+		p = re.search(r'\s*Image\s*Name\s*Owner\s*Size\s*Last Modified\s*Description', output)
+		self.assertTrue( p != None)
 	
+	# Check if a url is printed if the optional parameter '--url' or '-U' is selected
+	if ( arg == '--url' or arg == '-U'):
+		p = re.search(r'http', output)
+		self.assertTrue( p!= None)
+
+
+	
+    # Delete the image created for each test in class ListImagesTest
     def tearDown(self):
 	(output, returncode) = self.run_repoman_command('remove-image -f %s' %(self.new_image_name))
 
     def test_list_images(self):
-	ListImagesTest.ListImages(self, 'list-images')	
+	ListImagesTest.ListImages(self, 'list-images', '')	
 
+    # Test the alias of list-image ('li')
     def test_li(self):
-	ListImagesTest.ListImages(self, 'list-images')
-    
+	ListImagesTest.ListImages(self, 'li', '')
+
+
+
+        #########################################################
+        #               OPTIONAL PARAMETERS                     #       
+        #########################################################
+
+
+
+    # This tests the optional parameters '--all' and '-a'
+    # The test passes if the created image is found in the output
+    def test_list_images_all(self):
+	ListImagesTest.ListImages(self, 'list-images', '--all')
+    def test_list_images_a(self):
+	ListImagesTest.ListImages(self, 'list-images', '-a')	
+  
+    # This tests the optional parameters '--long' and 'a'
+    # The expected fields are checked
+    def test_list_images_long(self):
+        ListImagesTest.ListImages(self, 'list-images', '--long')
+    def test_list_images_l(self):
+        ListImagesTest.ListImages(self, 'list-images', '-l')
+
+    # This tests the optional parameters '--url' and '-U'
+    # Checks for the presence of the string 'http' which may be either 'http://....' or 'https://....'
+    def test_list_images_url(self):
+        ListImagesTest.ListImages(self, 'list-images', '--url')	
+    def test_list_images_U(self):
+        ListImagesTest.ListImages(self, 'list-images', '-U')
+
+
+	
+    def ListImagesGroup(self, arg):
+	"""
+	This method is called for the optional parameters '-g' and '--group'. Here an image is created with a unique name which is shared with the group "users".
+	The test is successful if the shared image is listed with the command 'list-images --group users' or 'list-users -g users'
+	"""
+	self.new_image_name = self.get_unique_image_name()
+        (output, returncode) = self.run_repoman_command("create-image %s" % (self.new_image_name))
+        self.assertEqual(returncode, 0)
+	(output, returncode) = self.run_repoman_command("share-image-with-groups %s users" % (self.new_image_name))
+        self.assertEqual(returncode, 0)
+        (output, returncode) = self.run_repoman_command("list-images %s users" % (arg))
+	p = re.search(self.new_image_name, output)
+        self.assertTrue( p != None)
+
+
+    # Test the optional parameters '--group' and '-g'
+    # The image is shared with the group 'users'
+    def test_list_images_group(self):
+	ListImagesTest.ListImagesGroup(self, '--group')	
+    def test_list_images_g(self):
+        ListImagesTest.ListImagesGroup(self, '-g')
+
+
+    # Test the optional parameter 'image'
     def test_list_images_image(self):
 	"""
 	This test runs the 'repoman list-images image' command, and checks if all the fields of the output match the expected fields of the image
@@ -465,11 +546,126 @@ class ListImagesTest(RepomanCLITest):
 	self.new_image_name = self.get_unique_image_name()
         (output, returncode) = self.run_repoman_command("create-image %s" % (self.new_image_name))
         self.assertEqual(returncode, 0)
+
+	# Check if the output is of the proper format
 	(output, returncode) = self.run_repoman_command("list-images %s" % (self.new_image_name))
 	p = re.search(r'checksum :.*\n\s*description :.*\n\s*expires :.*\n\s*file_url :.*\n\s*http_file_url :.*\n\s*hypervisor :.*\n\s*modified :.*\n\s*name : %s.*\n\s*os_arch :.*\n\s*os_type :.*\n\s*os_variant :.*\n\s*owner :.*\n\s*owner_user_name :.*\n\s*raw_file_uploaded :.*\n\s*read_only :.*\n\s*shared_with :.*\n\s*size :.*\n\s*unauthenticated_access :.*\n\s*uploaded :.*\n\s*uuid :.*\n\s*version :' % (self.new_image_name), output)
 	self.assertTrue( p != None)
         self.assertEqual(returncode, 0)
+
+
+
+
+#####################################################################
+#               COMMAND - 'repoman put-image'
+#####################################################################
+
+
+
+class PutImageTest(RepomanCLITest):
+
+    def PutImage(self, command, arg):
+	"""
+	This method is called when the repoman command 'put-image' or 'pi' is called.
+	Here a dummy file is created which is uploaded to an existing image slot, and is then downloaded to check 
+	if it matches with the original dummy file
+	"""
 	
+	# Get a unique name for the image and a dummy file that will be uploaded
+        self.new_image_name = self.get_unique_image_name()
+        random_file = self.get_unique_image_name()
+        # Create a dummy file of 10 MB(10485760 bytes) with a unique name
+        p = Popen('dd if=/dev/zero of=%s bs=10485760 count=1' % (random_file), shell=True, stdout=PIPE, stderr=STDOUT)
+        output = p.communicate()[0]
+        self.assertEqual(p.returncode, 0)
+
+        # Create the image where the file is to be uploaded
+        (output, returncode) = self.run_repoman_command('create-image %s' % (self.new_image_name))
+        self.assertEqual(returncode, 0)
+
+        # Upload the file with the 'put-image' or 'pi' command into the newly created image
+        (output, returncode) = self.run_repoman_command('%s %s %s' % (command,random_file, self.new_image_name ))
+        p = re.search(r'Uploading %s to image.+\n.*OK.*%s uploaded to image' % (random_file, random_file), output)
+	self.assertTrue( p != None)
+	self.assertEqual(returncode, 0)
+
+	if (arg == ''):
+	        # Change the unauthenticated access to true so that the file can be downloaded
+        	(output, returncode) = self.run_repoman_command('modify-image %s --unauthenticated_access true' % (self.new_image_name))
+        	self.assertEqual(returncode, 0)
+
+        	# Retrieve the url of the file and and download it using wget
+        	(output, returncode) = self.run_repoman_command('list-images %s' % (self.new_image_name))
+        	self.assertEqual(returncode, 0)
+        	m = re.findall(r'http://.+', output)
+        	p = Popen('wget %s' % (m[0]), shell=True, stdout=PIPE, stderr=STDOUT)
+        	output = p.communicate()[0]
+        	self.assertEqual(p.returncode, 0)
+
+        	# Check if the file that got uploaded and consequently downloaded matches the original file
+        	p = Popen('diff %s %s' % (random_file, self.new_image_name), shell=True, stdout=PIPE, stderr=STDOUT)
+        	output = p.communicate()[0]
+        	self.assertEqual(p.returncode, 0)
+
+        	# Delete the dummy file (random_file) and the downloaded file
+        	p = Popen('rm %s %s' % (random_file, self.new_image_name), shell=True, stdout=PIPE, stderr=STDOUT)
+        	output = p.communicate()[0]
+        	self.assertEqual(p.returncode, 0)
+	
+	elif (arg == '--force'):
+		# Get a unique name for the new dummy file (new_random_file)
+		new_random_file = self.get_unique_image_name()
+		
+		# Create the new dummy file of 8 MB (8388608 bytes) with the unique name
+		p = Popen('dd if=/dev/zero of=%s bs=8388608 count=1' % (new_random_file), shell=True, stdout=PIPE, stderr=STDOUT)
+	        output = p.communicate()[0]
+        	self.assertEqual(p.returncode, 0)
+
+		# Upload the new dummy file (new_random_file) forcefully to the existing image(self.new_image_name)
+		# This action is done forcefully on the image which was identical to the first dummy file (random_file)
+		(output, returncode) = self.run_repoman_command('%s %s %s %s' % (command, arg, new_random_file, self.new_image_name ))
+		p = re.search(r'Uploading %s to image.+\n.*OK.*%s uploaded to image' % (new_random_file, new_random_file), output)
+        	self.assertTrue( p != None)
+	        self.assertEqual(returncode, 0)
+		
+		# Change the unauthenticated access to true so that the file can be downloaded
+                (output, returncode) = self.run_repoman_command('modify-image %s --unauthenticated_access true' % (self.new_image_name))
+                self.assertEqual(returncode, 0)
+
+                # Retrieve the url of the file and and download it using wget
+                (output, returncode) = self.run_repoman_command('list-images %s' % (self.new_image_name))
+                self.assertEqual(returncode, 0)
+                m = re.findall(r'http://.+', output)
+                p = Popen('wget %s' % (m[0]), shell=True, stdout=PIPE, stderr=STDOUT)
+                output = p.communicate()[0]
+                self.assertEqual(p.returncode, 0)
+
+                # Check if the new file that got uploaded and consequently downloaded matches the original file (second dummy file)
+                p = Popen('diff %s %s' % (new_random_file, self.new_image_name), shell=True, stdout=PIPE, stderr=STDOUT)
+                output = p.communicate()[0]
+                self.assertEqual(p.returncode, 0)
+
+                # Delete the dummy files (random_file and new_random_file) and the downloaded file
+                p = Popen('rm %s %s %s' % (random_file, new_random_file, self.new_image_name), shell=True, stdout=PIPE, stderr=STDOUT)
+                output = p.communicate()[0]
+                self.assertEqual(p.returncode, 0)
+
+
+    def test_put_image(self):
+	PutImageTest.PutImage(self, 'put-image', '')
+
+    def test_pi(self):
+	PutImageTest.PutImage(self, 'pi', '')
+
+
+    def test_put_image_force(self):
+	PutImageTest.PutImage(self, 'put-image', '--force')
+
+    def tearDown(self):
+	(output, returncode) = self.run_repoman_command('remove-image -f %s' %(self.new_image_name))	
+
+
+   
 #####################################################################
 #####################################################################
 #####################################################################
