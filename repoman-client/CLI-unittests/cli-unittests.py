@@ -654,10 +654,11 @@ class PutImageTest(RepomanCLITest):
     def test_put_image(self):
 	PutImageTest.PutImage(self, 'put-image', '')
 
+    # Test the alias of put-image ('pi')
     def test_pi(self):
 	PutImageTest.PutImage(self, 'pi', '')
 
-
+    # Test the optional parameter, '--force'
     def test_put_image_force(self):
 	PutImageTest.PutImage(self, 'put-image', '--force')
 
@@ -665,7 +666,68 @@ class PutImageTest(RepomanCLITest):
 	(output, returncode) = self.run_repoman_command('remove-image -f %s' %(self.new_image_name))	
 
 
-   
+
+
+#####################################################################
+#               COMMAND - 'repoman remove-image'
+#####################################################################
+
+
+class RemoveImageTest(RepomanCLITest):
+
+    def RemoveImage(self, command, arg):
+	"""
+	This method is called whenever the commands 'remove-image' or 'ri' is used. The arguments are command and arg. 
+	The argument 'command' can have the value 'remove-image' or 'ri', while 'arg' contains the optional parameters
+	"""
+	# Get a unique name for the image	
+	self.new_image_name = self.get_unique_image_name()
+	
+	# Create a new image to be removed
+	(output, returncode) = self.run_repoman_command('create-image %s' % (self.new_image_name))
+	self.assertEqual(returncode, 0)
+
+	# Run the 'remove-image' or 'ri' command. The 'yes yes' is used to pass 'yes' to the confirmation prompt
+	# Here the function run_repoman_command is not used since 'yes yes |' has to precede repoman.
+	p = Popen('yes yes | repoman %s %s' % (command, self.new_image_name), shell=True, stdout=PIPE, stderr=STDOUT)
+        output = p.communicate()[0]
+	m = re.search(r'OK.*Removed image', output)
+	self.assertTrue( m != None)
+	self.assertEqual(p.returncode, 0)
+	
+	# Check if the image is removed and can't be seen in list-images
+	(output, returncode) = self.run_repoman_command('list-images')
+	m = re.search(self.new_image_name, output)
+	self.assertTrue( m == None)
+
+    # Test the 'repoman remove-image' command
+    def test_remove_image(self):
+	RemoveImageTest.RemoveImage(self, 'remove-image', '')
+
+    # Test the alias of remove-image ('ri')
+    def test_ri(self):
+	RemoveImageTest.RemoveImage(self, 'ri', '')
+
+    # Test the optional parameter '--force'
+    def test_remove_image_force(self):
+	# Get unique image name and create image	
+	self.new_image_name = self.get_unique_image_name()
+	(output, returncode) = self.run_repoman_command('create-image %s' % (self.new_image_name))
+        self.assertEqual(returncode, 0)
+	
+	# Run 'repoman remove-image --force' 
+	(output, returncode) = self.run_repoman_command('remove-image --force %s' % (self.new_image_name))
+	m = re.search(r'OK.*Removed image', output)
+        self.assertTrue( m != None)
+        self.assertEqual(returncode, 0)
+	
+	# Check if the image is removed and can't be seen in list-images
+        (output, returncode) = self.run_repoman_command('list-images')
+        m = re.search(self.new_image_name, output)
+        self.assertTrue( m == None)
+
+
+
 #####################################################################
 #####################################################################
 #####################################################################
