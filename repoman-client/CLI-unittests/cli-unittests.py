@@ -27,7 +27,7 @@ class RepomanCLITest(unittest.TestCase):
         """
         try:
             cmd = 'repoman %s' % (args)
-            print 'Running [%s]' % (cmd)
+#            print 'Running [%s]' % (cmd)
             p = Popen(cmd, shell=True, stdout=PIPE, stderr=STDOUT)
             output = p.communicate()[0]
             return (output, p.returncode)
@@ -58,6 +58,8 @@ class RepomanCLITest(unittest.TestCase):
 #####################################################################
 #		COMMAND - 'repoman about'
 #####################################################################
+
+
 class AboutTest(RepomanCLITest):
     def test_about(self):
 	(output, returncode) = self.run_repoman_command('about')
@@ -65,25 +67,32 @@ class AboutTest(RepomanCLITest):
 	self.assertEqual(returncode, 0)
 	self.assertTrue( p != None)
 
+
 ######################################################################
 #		COMMAND - 'repoman version'
 ######################################################################
+
+
 class ClientVersionTest(RepomanCLITest):
     def test_version(self):
         (output, returncode) = self.run_repoman_command('version')
         self.assertEqual(output, '0.3.11\n')
         self.assertEqual(returncode, 0)
 
+
 ######################################################################
 #		COMMAND - 'repoman whoami'
 ######################################################################
+
 
 class WhoamiTest(RepomanCLITest):
     def test_whoami(self):
         (output, returncode) = self.run_repoman_command('whoami')
         self.assertEqual(returncode, 0)
 
+
 ######################################################################
+
 
 def CheckOptions(self, output, arg): 			
 	"""
@@ -128,6 +137,7 @@ def CheckOptions(self, output, arg):
         elif (arg =='--os_variant ubuntu'):
                 p = re.search('^\\s*os_variant : ubuntu\\s*$', output, flags=re.MULTILINE)
                 self.assertTrue(p != None)
+
 
 
 ######################################################################
@@ -725,6 +735,112 @@ class RemoveImageTest(RepomanCLITest):
         (output, returncode) = self.run_repoman_command('list-images')
         m = re.search(self.new_image_name, output)
         self.assertTrue( m == None)
+
+
+
+
+#####################################################################
+#               COMMAND - 'repoman share-image-with-groups'
+#####################################################################
+
+
+class ShareImageWithGroupsTest(RepomanCLITest):
+
+    def ShareImageWithGroups(self, command, arg):
+        """
+        This method is called whenever the 'share-image-with-groups' or 'sig' command is used. The arguments are command and arg. 
+        The argument 'command' can have the values 'share-image-with-groups' or 'sig'. arg contains optional parameters or is an empty sting if 
+        there are none. Here the image is shared with the group 'users'.
+        """
+	# Use unique name for the image to be created
+        self.new_image_name = self.get_unique_image_name()
+
+	# Create the image to be shared by running the repoman create-image subcommand
+        (output, returncode) = self.run_repoman_command('create-image %s' % (self.new_image_name))
+        self.assertEqual(returncode, 0)
+
+	# Running the command ('share-image-with-groups' or 'sig'). The optional parameter '--owner' or '-o' can be passed in arg
+	# The image is shared with the group 'users'
+        (output, returncode) = self.run_repoman_command('%s %s users  %s' % (command, self.new_image_name, arg))
+        p = re.search(r'OK.*Shared image: \'%s\' with group: \'users\'' % (self.new_image_name), output)
+        self.assertTrue( p != None )
+        self.assertEqual(returncode, 0)
+
+	# Checking if the image shared is present in the 'repoman list-images --group' command
+        (output, returncode) = self.run_repoman_command('list-images --group users')
+        p = re.search(self.new_image_name, output)
+        self.assertTrue( p != None )
+
+    # Removing the image after the test
+    def tearDown(self):
+        (output, returncode) = self.run_repoman_command('remove-image --force %s' % (self.new_image_name))
+
+    # Test the 'share-image-with-groups' subcommand
+    def test_share_image_with_groups(self):
+        ShareImageWithGroupsTest.ShareImageWithGroups(self, 'share-image-with-groups', '')
+
+    # Test the alias 'sig'
+    def test_sig(self):
+        ShareImageWithGroupsTest.ShareImageWithGroups(self, 'sig', '')
+
+
+
+
+
+
+#####################################################################
+#               COMMAND - 'repoman unshare-image-with-groups'
+#####################################################################
+
+
+class UnshareImageWithGroupsTest(RepomanCLITest):
+
+    def UnshareImageWithGroups(self, command, arg):
+	"""
+	This method is called whenever the 'unshare-image-with-groups' or 'uig' command is used. The arguments are command and arg. 
+	The argument 'command' can have the values 'unshare-image-with-groups' or 'uig'. arg contains optional parameters or is an empty sting if 
+	there are none. Here the image is shared and unshared with the group 'users'. 
+	"""
+	# Get a unique name for the image
+	self.new_image_name = self.get_unique_image_name()
+	
+	# Create the image 
+	(output, returncode) = self.run_repoman_command('create-image %s' % (self.new_image_name))
+	self.assertEqual(returncode, 0)
+	
+	# Share the image with the group 'users'
+	(output, returncode) = self.run_repoman_command('share-image-with-groups %s users' % (self.new_image_name))
+	self.assertEqual(returncode, 0)
+	
+	# Run the command 'unshare-image-with-groups' or 'uig' with optional parameters passed in arg
+	# arg is an empty string if there are no optional parameters passed
+	(output, returncode) = self.run_repoman_command('%s %s users  %s' % (command, self.new_image_name, arg))
+	p = re.search(r'OK.*Unshared image: \'%s\' with group: \'users\'' % (self.new_image_name), output)
+	self.assertTrue( p != None )
+	self.assertEqual(returncode, 0)
+        
+	# Check the absence of the image in the shared images between the user and the group 'users'
+	(output, returncode) = self.run_repoman_command('list-images --group users')
+	p = re.search(self.new_image_name, output)
+	self.assertTrue( p == None )
+
+    # Remove the image that was created
+    def tearDown(self):
+	(output, returncode) = self.run_repoman_command('remove-image --force %s' % (self.new_image_name))
+	
+    # Test the repoman subcommand 'unshare-image-with-groups'
+    def test_unshare_image_with_groups(self):
+	UnshareImageWithGroupsTest.UnshareImageWithGroups(self, 'unshare-image-with-groups', '')
+
+    # Test the alias 'uig'
+    def test_uig(self):
+	UnshareImageWithGroupsTest.UnshareImageWithGroups(self, 'uig', '')
+
+
+
+
+
+
 
 
 
