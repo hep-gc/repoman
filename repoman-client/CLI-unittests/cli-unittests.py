@@ -1008,14 +1008,9 @@ class ListUsersTest(RepomanCLITest):
 	This method is used whenever the 'list-users' or 'lu' command is used. The argument command has the value 'list-users' or 'lu'. 
 	arg contains any optional parameter. Here the output of the list-images is checked to match the expected value
 	"""
-	# Get a unique name for the image, first name, and last name for the test user
-	self.new_image_name = self.get_unique_image_name()
+	# Get a unique name for the first name and last name for the test user
 	self.first_name = self.get_unique_image_name()
 	self.last_name = self.get_unique_image_name()
-	
-	# Create the image
-	(output, returncode) = self.run_repoman_command('create-image %s' % (self.new_image_name))
-	self.assertEqual(returncode, 0)
 	
 	# Create a test user. The first name is used for the username and email address. The last name is used in the DN and full_name fields
 	(output, returncode) = self.run_repoman_command('create-user %s "/C=CA/O=Grid/OU=phys.UVic.CA/CN=%s %s" --email %s@random.com --full_name "%s %s"' % (self.first_name,self.first_name, self.last_name,self.first_name, self.first_name ,self.last_name))
@@ -1033,7 +1028,6 @@ class ListUsersTest(RepomanCLITest):
 		self.assertTrue(p != None)
 
     def tearDown(self):
-	(output, returncode) = self.run_repoman_command('remove-image --force %s' % (self.new_image_name))
 	(output, returncode) = self.run_repoman_command('remove-user --force %s' % (self.first_name))
 
     # Test the command 'list-users' without parameters. arg is passed as empty string	
