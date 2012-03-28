@@ -528,7 +528,7 @@ class ListImagesTest(RepomanCLITest):
     def ListImagesGroup(self, arg):
 	"""
 	This method is called for the optional parameters '-g' and '--group'. Here an image is created with a unique name which is shared with the group "users".
-	The test is successful if the shared image is listed with the command 'list-images --group users' or 'list-users -g users'
+	The test is successful if the shared image is listed with the command 'list-images --group users' or 'list-images -g users'
 	"""
 	self.new_image_name = self.get_unique_image_name()
         (output, returncode) = self.run_repoman_command("create-image %s" % (self.new_image_name))
@@ -564,6 +564,41 @@ class ListImagesTest(RepomanCLITest):
         self.assertEqual(returncode, 0)
 
 
+
+    def ListImagesUser(self, arg):
+	"""
+	This method is called for the optional parameters '-u' or '--user'. Here an image is created with a unique name, and is shared with a test user with unique 
+	first and last names. The test is successful if the shared image is listed with the command 'list-images --user user' or 'list-images -u user'
+	"""
+	# Get unique names for the image, first name, and last name
+	self.new_image_name = self.get_unique_image_name()
+	self.first_name = self.get_unique_image_name()
+	self.last_name = self.get_unique_image_name()
+	# Create the image
+	(output, returncode) = self.run_repoman_command('create-image %s' % (self.new_image_name))
+	self.assertEqual(returncode, 0)
+	# Create the test user. The first name is used as the username and email address. The last name is used in the DN and full_name fields
+	(output, returncode) = self.run_repoman_command('create-user %s "/C=CA/O=Grid/OU=phys.UVic.CA/CN=%s %s" --email %s@random.com --full_name "%s %s"' % (self.first_name,self.first_name, self.last_name,self.first_name, self.first_name ,self.last_name))
+	self.assertEqual(returncode, 0)
+	# Share the image with the test user
+	(output, returncode) = self.run_repoman_command('share-image-with-users %s %s' % (self.new_image_name, self.first_name))
+	self.assertEqual(returncode, 0)
+	# Check if the image is seen in list-images
+	(output, returncode) = self.run_repoman_command('list-images %s %s' % (arg, self.first_name))
+	p = re.search(self.new_image_name, output)
+	self.assertTrue(p != None)
+	self.assertEqual(returncode, 0)
+	# Remove the test user
+	(output, returncode) = self.run_repoman_command('remove-user --force %s' % (self.first_name))
+
+    # Test the optional parameter '--user'
+    def test_list_images_user(self):
+	ListImagesTest.ListImagesUser(self, '--user')
+	
+    # Test the optional parameter '-u'
+    def test_list_images_u(self):
+	ListImagesTest.ListImagesUser(self, '-u')
+	
 
 
 #####################################################################
@@ -957,6 +992,63 @@ class UnshareImageWithUsersTest(RepomanCLITest):
     #This tests the alias 'uiu'
     def test_uiu(self):
         UnshareImageWithUsersTest.UnshareImageWithUsers(self, 'uiu', '')
+
+
+
+
+#####################################################################
+#               COMMAND - 'repoman list-users'
+#####################################################################
+
+
+class ListUsersTest(RepomanCLITest):
+
+    def ListUsers(self, command, arg):
+	"""
+	This method is used whenever the 'list-users' or 'lu' command is used. The argument command has the value 'list-users' or 'lu'. 
+	arg contains any optional parameter. Here the output of the list-images is checked to match the expected value
+	"""
+	# Get a unique name for the image, first name, and last name for the test user
+	self.new_image_name = self.get_unique_image_name()
+	self.first_name = self.get_unique_image_name()
+	self.last_name = self.get_unique_image_name()
+	
+	# Create the image
+	(output, returncode) = self.run_repoman_command('create-image %s' % (self.new_image_name))
+	self.assertEqual(returncode, 0)
+	
+	# Create a test user. The first name is used for the username and email address. The last name is used in the DN and full_name fields
+	(output, returncode) = self.run_repoman_command('create-user %s "/C=CA/O=Grid/OU=phys.UVic.CA/CN=%s %s" --email %s@random.com --full_name "%s %s"' % (self.first_name,self.first_name, self.last_name,self.first_name, self.first_name ,self.last_name))
+        self.assertEqual(returncode, 0)
+
+	# Test the 'list-user' or 'lu' command with or without optional parameters
+	(output, statuscode) = self.run_repoman_command('%s %s' % (command,arg ))
+	p = re.search(self.first_name, output)
+	self.assertTrue(p != None)
+	self.assertEqual(returncode, 0)
+	
+	# Test the optional parameter '-l' or '--long'
+	if (arg == '-l' or arg == '--long'):
+		p = re.search(r'Username\s*Full Name\s*Client DN', output)
+		self.assertTrue(p != None)
+
+    def tearDown(self):
+	(output, returncode) = self.run_repoman_command('remove-image --force %s' % (self.new_image_name))
+	(output, returncode) = self.run_repoman_command('remove-user --force %s' % (self.first_name))
+
+    # Test the command 'list-users' without parameters. arg is passed as empty string	
+    def test_list_users(self):
+	ListUsersTest.ListUsers(self, 'list-users', '')
+
+    # Test the alias 'lu'
+    def test_lu(self):
+	ListUsersTest.ListUsers(self, 'lu', '')
+
+    # Test the optional parameters '-l' and '--long'
+    def test_list_users_long(self):
+	ListUsersTest.ListUsers(self, 'list-users', '--long')	
+    def test_list_users_l(self):
+	ListUsersTest.ListUsers(self, 'list-users', '-l')
 
 
 
