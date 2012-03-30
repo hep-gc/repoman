@@ -720,10 +720,10 @@ class PutImageTest(RepomanCLITest):
 
 class RemoveImageTest(RepomanCLITest):
 
-    def RemoveImage(self, command):
+    def RemoveImage(self, command, arg):
 	"""
 	This method is called whenever the commands 'remove-image' or 'ri' is used.  
-	The argument 'command' can have the value 'remove-image' or 'ri'
+	The argument 'command' can have the value 'remove-image' or 'ri'. 'arg' stores optional parameters
 	"""
 	# Get a unique name for the image	
 	self.new_image_name = self.get_unique_image_name()
@@ -732,13 +732,21 @@ class RemoveImageTest(RepomanCLITest):
 	(output, returncode) = self.run_repoman_command('create-image %s' % (self.new_image_name))
 	self.assertEqual(returncode, 0)
 
-	# Run the 'remove-image' or 'ri' command. The 'yes yes' is used to pass 'yes' to the confirmation prompt
-	# Here the function run_repoman_command is not used since 'yes yes |' has to precede repoman.
-	p = Popen('yes yes | repoman %s %s' % (command, self.new_image_name), shell=True, stdout=PIPE, stderr=STDOUT)
-        output = p.communicate()[0]
-	m = re.search(r'OK.*Removed image', output)
-	self.assertTrue( m != None)
-	self.assertEqual(p.returncode, 0)
+	if (arg == ''):
+		# Run the 'remove-image' or 'ri' command. The 'yes yes' is used to pass 'yes' to the confirmation prompt
+		# Here the function run_repoman_command is not used since 'yes yes |' has to precede 'repoman'.
+		p = Popen('yes yes | repoman %s %s' % (command, self.new_image_name), shell=True, stdout=PIPE, stderr=STDOUT)
+        	output = p.communicate()[0]
+		m = re.search(r'OK.*Removed image', output)
+		self.assertTrue( m != None)
+		self.assertEqual(p.returncode, 0)
+	elif (arg == '--force' or arg == '-f'):
+		# Run 'repoman remove-image --force' or 'repoman remove-image -f' 
+        	(output, returncode) = self.run_repoman_command('%s %s %s' % (command, arg, self.new_image_name))
+        	m = re.search(r'OK.*Removed image', output)
+        	self.assertTrue( m != None)
+	        self.assertEqual(returncode, 0)
+
 	
 	# Check if the image is removed and can't be seen in list-images
 	(output, returncode) = self.run_repoman_command('list-images')
@@ -747,31 +755,18 @@ class RemoveImageTest(RepomanCLITest):
 
     # Test the 'repoman remove-image' command
     def test_remove_image(self):
-	RemoveImageTest.RemoveImage(self, 'remove-image')
+	RemoveImageTest.RemoveImage(self, 'remove-image', '')
 
     # Test the alias of remove-image ('ri')
     def test_ri(self):
-	RemoveImageTest.RemoveImage(self, 'ri')
+	RemoveImageTest.RemoveImage(self, 'ri', '')
 
-    # Test the optional parameter '--force'
+    # Test the optional parameter '--force' and '-f'
     def test_remove_image_force(self):
-	# Get unique image name and create image	
-	self.new_image_name = self.get_unique_image_name()
-	(output, returncode) = self.run_repoman_command('create-image %s' % (self.new_image_name))
-        self.assertEqual(returncode, 0)
+	RemoveImageTest.RemoveImage(self, 'remove-image', '--force')
+    def test_remove_image_f(self):
+	RemoveImageTest.RemoveImage(self, 'remove-image', '-f')
 	
-	# Run 'repoman remove-image --force' 
-	(output, returncode) = self.run_repoman_command('remove-image --force %s' % (self.new_image_name))
-	m = re.search(r'OK.*Removed image', output)
-        self.assertTrue( m != None)
-        self.assertEqual(returncode, 0)
-	
-	# Check if the image is removed and can't be seen in list-images
-        (output, returncode) = self.run_repoman_command('list-images')
-        m = re.search(self.new_image_name, output)
-        self.assertTrue( m == None)
-
-
 
 
 #####################################################################
@@ -1170,10 +1165,10 @@ class ModifyUserTest(RepomanCLITest):
 class RemoveUserTest(RepomanCLITest):
 
 
-    def RemoveUser(self, command):
+    def RemoveUser(self, command, arg):
 	"""
 	This method is called whenever the 'remove-user' or 'ru' command is used. 
-	The argument 'command' stores either 'remove-user' or 'ru'
+	The argument 'command' stores either 'remove-user' or 'ru'. 'arg' stores the optional parameters '--force' or '-f'
 	Here a test user is created and removed. The successfull removal is checked with the command 'list-users'
 	"""
 	# Get a unique name for the first and last names of the test user
@@ -1184,14 +1179,22 @@ class RemoveUserTest(RepomanCLITest):
 	(output, returncode) = self.run_repoman_command('create-user %s "/C=CA/O=Grid/OU=phys.UVic.CA/CN=%s %s" --email %s@random.com --full_name "%s %s"' % (self.first_name,self.first_name, self.last_name,self.first_name, self.first_name ,self.last_name))
 	self.assertEqual(returncode, 0)
 	
-	# Run the 'remove-user' or 'ru' command. The 'yes yes' is used to pass 'yes' to the confirmation prompt
-        # Here the function run_repoman_command is not used since 'yes yes |' has to precede 'repoman'.
-        p = Popen('yes yes | repoman %s %s' % (command, self.first_name), shell=True, stdout=PIPE, stderr=STDOUT)
-        output = p.communicate()[0]
-        m = re.search(r'OK.*Removed user', output)
-        self.assertTrue( m != None)
-        self.assertEqual(p.returncode, 0)
+	if (arg == ''):
+		# Run the 'remove-user' or 'ru' command. The 'yes yes' is used to pass 'yes' to the confirmation prompt
+        	# Here the function run_repoman_command is not used since 'yes yes |' has to precede 'repoman'.
+        	p = Popen('yes yes | repoman %s %s' % (command, self.first_name), shell=True, stdout=PIPE, stderr=STDOUT)
+        	output = p.communicate()[0]
+        	m = re.search(r'OK.*Removed user', output)
+        	self.assertTrue( m != None)
+        	self.assertEqual(p.returncode, 0)
     
+	elif (arg == '--force' or arg == '-f'):
+		# Remove the user forcefully
+        	(output, returncode) = self.run_repoman_command('remove-user %s %s' % (self.first_name, arg))
+        	m = re.search(r'OK.*Removed user', output)
+        	self.assertTrue( m != None)
+	        self.assertEqual(returncode, 0)
+
 	# Check the absence of the user in 'list-users'
 	(output, returncode) = self.run_repoman_command('list-users')
 	p = re.search(self.first_name, output)
@@ -1200,32 +1203,17 @@ class RemoveUserTest(RepomanCLITest):
 
     # Test the command 'remove-user'
     def test_remove_user(self):
-	RemoveUserTest.RemoveUser(self, 'remove-user')
+	RemoveUserTest.RemoveUser(self, 'remove-user', '')
 
     # Test the alias 'ru'
     def test_ru(self):
-	RemoveUserTest.RemoveUser(self, 'ru')
+	RemoveUserTest.RemoveUser(self, 'ru', '')
 
-    # Test the optional parameter '--force'
+    # Test the optional parameter '--force' and '-f'
     def test_remove_user_force(self):
-	# Get a unique name for the first and last names of the test user
-        self.first_name = self.get_unique_image_name()
-        self.last_name = self.get_unique_image_name()
-
-        # Create the test user. The first name is used for the username and email address. The last name is used in the client dn and full name.
-        (output, returncode) = self.run_repoman_command('create-user %s "/C=CA/O=Grid/OU=phys.UVic.CA/CN=%s %s" --email %s@random.com --full_name "%s %s"' % (self.first_name,self.first_name, self.last_name,self.first_name, self.first_name ,self.last_name))
-        self.assertEqual(returncode, 0)
-
-	# Remove the user forcefully
-	(output, returncode) = self.run_repoman_command('remove-user %s --force' % (self.first_name))
-	m = re.search(r'OK.*Removed user', output)
-        self.assertTrue( m != None)
-        self.assertEqual(returncode, 0)
-	
-	# Check the absence of the user in 'list-users'
-        (output, returncode) = self.run_repoman_command('list-users')
-        p = re.search(self.first_name, output)
-        self.assertTrue(p == None)
+	RemoveUserTest.RemoveUser(self, 'remove-user', '--force')
+    def test_remove_user_f(self):
+        RemoveUserTest.RemoveUser(self, 'remove-user', '-f')
 
 
 
