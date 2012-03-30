@@ -1044,7 +1044,119 @@ class ListUsersTest(RepomanCLITest):
     def test_list_users_l(self):
 	ListUsersTest.ListUsers(self, 'list-users', '-l')
 
+    # Test the optional parameters '--group' and '-g'. Here the user is checked in the default group 'users'
+    def test_list_users_group(self):
+	ListUsersTest.ListUsers(self, 'list-users', '--group users')
+    def test_list_users_group(self):
+	ListUsersTest.ListUsers(self, 'list-users', '-g users')
 
+
+    def test_list_users_user(self):
+	# Get a unique name for the first name and last name for the test user
+        self.first_name = self.get_unique_image_name()
+        self.last_name = self.get_unique_image_name()
+
+        # Create a test user. The first name is used for the username and email address. The last name is used in the DN and full_name fields
+        (output, returncode) = self.run_repoman_command('create-user %s "/C=CA/O=Grid/OU=phys.UVic.CA/CN=%s %s" --email %s@random.com --full_name "%s %s"' % (self.first_name,self.first_name, self.last_name,self.first_name, self.first_name ,self.last_name))
+        self.assertEqual(returncode, 0)
+
+        # Test the 'list-user user' command. The expected fields are checked.  
+        (output, statuscode) = self.run_repoman_command('list-users %s' % (self.first_name))
+        p = re.search(r'client_dn :\s*/C=CA/O=Grid/OU=phys.UVic.CA/CN=%s %s\s*\n\s*email : %s@random.com\s*\n\s*full_name : %s %s\s*\n\s*groups :.*\n\s*images :.*\n\s*permissions :.*\n\s*suspended :.*\n\s*user_name :' % (self.first_name, self.last_name, self.first_name, self.first_name, self.last_name), output)
+        self.assertTrue(p != None)
+        self.assertEqual(returncode, 0)
+
+
+
+
+#####################################################################
+#               COMMAND - 'repoman modify-user'
+#####################################################################
+
+
+class ModifyUserTest(RepomanCLITest):
+
+    def ModifyUser(self, command, arg):
+	"""
+	This method is called whenever the 'modify-user' or 'mu' command is used. The argument 'command' 
+	stores 'modify-user' or 'mu'. Any optional parameter is stored in the argument 'arg'. 
+	"""
+	
+	# Get unique names for the first and last names of the test user
+	self.first_name = self.get_unique_image_name()
+	self.last_name = self.get_unique_image_name()
+	
+	# Create a test user. The first name is used for the username and email address. The last name is used in the DN and full_name fields
+        (output, returncode) = self.run_repoman_command('create-user %s "/C=CA/O=Grid/OU=phys.UVic.CA/CN=%s %s" --email %s@random.com --full_name "%s %s"' % (self.first_name,self.first_name, self.last_name,self.first_name, self.first_name ,self.last_name))
+        self.assertEqual(returncode, 0)
+	
+	# Adding a unique random name to the optional parameters '--client_dn'/'-c', '--email'/'-e', '--full_name'/'-f' or '--new_user'/'-n'
+	# The variable self.new_random_name will serve as the new client dn, email address, full name or new user to which the value will be modified to.
+	if (arg != ''):
+		self.new_random_name = self.get_unique_image_name()
+		arg = arg + ' ' + self.new_random_name
+		if (re.search('--email', arg) or re.search('-e', arg)):
+			arg = arg + '@random.com'
+	
+	# Run the 'modify-image' or 'mu' command with or without optional parameters
+	(output, statuscode) = self.run_repoman_command('%s %s %s' % (command, self.first_name, arg))
+	p = re.search(r'OK.*Modifying user.', output)
+	self.assertTrue(p != None)
+	self.assertEqual(returncode, 0)
+
+	if (arg != ''):
+		(output, returncode) = self.run_repoman_command('list-users %s' % (self.first_name))
+		self.assertEqual(returncode, 0)
+		if (arg == '-c %s' % (self.new_random_name) or arg == '--client_dn %s' % (self.new_random_name)):
+			p = re.search(r'client_dn : %s' % (self.new_random_name), output)
+			self.assertTrue(p != None)
+			self.assertEqual(returncode, 0)
+		if (arg == 'e %s' % (self.new_random_name) or arg == '--email %s' % (self.new_random_name)):
+			p = re.search(r'email : %s' % (self.new_random_name), output)
+                        self.assertTrue(p != None)
+                        self.assertEqual(returncode, 0)
+		if (arg == '--full_name %s' % (self.new_random_name) or arg == '-f %s' % (self.new_random_name)):
+			p = re.search(r'full_name : %s' % (self.new_random_name), output)
+                        self.assertTrue(p != None)
+                        self.assertEqual(returncode, 0)
+		if (arg == '--new_name %s' % (self.new_random_name) or arg == '-n %s' % (self.new_random_name)):
+			p = re.search(r'user_name : %s' % (self.new_random_name), output)
+			self.assertTrue(p != None)
+			self.assertEqual(returncode, 0)		
+
+
+    def tearDown(self):
+	(output, returncode) = self.run_repoman_command('remove-user --force %s' % (self.first_name))
+
+    def test_modify_user(self):
+	ModifyUserTest.ModifyUser(self, 'modify-user', '')
+
+    def test_mu(self):
+	ModifyUserTest.ModifyUser(self, 'mu', '')
+
+    # This tests the optional parameters '--client_dn' and '-c'. A unique name is assigned to the client dn.
+    def test_modify_user_client_dn(self):
+	ModifyUserTest.ModifyUser(self, 'modify-user', '--client_dn') 
+    def test_modify_user_c(self):
+	ModifyUserTest.ModifyUser(self, 'modify-user', '-c')
+
+    # This tests the optional parameters '--email' and '-e'. The value for email address is a unique name assigned in the called method.
+    def test_modify_user_email(self):
+	ModifyUserTest.ModifyUser(self, 'modify-user', '--email')
+    def test_modify_user_e(self):
+	ModifyUserTest.ModifyUser(self, 'modify-user', '-e')
+
+    # This tests the optional parameters '--full_name' and '-f'. The value for full name is given a unique name.
+    def test_modify_user_full_name(self):
+	ModifyUserTest.ModifyUser(self, 'modify-user', '--full_name')
+    def test_modify_user_f(self):
+	ModifyUserTest.ModifyUser(self, 'modify-user', '-f')
+
+    # This tests the optional parameters '--new_name' and '-n'. The value is given a unique name assigned in the ModifyUser method.
+#    def test_modify_user_new_name(self):
+#	ModifyUserTest.ModifyUser(self, 'modify-user', '--new_name')
+#    def test_modify_user_n(self):
+#	ModifyUserTest.ModifyUser(self, 'modify-user', '-n')
 
 
 #####################################################################
