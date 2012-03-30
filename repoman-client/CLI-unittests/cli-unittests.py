@@ -657,7 +657,7 @@ class PutImageTest(RepomanCLITest):
         	output = p.communicate()[0]
         	self.assertEqual(p.returncode, 0)
 	
-	elif (arg == '--force'):
+	elif (arg == '--force' or arg == '-f'):
 		# Get a unique name for the new dummy file (new_random_file)
 		new_random_file = self.get_unique_image_name()
 		
@@ -703,9 +703,11 @@ class PutImageTest(RepomanCLITest):
     def test_pi(self):
 	PutImageTest.PutImage(self, 'pi', '')
 
-    # Test the optional parameter, '--force'
+    # Test the optional parameters, '--force' and '-f'
     def test_put_image_force(self):
 	PutImageTest.PutImage(self, 'put-image', '--force')
+    def test_put_image_f(self):
+        PutImageTest.PutImage(self, 'put-image', '-f')
 
     def tearDown(self):
 	(output, returncode) = self.run_repoman_command('remove-image -f %s' %(self.new_image_name))	
