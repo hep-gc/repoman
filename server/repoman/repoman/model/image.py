@@ -54,7 +54,7 @@ class Image(Base):
 
     # owner ref
     owner_id = Column(Integer, ForeignKey('user.id'))
-    owner = relationship("User", backref=backref('image', uselist=False))
+    #owner = relationship("User", backref=backref('image', uselist=False))
 
     # sharing ref
     shared_id = Column(Integer, ForeignKey('image_share.id'))
