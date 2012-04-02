@@ -355,7 +355,17 @@ class ImagesController(BaseController):
                     if previous_hypervisor not in new_hypervisors:
                         # Cleanup
                         image.delete_image_file_for_hypervisor(previous_hypervisor)
-                
+
+            # Check to see if the user wants to assign the image to a new owner.
+            # If that is the case, then we need to rename the image file because
+            # it has the owner's username hardcoded in its filename.
+            if 'owner' in params and params['owner'] != image.owner:
+                log.debug('Changing ownership of image %s from user %s to user %s.' % 
+                          (image.name, image.owner, params['owner']))
+                if not image.change_image_files_to_new_owner(params['owner']):
+                    # Could not change owner because of conflict.  Abort operation.
+                    abort(409, 'Could not change ownership of the image because it conflicts with an image already owned by the target user.  Operation aborted.')
+
             for k,v in params.iteritems():
                 if v != None:
                     setattr(image, k, v)

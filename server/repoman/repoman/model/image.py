@@ -9,6 +9,7 @@ from repoman.model.checksum import Checksum
 from pylons import app_globals
 import os
 import logging
+import shutil
 
 log = logging.getLogger(__name__)
 
@@ -53,7 +54,7 @@ class Image(Base):
 
     # owner ref
     owner_id = Column(Integer, ForeignKey('user.id'))
-    #owner = relationship("User", backref=backref('image', uselist=False))
+    owner = relationship("User", backref=backref('image', uselist=False))
 
     # sharing ref
     shared_id = Column(Integer, ForeignKey('image_share.id'))
@@ -92,6 +93,44 @@ class Image(Base):
                                 '%s_%s_%s' % (self.owner.user_name, self.name, hypervisor))
             paths[hypervisor] = path
         return paths
+
+    def change_image_files_to_new_owner(self, new_owner):
+        """
+        This method will change the image's filename to a new owner.
+        The image filename has the owner hardcoded in them, hence why we
+        need to change the filenames when we assign the image to another
+        owner.
+        Note that thie method will only change the owner if it does not conflict
+        with any existing image already owned by the target user.
+        """
+        hypervisors = []
+        if self.hypervisor == None:
+            hypervisors = ['xen']
+        else:
+            hypervisors = self.hypervisor.split(',')
+        # Let's do a dry run first to make sure we are not overwriting any existing
+        # image.
+        for hypervisor in hypervisors:
+            path = os.path.join(app_globals.image_storage, 
+                                '%s_%s_%s' % (self.owner.user_name, self.name, hypervisor))
+            new_path = os.path.join(app_globals.image_storage, 
+                                '%s_%s_%s' % (new_owner, self.name, hypervisor))
+            if os.path.exists(new_path):
+                # Abort operation.
+                log.warn("Image ownership change aborted because of image collision: %s" % (new_path))
+                return False
+
+        for hypervisor in hypervisors:
+            path = os.path.join(app_globals.image_storage, 
+                                '%s_%s_%s' % (self.owner.user_name, self.name, hypervisor))
+            new_path = os.path.join(app_globals.image_storage, 
+                                '%s_%s_%s' % (new_owner, self.name, hypervisor))
+            shutil.move(path, new_path)
+
+        # Finally, let's change the image owner metadata.
+        self.owner = new_owner
+
+        return True
 
 
 

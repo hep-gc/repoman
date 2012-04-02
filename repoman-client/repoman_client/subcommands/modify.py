@@ -135,8 +135,7 @@ class ModifyImage(SubCommand):
         if args.new_name:
             kwargs['name'] = args.new_name
         if args.new_owner:
-            raise NotImplementedError('Changing the owner of an image has not been implemented yet.')
-            #kwargs['owner'] = args.owner
+            kwargs['owner'] = args.new_owner
         if args.os_arch:
             kwargs['os_arch'] = args.os_arch
         if args.os_type:
