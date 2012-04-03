@@ -194,6 +194,7 @@ class ModifyImageForm(formencode.Schema):
     os_type = formencode.validators.String(if_missing=None)
     os_arch = formencode.validators.String(if_missing=None)
     hypervisor = formencode.validators.String(if_missing=None)
+    owner = formencode.validators.String(if_missing=None)
 
     expires = formencode.validators.String(if_missing=None)
 

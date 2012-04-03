@@ -1,4 +1,5 @@
 import os, sys
+import re
 import stat
 import subprocess
 import logging
@@ -9,13 +10,17 @@ from repoman_client.exceptions import ImageUtilError
 
 
 class ImageUtils(object):
-    def __init__(self, lockfile, imagepath, mountpoint, system_excludes, user_excludes, size=None):
+    def __init__(self, lockfile, imagepath, mountpoint, system_excludes, user_excludes, size=None, partition=False):
         self.lockfile = lockfile
         self.imagepath = imagepath
         self.mountpoint = mountpoint
         self.system_excludes = system_excludes
         self.user_excludes = user_excludes
         self.imagesize = size
+        self.partition = partition
+        # The following is used to keep track of where is the device map
+        # for partitioned images.  Not used when images are not partitioned.
+        self.device_map = None
         
     def statvfs(self, path='/'):
         stats = os.statvfs(path)
@@ -72,12 +77,36 @@ class ImageUtils(object):
             log.error("Unable to create sparse file")
             raise ImageUtilError("Error creating sparse file")
         null_f.close()
+
+    def create_bootable_partition(self, path):
+        cmd = "sfdisk %s" % (path)
+        log.debug("Creating bootable partition on %s" % (path))
+        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT)
+        if not p:
+            log.error("Error calling: %s" % (cmd))
+            raise ImageUtilError("Error creating bootable partition.")
+        p.stdin.write(',,L,*\n')
+        p.stdin.close()
+        p.wait()
+        if p.returncode != 0:
+            log.error("Command to create bootable partition returned error: %d" % (p.returncode))
+            raise ImageUtilError("Error creating bootable partition.")
+        log.debug("Bootable partition created on %s" % (path))
+
     
     def detect_fs_type(self, path):
-        #TODO: fixme
-        return 'ext3'
+        try:
+            for line in open("/etc/mtab"):
+                fields = line.split(' ')
+                if (len(fields) >= 3) and (fields[1] == path):
+                    return fields[2]
+        except Exception, e:
+            log.warning("Could not detect filesystem type for %s\n%s" % (path, e))
+        return None
     
     def mkfs(self, path, fs_type='ext3', label='/'):
+        if fs_type == None:
+            fs_type = 'ext3' # Default to ext3 if autodetection failed.
         cmd = "/sbin/mkfs -t %s -F -L %s %s" % (fs_type, label, path)
         log.debug("Creating file system: '%s'" % cmd)
         null_f = open('/dev/null', 'w')
@@ -86,6 +115,59 @@ class ImageUtils(object):
             raise ImageUtilError("Error creating filesystem.")
         null_f.close()
             
+    def create_device_map(self, path):
+        cmd = "kpartx -av %s" % (path)
+        log.debug("Creating device map for %s" % (path))
+        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        if not p:
+            log.error("Error calling: %s" % (cmd))
+            raise ImageUtilError("Error creating device map.")
+        stdout = p.communicate()[0]
+        log.debug("[%s] output:\n%s" % (cmd, stdout))
+        if p.returncode != 0:
+            log.error("Device map creation command returned error: %d" % (p.returncode))
+            raise ImageUtilError("Error creating device map.")
+        # Search the output to extract the location of the new device map
+        m = re.search('^add map (\w+) .+$', stdout, flags=re.M)
+        if not m:
+            log.error("Error extracting location of new device map from:\n%s" % (stdout))
+            raise ImageUtilError("Error extracting location of new device map.")
+        log.debug("Device map created for %s" % (path))
+        return '/dev/mapper/%s' % (m.group(1))
+
+    def delete_device_map(self, path):
+        cmd = "kpartx -d %s" % (path)
+        log.debug("Deleting device map for %s" % (path))
+        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        if not p:
+            log.error("Error calling: %s" % (cmd))
+            raise ImageUtilError("Error deleting device map.")
+        stdout = p.communicate()[0]
+        log.debug("[%s] output:\n%s" % (cmd, stdout))
+        if p.returncode != 0:
+            log.error("Error deleting device map for %s" % (path))
+            raise ImageUtilError("Error deleting device map.")
+        log.debug("Device map deleted for %s" % (path))
+
+    def install_mbr(self, path):
+        cmd = "grub"
+        log.debug("Creating MBR on %s" % (path))
+        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT)
+        if not p:
+            log.error("Error calling: %s" % (cmd))
+            raise ImageUtilError("Error creating bootable partition.")
+        p.stdin.write('device (hd0) %s\n' % (path))
+        p.stdin.write('root (hd0,0)\n')
+        p.stdin.write('setup (hd0)\n')
+        p.stdin.write('quit\n')
+        p.stdin.close()
+        p.wait()
+        if p.returncode == 0:
+            log.debug("MBR created on %s" % (path))
+        else:
+            log.error("Error creating MBR on %s\nReturn code: %d" % (path, p.returncode))
+            raise ImageUtilError("Error creating MBR.")
+        
     def mount_image(self):
         if self.check_mounted():
             log.debug('Image Already Mounted')
@@ -93,7 +175,14 @@ class ImageUtils(object):
         if not os.path.exists(self.mountpoint):
             log.debug("Creating mount point")
             os.makedirs(self.mountpoint)
-        cmd = "mount -o loop %s %s" % (self.imagepath, self.mountpoint)
+        cmd = None
+        if self.partition:
+            if not self.device_map:
+                self.device_map = self.create_device_map(self.imagepath)
+            cmd = "mount %s %s" % (self.device_map, self.mountpoint)
+        else:
+            cmd = "mount -o loop %s %s" % (self.imagepath, self.mountpoint)
+        log.debug("running [%s]" % (cmd))
         if subprocess.Popen(cmd, shell=True).wait():
             raise ImageUtilError("Unable to Mount image")
         log.debug("Image mounted: '%s'" % cmd)
@@ -107,10 +196,17 @@ class ImageUtils(object):
         if subprocess.Popen(cmd, shell=True).wait():
             raise ImageUtilError("Unable to unmount image")
         log.debug("Image unmounted: '%s'" % cmd)
+        if self.partition and self.device_map != None:
+            log.debug("Deleting %s device map for image %s" % (self.device_map, self.imagepath))
+            self.delete_device_map(self.imagepath)
 
     def check_mounted(self):
         for line in open("/etc/mtab"):
-            if self.imagepath in line or self.mountpoint in line:
+            fields = line.split(' ')
+            if self.partition and (fields[0] == self.device_map):
+                log.debug("Found image mounted in mtab: '%s'" % line)
+                return True
+            elif self.imagepath in line or (fields[1] == self.mountpoint):
                 log.debug("Found image mounted in mtab: '%s'" % line)
                 return True
         return False
@@ -164,7 +260,12 @@ class ImageUtils(object):
             size = root_stats['size']            
 
         self.dd_sparse(imagepath, size)
-        self.mkfs(imagepath)
+        if self.partition:
+            self.create_bootable_partition(imagepath)
+            self.device_map = self.create_device_map(imagepath)
+            self.mkfs(self.device_map, label='root', fs_type = self.detect_fs_type('/'))
+        else:
+            self.mkfs(imagepath, fs_type = self.detect_fs_type('/'))
     
     def sync_fs(self, verbose):
         #TODO: add progress bar into rsync somehow
@@ -193,6 +294,7 @@ class ImageUtils(object):
             log.error("Rsync encountered an issue. return code: '%s'" % p)
             raise ImageUtilError("Rsync failed.  Aborting.")
         log.info("Sync Complete")
+
         
     def snapshot_system(self, start_fresh=False, verbose=False, clean=False):
         if verbose:
@@ -206,13 +308,17 @@ class ImageUtils(object):
         if not self.obtain_lock():
             log.error("Unable to obtain lock")
             raise ImageUtilError("Unable to obtain lock")
+        snapshot_success = False
         try:
             self._snapshot_system(start_fresh, verbose, clean)
+            snapshot_success = True
         finally:
             log.debug("Releasing lock")
             self.destroy_lock()
             log.info("Unmounting Image")
             self.umount_image()
+        if self.partition and snapshot_success:
+                self.install_mbr(self.imagepath)
         
     def _snapshot_system(self, start_fresh=False, verbose=False, clean=False):
         exists = self.image_exists()
@@ -225,15 +331,16 @@ class ImageUtils(object):
         elif exists:
             log.info("Existing image found, attempting to use.")
             image_stats = self.stat(self.imagepath)
+            log.debug("Image stats:\n%s" % (image_stats))
             if self.imagesize:
                 # requested size does not match current size
                 if self.imagesize != image_stats['size']:
-                    log.warning("Requested size does not match current file.  Starting from scratch.")
+                    log.warning("Requested size (%d) does not match current file (%d).  Starting from scratch." % (self.imagesize, image_stats['size']))
                     start_fresh = True
             else:
                 # image size does not match partition size
-                log.warning("Root partition size does not match image size.  Starting from scratch")
                 if image_stats['size'] != self.statvfs()['size']:
+                    log.warning("Root partition size does not match image size.  Starting from scratch")
                     start_fresh = True
 
         if start_fresh:
@@ -244,8 +351,15 @@ class ImageUtils(object):
             self.destroy_files(self.imagepath, self.mountpoint)
             log.info("Creating new image")
             self.create_image(self.imagepath, self.imagesize)
+
         
         log.info("Mounting image")
         self.mount_image()
-        log.info("Syncing file system")
-        self.sync_fs(verbose)
+        try:
+            log.info("Syncing file system")
+            self.sync_fs(verbose)
+        except ImageUtilError, e:
+            # Cleanup after failed sync
+            self.unmount_image()
+            self.destroy_files(self.imagepath, self.mountpoint)
+            raise e

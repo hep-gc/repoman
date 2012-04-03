@@ -24,6 +24,7 @@ from time import time
 from datetime import datetime
 from os import path, remove, rename
 import shutil
+import sys
 ###
 
 log = logging.getLogger(__name__)
@@ -33,7 +34,7 @@ def auth_403(message):
 
 class RawController(BaseController):
 
-    def get_raw_by_user(self, user, image, format='json'):
+    def get_raw_by_user(self, user, image, hypervisor=None, format='json'):
         image_q = meta.Session.query(Image)
         image = image_q.filter(Image.name==image)\
                        .filter(Image.owner.has(User.user_name==user))\
@@ -51,22 +52,37 @@ class RawController(BaseController):
                                   AllOf(SharedWith(image), IsAthuenticated())),
                                   auth_403)
 
-            file_path = path.join(app_globals.image_storage, image.path)
+            if hypervisor == None:
+                hypervisor = image.hypervisor
+
+            # If hypervisor is still None, then let's default to 'xen'.
+            # This is mostly to support images that do not have the hypervisor variable
+            # set. (pre multi-hypervisor support)
+            if hypervisor == None:
+                hypervisor = 'xen'
+
+            file_path = path.join(app_globals.image_storage, '%s_%s_%s' % (user, image.name, hypervisor))
+
+            # Check if file actually exists
+            if not path.exists(file_path):
+                abort(404, '404 Not Found')
+
             try:
             	content_length = path.getsize(file_path)
             	response.headers['X-content-length'] = str(content_length)
-            except:
+            except Exception, e:
             	abort(500, '500 Internal Error')
-            	
-            etag_cache(str(image.path) + '_' + str(image.version))
+
+            etag_cache(str(('%s_%s_%s' % (user, image.name, hypervisor)) + '_' + str(image.version)))
 
             image_file = open(file_path, 'rb')
+
             try:
                 return h.stream_img(image_file)
-            except:
+            except Exception, e:
                 abort(500, '500 Internal Error')
 
-    def get_raw(self, image, format='json'):
+    def get_raw(self, image, hypervisor=None, format='json'):
         user = request.environ['REPOMAN_USER'].user_name
-        return self.get_raw_by_user(user=user, image=image, format=format)
+        return self.get_raw_by_user(user=user, image=image, hypervisor=hypervisor, format=format)
 

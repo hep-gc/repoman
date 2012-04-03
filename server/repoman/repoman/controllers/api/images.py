@@ -25,6 +25,11 @@ from time import time
 from datetime import datetime
 from os import path, remove, rename
 import shutil
+import tempfile
+import subprocess
+import gzip
+import re
+import os
 ###
 
 log = logging.getLogger(__name__)
@@ -42,29 +47,72 @@ class ImagesController(BaseController):
         inline_auth(IsAthuenticated(), auth_403)
 
     def put_raw_by_user(self, user, image, format='json'):
+        log.debug('put_raw_by_user')
         #return request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE')
         image_q = meta.Session.query(Image)
         image = image_q.filter(Image.name==image)\
                        .filter(Image.owner.has(User.user_name==user)).first()
+        
+        # Determine which hypervisors this image is valid for.
+        # Many hypervisors can be specified by using a ',' delimiter.
+        # Note:
+        #  Multi-hypervisors images are a special case; most of the time
+        #  images will be associated with only 1 hypervisor.
+        hypervisors = image.hypervisor.split(',')
 
         if image:
             inline_auth(OwnsImage(image), auth_403)
             image_file = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE')
+            
             if image_file:
+                # Check if we are in multi-hypervisor mode and if the image is zipped.
+                # We currently don't support multi-hypervisor on zipped images.
+                if (len(hypervisors) > 1) and self.is_gzip(image_file):
+                    abort(501, 'Multi-hypervisor support with compressed images is not implemented yet.')
+                
                 try:
-                    file_name = user + '_' + image.name
-                    final_path = path.join(app_globals.image_storage, file_name)
-                    shutil.move(image_file, final_path)
+                    # Save a copy for each supported hypervisors.
+                    file_names = []
+                    for h in hypervisors:
+                        file_name = '%s_%s_%s' % (user, image.name, h)
+                        file_names.append(file_name)
+                        final_path = path.join(app_globals.image_storage, file_name)
+                        log.debug("Copying %s to %s" % (image_file, final_path))
+                        shutil.copy2(image_file, final_path)
                 except Exception, e:
-                    remove(image_file)
                     abort(500, '500 Internal Error - Error uploading file %s' %e)
+                finally:
+                    log.debug("Cleaning up: deleting %s" % (image_file))
+                    remove(image_file)
 
-                image.checksum.ctype = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_HASH_TYPE')
+
+                # If image supports multiple hypervisors, mount each of the images and
+                # set the grub.conf symlink accordingly.
+                if len(hypervisors) > 1:
+                    for hypervisor in hypervisors:
+                        try:
+                            image_path = path.join(app_globals.image_storage, '%s_%s_%s' % (user, image.name, hypervisor))
+                            self.create_grub_symlink(image_path, hypervisor)
+                        except Exception, e:
+                            abort(500, '500 Internal Error - Error creating grub symlinks for image %s\n%s' % (image.name, e))
+                            
                 image.checksum.cvalue = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_HASH')
+                image.checksum.ctype = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_HASH_TYPE')
                 image.size = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_LENGTH')
+
+                # IMPORTANT:
+                # Image checksum do not make any sense for multi hypervisor images as we have
+                # more than one image file per VM, and only a single checksum in the metadata.
+                # Ultimately, we could modify the image metadata to contain a list of checksums
+                # (one per hypervisor), but for now, let's simply void the checksum.
+                if len(hypervisors) > 1:
+                    log.debug("Voiding image checksum for multi-hypervisor images.")
+                    image.checksum.cvalue = None # Reset to no checksum.
+                    image.checksum.ctype = None
+
                 image.raw_uploaded = True
                 image.uploaded = datetime.utcfromtimestamp(time())
-                image.path = file_name
+                image.path = ';'.join(file_names) # For multi-hypervisor images, this will be ';' delimited
                 image.version += 1
                 image.modified = datetime.utcfromtimestamp(time())
                 meta.Session.commit()
@@ -184,30 +232,67 @@ class ImagesController(BaseController):
                                            format=format)
 
     def upload_raw_by_user(self, user, image, format='json'):
+        log.debug('upload_raw_by_user')
         image_q = meta.Session.query(Image)
         image = image_q.filter(Image.name==image)\
                        .filter(Image.owner.has(User.user_name==user)).first()
 
         if image:
             inline_auth(OwnsImage(image), auth_403)
-            try:
-                temp_file = request.params['file']
-                file_name = user + '_' + image.name
-                temp_storage = file_name + '.tmp'
-                final_path = path.join(app_globals.image_storage, file_name)
-                temp_path = path.join(app_globals.image_storage, temp_storage)
-                permanent_file = open(temp_path, 'w')
-                shutil.copyfileobj(temp_file.file, permanent_file)
-                permanent_file.close()
-                temp_file.file.close()
-                rename(temp_path, final_path)
-            except Exception, e:
-                remove(temp_path)
-                remove(final_path)
-                abort(500, '500 Internal Error - Error uploading file %s' %e)
+            file_names = []
+            hypervisors = image.hypervisor.split(',')
 
+            # Check if we are in multi-hypervisor mode and if the image is zipped.
+            # We currently don't support multi-hypervisor on zipped images.
+            if (len(hypervisors) > 1) and self.is_gzip(request.params['file'].filename):
+                abort(501, 'Multi-hypervisor support with compressed images is not implemented yet.')
+
+            for hypervisor in hypervisors:
+                try:
+                    temp_file = request.params['file']
+                    file_name = '%s_%s_%s' % (user, image.name, hypervisor)
+                    file_names.append(file_name)
+                    temp_storage = file_name + '.tmp'
+                    final_path = path.join(app_globals.image_storage, file_name)
+                    temp_path = path.join(app_globals.image_storage, temp_storage)
+                    permanent_file = open(temp_path, 'w')
+                    shutil.copyfileobj(temp_file.file, permanent_file)
+                    permanent_file.close()
+                    temp_file.file.close()
+                    rename(temp_path, final_path)
+                except Exception, e:
+                    remove(temp_path)
+                    remove(final_path)
+                    abort(500, '500 Internal Error - Error uploading file %s' %e)
+
+            # If image supports multiple hypervisors, mount each of the images and
+            # set the grub.conf symlink accordingly.
+            #
+            if len(hypervisors) > 1:
+                for hypervisor in hypervisors:
+                    try:
+                        image_path = path.join(app_globals.image_storage, '%s_%s_%s' % (user, image.name, hypervisor))
+                        self.create_grub_symlink(image_path, hypervisor)
+                    except Exception, e:
+                        abort(500, '500 Internal Error - Error creating grub symlinks for image %s\n%s' % (image.name, e))
+
+
+            image.checksum.cvalue = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_HASH')
+            image.size = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_LENGTH')
+
+            # IMPORTANT:
+            # Image checksum do not make any sense for multi hypervisor images as we have
+            # more than one image file per VM, and only a single checksum in the metadata.
+            # Ultimately, we could modify the image metadata to contain a list of checksums
+            # (one per hypervisor), but for now, let's simply void the checksum.
+            if len(hypervisors) > 1:
+                log.debug("Voiding image checksum for multi-hypervisor images.")
+                image.checksum.cvalue = None # Reset to no checksum.
+                image.checksum.ctype = None
+
+            # No update of size and/or checksum?  TODO: Investigate... (Andre)
             image.raw_uploaded = True
-            image.path = file_name
+            image.path = ';'.join(file_names)
             image.version += 1
             image.modified = datetime.utcfromtimestamp(time())
             meta.Session.commit()
@@ -223,7 +308,7 @@ class ImagesController(BaseController):
         image = image_q.filter(Image.name==image)\
                        .filter(Image.owner.has(User.user_name==user))\
                        .first()
-
+        
         if image:
             inline_auth(AnyOf(OwnsImage(image), SharedWith(image)), auth_403)
             if format == 'json':
@@ -251,12 +336,44 @@ class ImagesController(BaseController):
 
             # Do a check here to make sure we do not overwrite
             # any existing image. (Andre)
-            if 'name' in params:
+            if ('name' in params) and (params['name'] != image.name):
                 image2 = image_q.filter(Image.name==params['name'])\
                     .filter(Image.owner.has(User.user_name==user))\
                     .first()
                 if image2:
+                    log.debug('Conflict detected in image renaming: %s -> %s.  Operation aborted.' % (image.name, params['name']))
                     abort(409, 'Cannot rename an image to an existing image.  Operation aborted.')
+
+            # Here we must have some smarts to check if the new metadata has less hypervisors
+            # than the previous one.  If this is true, then we must cleanup the images for the
+            # hypervisors that are not listed anymore, else we will end up with stale image
+            # files on the server.             
+            if image.hypervisor != None and params['hypervisor'] and params['hypervisor'] != None:
+                previous_hypervisors = image.hypervisor.split(',')
+                new_hypervisors = params['hypervisor'].split(',')
+                for previous_hypervisor in previous_hypervisors:
+                    if previous_hypervisor not in new_hypervisors:
+                        # Cleanup
+                        image.delete_image_file_for_hypervisor(previous_hypervisor)
+
+            # Check to see if the user wants to assign the image to a new owner.
+            # If that is the case, then we need to rename the image file because
+            # it has the owner's username hardcoded in its filename.
+            if ('owner' in params) and (params['owner'] != None) and (params['owner'] != image.owner):
+                # Verify if target user exist
+                user_q = meta.Session.query(User)
+                target_user = user_q.filter(User.user_name==params['owner']).first()
+                if not target_user:
+                    abort(400, 'The new image owner %s does not exist.' % (params['owner']))
+
+                log.debug('Changing ownership of image %s from user %s to user %s.' % 
+                          (image.name, image.owner.user_name, target_user.user_name))
+                if not image.change_image_files_to_new_owner(target_user):
+                    # Could not change owner because of conflict.  Abort operation.
+                    abort(409, 'Could not change ownership of the image because it conflicts with an image already owned by the target user.  Operation aborted.')
+                # Don't forget to delete the 'owner' parameter (it is a special case) 
+                # else the setattr call below will not like it.
+                del params['owner']
 
             for k,v in params.iteritems():
                 if v != None:
@@ -276,7 +393,7 @@ class ImagesController(BaseController):
             inline_auth(AnyOf(OwnsImage(image), HasPermission('image_delete')), auth_403)
             if image.raw_uploaded:
                 try:
-                    storage.delete_image(image)
+                    image.delete_image_files()
                 except Exception, e:
                     abort(500, 'Unable to remove image file from storage')
             meta.Session.delete(image.checksum)
@@ -334,7 +451,10 @@ class ImagesController(BaseController):
         new_image.os_variant = params['os_variant']
         new_image.os_type = params['os_type']
         new_image.os_arch = params['os_arch']
-        new_image.hypervisor = params['hypervisor']
+        if params['hypervisor']:
+            new_image.hypervisor = params['hypervisor']
+        else:
+             new_image.hypervisor = 'xen'
         new_image.description = params['description']
         new_image.expires = params['expires']
         new_image.read_only = params['read_only']
@@ -362,3 +482,40 @@ class ImagesController(BaseController):
         response.status = ("201 Object created.  upload raw file to 'Location'")
         return h.render_json(beautify.image(new_image))
 
+
+
+    def create_grub_symlink(self, imagepath, hypervisor):
+        log.debug("Creating grub.conf symlink on %s" % (imagepath))
+        cmd = "guestfish -a %s -i ln-sf /boot/grub/grub.conf-%s /boot/grub/grub.conf" % (imagepath, hypervisor)
+        log.debug("Symlink creation command: %s" % (cmd))
+        try:
+            p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        except OSError, e:
+            log.error("Error calling: %s\n%s" % (cmd, e))
+            raise e
+        stdout = p.communicate()[0]
+        log.debug("[%s] output:\n%s" % (cmd, stdout))
+        if p.returncode != 0:
+            log.error("grub.conf symlink creation command returned error: %d" % (p.returncode))
+            raise Exception("Error creating grub.conf symlink.")
+        else:
+            log.debug("Symlink creation command returned successfully.")
+
+    def is_gzip(self, path):
+        """
+        Test if a file is compressed with gzip or not.
+        """
+        try:
+            log.debug("Checking if %s is a gzip file..." % (path))
+            f = gzip.open(path, 'rb')
+            b = f.read(1)
+            f.close()
+            log.debug("%s is a gzip file." % (path))
+            return True
+        except IOError, e:
+            f.close()
+        except Exception, e:
+            f.close()
+            log.error("%s" % (e))
+        log.debug("%s is not a gzip file." % (path))
+        return False

@@ -35,6 +35,7 @@ class Save(SubCommand):
         self.get_arg_parser().add_argument('--os_arch', choices = ['x86', 'x86_64'], help = 'The operating system architecture.')
         self.get_arg_parser().add_argument('--os_type', metavar = 'value', help = 'The operating system type. Ex: linux, unix, windows, etc.')
         self.get_arg_parser().add_argument('--os_variant', metavar = 'value', help = 'The operating system variant. Ex: redhat, centos, ubuntu, etc.')
+        self.get_arg_parser().add_argument('--partition', action='store_true', default = False, help = 'Partition the saved image. (experimental)')
         self.get_arg_parser().add_argument('--resize', type=int, default=0, metavar = 'SIZE', help = 'Create  an image with a size of SIZE MB.  The size selected must be big enough to contain the entire filesystem image.  If the size specified is not big enough, repoman will issue an error mesage and exit.')
         self.get_arg_parser().add_argument('--verbose', action='store_true', default = False, help = 'Display verbose output during snapshot.')
 
@@ -104,7 +105,8 @@ class Save(SubCommand):
                                  config.mountpoint,
                                  config.system_excludes.split(),
                                  config.user_excludes.split(),
-                                 size=args.resize*1024*1024)
+                                 size=args.resize*1024*1024,
+                                 partition=args.partition)
         
         try:
             # Set image metadata from given arguments.
@@ -131,6 +133,17 @@ class Save(SubCommand):
             log.error("%s" % e)
             raise SubcommandFailure(self, "Could not write to %s, are you root?" % (self.metadata_file), e)
             
+        # Check for required grub.conf-<hypervisor> files for multi-hypervisor
+        # images.
+        hypervisors = []
+        if exists and ('hypervisor' in image) and (image['hypervisor'] != None):
+            hypervisors = image['hypervisor'].split(',')
+        if args.hypervisor: # args.hypervisor takes precedence over the image hypervisor metadata variable
+            hypervisors = args.hypervisor.split(',')
+        if len(hypervisors) > 1 and not self.check_required_grub_configs(hypervisors):
+            raise SubcommandFailure(self, "Missing /boot/grub/grub.conf-<hypervisor> file.  Please make sure that your local system contains a /boot/grub/grub.conf-<hypervisor> file for each hypervisor it supports (as listed in the hypervisor metadata variable).")
+
+            
         try:
             print "Starting the snapshot process.  Please be patient, this will take a while."
             image_utils.snapshot_system(verbose=args.verbose, clean=args.clean)
@@ -146,16 +159,24 @@ class Save(SubCommand):
                 log.error("Error while creating image slot on server")
                 log.error(e)
                 raise SubcommandFailure(self, "Error while creating image slot on server.", e)
+        else:
+            # Image exist.  Let's update it's metadata if needed
+            image_name = kwargs['name']
+            if args.owner:
+                image_name = "%s/%s" % (args.owner, kwargs['name'])
+            try:
+                self.get_repoman_client(args).modify_image(kwargs['name'], **kwargs)
+            except RepomanError, e:
+                raise SubcommandFailure(self, "Could not modify image '%s'" % (kwargs['name']), e)
             
         #upload
         print "Uploading snapshot"
         try:
             self.get_repoman_client(args).upload_image(name, config.snapshot, gzip=args.gzip)
         except RepomanError, e:
-            log.error("Error while uploading the image")
-            log.error(e)
             raise SubcommandFailure(self, "Error while uploading the image.", e)
 
+        # Set save comment if needed.
         if args.comment:
             image = None
             try:
@@ -190,4 +211,14 @@ class Save(SubCommand):
                 except RepomanError, e:
                     raise SubcommandFailure(self, "Failed to add/update image save comment.", e)
 
-            
+    def check_required_grub_configs(self, hypervisors):
+        """
+        This method will check the local root filesystem to see
+        if the required /boot/grub/grub.conf-<hypervisor> files are present.
+        Returns True if all required grub.conf files exist; False otherwise.
+        """
+        for hypervisor in hypervisors:
+            grub_conf_file = os.path.join('/boot/grub/', 'grub.conf-%s' % (hypervisor))
+            if not os.path.exists(grub_conf_file):
+                return False
+        return True

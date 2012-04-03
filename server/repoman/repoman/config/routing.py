@@ -5,6 +5,9 @@ may take precedent over the more generic routes. For more information
 refer to the routes manual at http://routes.groovie.org/docs/
 """
 from routes import Mapper
+import logging
+
+log = logging.getLogger(__name__)
 
 def make_map(config):
     """Create, configure and return the routes Mapper"""
@@ -161,6 +164,10 @@ def make_map(config):
                 action='group_unshare',
                 conditions=dict(method=['DELETE']))
 
+    map.connect('raw_by_user_wh', '/api/images/raw/:(user)/:(image)/:(hypervisor)', controller='api/raw',
+                action='get_raw_by_user',
+                conditions=dict(method=['GET']))
+
     map.connect('raw_by_user', '/api/images/raw/:(user)/:(image)', controller='api/raw',
                 action='get_raw_by_user',
                 conditions=dict(method=['GET']))
@@ -225,6 +232,8 @@ def make_map(config):
 
     map.connect('/{controller}/{action}')
     map.connect('/{controller}/{action}/{id}')
+
+    log.debug('Routing map created.')
 
     return map
 

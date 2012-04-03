@@ -103,7 +103,7 @@ class UsersController(BaseController):
         user = meta.Session.query(User).filter(User.user_name==user).first()
         if user:
             for i in user.images:
-                storage.delete_image(i)
+                i.delete_image_files()
                 meta.Session.delete(i.checksum)
                 meta.Session.delete(i.shared)
                 meta.Session.delete(i)
