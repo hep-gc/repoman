@@ -360,8 +360,7 @@ class ImagesController(BaseController):
             # If that is the case, then we need to rename the image file because
             # it has the owner's username hardcoded in its filename.
             log.info('A')
-            log.debug(params['owner'])
-            log.debug(image.owner)
+            log.debug('%s' % params)
             if ('owner' in params) and (params['owner'] != image.owner):
                 log.info('B')
                 log.debug('Changing ownership of image %s from user %s to user %s.' % 
