@@ -123,6 +123,7 @@ class Image(Base):
 
         log.debug("No conflict detected; proceeding with image ownership change.")
 
+        new_paths = []
         for hypervisor in hypervisors:
             path = os.path.join(app_globals.image_storage, 
                                 '%s_%s_%s' % (self.owner.user_name, self.name, hypervisor))
@@ -130,10 +131,13 @@ class Image(Base):
                                 '%s_%s_%s' % (new_owner.user_name, self.name, hypervisor))
             log.debug("Moving %s to %s" % (path, new_path))
             shutil.move(path, new_path)
+            new_paths.append(new_path)
 
-        # Finally, let's change the image owner metadata.
+        # Finally, let's change the image owner and path metadata.
         log.debug("Changing image's owner metadata variable to the new owner.")
         self.owner = new_owner
+        log.debug("Updating image's path metadata variable to point to new image paths after ownership change.")
+        self.path = ';'.join(new_paths)
 
         return True
 
