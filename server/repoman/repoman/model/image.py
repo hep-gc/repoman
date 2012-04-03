@@ -110,24 +110,29 @@ class Image(Base):
             hypervisors = self.hypervisor.split(',')
         # Let's do a dry run first to make sure we are not overwriting any existing
         # image.
+        log.debug("Checking to make sure image ownership change will not overwrite any existing image files.")
         for hypervisor in hypervisors:
             path = os.path.join(app_globals.image_storage, 
                                 '%s_%s_%s' % (self.owner.user_name, self.name, hypervisor))
             new_path = os.path.join(app_globals.image_storage, 
-                                '%s_%s_%s' % (new_owner, self.name, hypervisor))
+                                '%s_%s_%s' % (new_owner.user_name, self.name, hypervisor))
             if os.path.exists(new_path):
                 # Abort operation.
                 log.warn("Image ownership change aborted because of image collision: %s" % (new_path))
                 return False
 
+        log.debug("No conflict detected; proceeding with image ownership change.")
+
         for hypervisor in hypervisors:
             path = os.path.join(app_globals.image_storage, 
                                 '%s_%s_%s' % (self.owner.user_name, self.name, hypervisor))
             new_path = os.path.join(app_globals.image_storage, 
-                                '%s_%s_%s' % (new_owner, self.name, hypervisor))
+                                '%s_%s_%s' % (new_owner.user_name, self.name, hypervisor))
+            log.debug("Moving %s to %s" % (path, new_path))
             shutil.move(path, new_path)
 
         # Finally, let's change the image owner metadata.
+        log.debug("Changing image's owner metadata variable to the new owner.")
         self.owner = new_owner
 
         return True

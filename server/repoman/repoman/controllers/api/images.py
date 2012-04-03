@@ -359,15 +359,21 @@ class ImagesController(BaseController):
             # Check to see if the user wants to assign the image to a new owner.
             # If that is the case, then we need to rename the image file because
             # it has the owner's username hardcoded in its filename.
-            log.info('A')
-            log.debug('%s' % params)
             if ('owner' in params) and (params['owner'] != image.owner):
-                log.info('B')
+                # Verify if target user exist
+                user_q = meta.Session.query(User)
+                target_user = user_q.filter(User.user_name==params['owner']).first()
+                if not target_user:
+                    abort(400, 'The new image owner %s does not exist.' % (params['owner']))
+
                 log.debug('Changing ownership of image %s from user %s to user %s.' % 
-                          (image.name, image.owner, params['owner']))
-                if not image.change_image_files_to_new_owner(params['owner']):
+                          (image.name, image.owner.user_name, target_user.user_name))
+                if not image.change_image_files_to_new_owner(target_user):
                     # Could not change owner because of conflict.  Abort operation.
                     abort(409, 'Could not change ownership of the image because it conflicts with an image already owned by the target user.  Operation aborted.')
+                # Don't forget to delete the 'owner' parameter (it is a special case) 
+                # else the setattr call below will not like it.
+                del params['owner']
 
             for k,v in params.iteritems():
                 if v != None:
