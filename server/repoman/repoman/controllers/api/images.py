@@ -359,7 +359,9 @@ class ImagesController(BaseController):
             # Check to see if the user wants to assign the image to a new owner.
             # If that is the case, then we need to rename the image file because
             # it has the owner's username hardcoded in its filename.
+            log.info('A')
             if 'owner' in params and params['owner'] != image.owner:
+                log.info('B')
                 log.debug('Changing ownership of image %s from user %s to user %s.' % 
                           (image.name, image.owner, params['owner']))
                 if not image.change_image_files_to_new_owner(params['owner']):
