@@ -103,11 +103,14 @@ class Image(Base):
         Note that thie method will only change the owner if it does not conflict
         with any existing image already owned by the target user.
         """
+        new_paths = []
         hypervisors = []
+
         if self.hypervisor == None:
             hypervisors = ['xen']
         else:
             hypervisors = self.hypervisor.split(',')
+
         # Let's do a dry run first to make sure we are not overwriting any existing
         # image.
         log.debug("Checking to make sure image ownership change will not overwrite any existing image files.")
@@ -123,15 +126,15 @@ class Image(Base):
 
         log.debug("No conflict detected; proceeding with image ownership change.")
 
-        new_paths = []
         for hypervisor in hypervisors:
             path = os.path.join(app_globals.image_storage, 
                                 '%s_%s_%s' % (self.owner.user_name, self.name, hypervisor))
             new_path = os.path.join(app_globals.image_storage, 
                                 '%s_%s_%s' % (new_owner.user_name, self.name, hypervisor))
-            log.debug("Moving %s to %s" % (path, new_path))
-            shutil.move(path, new_path)
-            new_paths.append(new_path)
+            if os.path.exists(path):
+                log.debug("Moving %s to %s" % (path, new_path))
+                shutil.move(path, new_path)
+                new_paths.append(new_path)
 
         # Finally, let's change the image owner and path metadata.
         log.debug("Changing image's owner metadata variable to the new owner.")
