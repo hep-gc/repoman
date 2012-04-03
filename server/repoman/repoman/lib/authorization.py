@@ -184,6 +184,10 @@ class NoneOf(object):
 
 def inline_auth(valid, handler=None):
     try:
+        # If user is in admins group, then return True right away.
+        if  is_current_user_admin():
+            return True
+
         valid.check()
     except NotValidAuth, e:
         if handler:
@@ -216,4 +220,20 @@ def authorize(valid, handler):
 
 class NotValidAuth(Exception):
     pass
+
+#############
+# U T I L S #
+#############
+
+def is_current_user_admin():
+    """
+    This utility function is used to simply test if the current user
+    is a member of the admins group or not.
+    """
+    user = request.environ.get('REPOMAN_USER')
+    group = meta.Session.query(Group).filter(Group.name=='admins').first()
+    if group and (group in user.groups):
+        return True
+    else:
+        return False
 
