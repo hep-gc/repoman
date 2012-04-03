@@ -359,7 +359,7 @@ class ImagesController(BaseController):
             # Check to see if the user wants to assign the image to a new owner.
             # If that is the case, then we need to rename the image file because
             # it has the owner's username hardcoded in its filename.
-            if ('owner' in params) and (params['owner'] != image.owner):
+            if ('owner' in params) and (params['owner'] != None) and (params['owner'] != image.owner):
                 # Verify if target user exist
                 user_q = meta.Session.query(User)
                 target_user = user_q.filter(User.user_name==params['owner']).first()
