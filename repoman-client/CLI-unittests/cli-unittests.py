@@ -484,7 +484,7 @@ class ListImagesTest(RepomanCLITest):
 
 	# Check the expected fields if the optional parameters '--long' or '-l' is selected
 	if ( arg == '--long' or arg == '-l'):
-		p = re.search(r'\s*Image\s*Name\s*Owner\s*Size\s*Last Modified\s*Description', output)
+		p = re.search(r'\s*Image\s*Name\s*Owner\s*Hypervisor\s*Size\s*Last Modified\s*Description', output)
 		self.assertTrue( p != None)
 	
 	# Check if a url is printed if the optional parameter '--url' or '-U' is selected
