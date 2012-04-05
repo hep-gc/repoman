@@ -348,7 +348,23 @@ class ModifyImageTest(RepomanCLITest):
 	if (arg == '--new_name ' or arg == '-n '):
 		
 		random_name = self.get_unique_image_name()
-		arg = arg + random_name	
+		arg = arg + random_name
+	# If arg is --new_owner or -n parameter, create a new test user to be the new owner of the modified image
+	# For creating the test user, generate two unique names for the first and last names. The first name is used 
+	# for the username, email address of the user. The last name is used in the client dn and full name fields.
+	if (arg == '--new_owner' or arg == '-N'):
+		self.first_name = self.get_unique_image_name()
+		self.last_name = self.get_unique_image_name()		
+		(output, returncode) = self.run_repoman_command('create-user %s "/C=CA/O=Grid/OU=phys.UVic.CA/CN=%s %s" --email %s@random.com --full_name "%s %s"' % (self.first_name,self.first_name, self.last_name,self.first_name, self.first_name ,self.last_name))
+        	self.assertEqual(returncode, 0)
+		# add the username of the new owner to arg
+		arg = arg + ' ' + self.first_name
+	# If the arg is --owner or -o, the username of the current owner is retreived using the 'repoman whoami' command
+	# The owner parameter is used with the current user to check whether the it works properly though omitting it in this case
+	# would be the same as the default 	
+	if (arg == '--owner' or arg == '-o'):
+		(output, returncode) = self.run_repoman_command('whoami')
+		arg = arg + ' ' + output
 	# Run 'repoman modify-image' and check the output
 	(output, returncode) = self.run_repoman_command('modify-image %s %s' %(self.new_image_name, arg))
 	self.assertEqual(output, "[OK]     Modifying image.\n")
@@ -359,8 +375,12 @@ class ModifyImageTest(RepomanCLITest):
 		p = re.search('^\\s*name : %s\\s*$' % (random_name), output, flags=re.MULTILINE)
                 self.assertTrue(p != None)
 		
-		
-		
+	if (re.search('--new_owner', arg) or re.search('-N', arg)):
+		(output, returncode) = self.run_repoman_command('list-images %s --owner %s' % (self.new_image_name, self.first_name))
+		p = re.search('^\\s*owner : %s\\s*$' % (self.first_name), output, flags=re.MULTILINE)
+		self.assertTrue(p != None)	
+		(output, returncode) = self.run_repoman_command('remove-user --force %s' % (self.first_name))	
+	
 	# Call CheckOptions to check some common optional parameters of create-image and modify-image
 	if(random_name == None):
 		(output, returncode) = self.run_repoman_command('list-images %s' % (self.new_image_name))
@@ -428,10 +448,26 @@ class ModifyImageTest(RepomanCLITest):
     
     # Test the optional parameter '--new_name' or '-n'
     # A random name is kept as the new name which is generated later in the method ModifyImage
-    def test_modify_image_new_name(self, tearDown = None):
+    def test_modify_image_new_name(self):
 	ModifyImageTest.ModifyImage(self, '--new_name ')
     def test_modify_image_n(self):
 	ModifyImageTest.ModifyImage(self, '-n ')		
+
+
+    # Test the optional parameter '--new_owner' or '-N'
+    # A test user is created in the method ModifyImage which is used as the new owner for the image
+    def test_modify_image_new_owner(self):
+	ModifyImageTest.ModifyImage(self, '--new_owner')
+    def test_modify_image_N(self):
+	ModifyImageTest.ModifyImage(self, '-N')	
+
+
+    # Test the optional parameter '--owner' or '-o'
+    # The owner used is the current owner which is the same as the output for 'repoman whoami'
+    def test_modify_image_owner(self):
+	ModifyImageTest.ModifyImage(self, '--owner')
+    def test_modify_image_o(self):
+	ModifyImageTest.ModifyImage(self, '-o')
 
     # Test the optional parameter '--os_arch'
     # For this test, a random operating system architecture ('x86') is selected
@@ -639,13 +675,22 @@ class PutImageTest(RepomanCLITest):
         (output, returncode) = self.run_repoman_command('create-image %s' % (self.new_image_name))
         self.assertEqual(returncode, 0)
 
-        # Upload the file with the 'put-image' or 'pi' command into the newly created image
-        (output, returncode) = self.run_repoman_command('%s %s %s' % (command,random_file, self.new_image_name ))
-        p = re.search(r'Uploading %s to image.+\n.*OK.*%s uploaded to image' % (random_file, random_file), output)
-	self.assertTrue( p != None)
-	self.assertEqual(returncode, 0)
-
-	if (arg == ''):
+	# If the '--owner' or '-o' parameters are not passed, the first command for put-image runs without any optional parameters (arg)
+	# Uploading the dummy file is also required for the '--force' or '-f' parameters since its meant to overwrite the existing image file	
+	if (re.search('-o', arg) == None):
+	        # Upload the file with the 'put-image' or 'pi' command into the newly created image
+        	(output, returncode) = self.run_repoman_command('%s %s %s' % (command,random_file, self.new_image_name ))
+        	p = re.search(r'Uploading %s to image.+\n.*OK.*%s uploaded to image' % (random_file, random_file), output)
+		self.assertTrue( p != None)
+		self.assertEqual(returncode, 0)
+	# Include '--owner' or '-o' parameters if they are passed in arg
+	else:
+		(output, returncode) = self.run_repoman_command('%s %s %s %s' % (command,random_file, self.new_image_name, arg ))
+                p = re.search(r'Uploading %s to image.+\n.*OK.*%s uploaded to image' % (random_file, random_file), output)
+                self.assertTrue( p != None)
+                self.assertEqual(returncode, 0)
+	
+	if (arg == '' or re.search('-o', arg)):
 	        # Change the unauthenticated access to true so that the file can be downloaded
         	(output, returncode) = self.run_repoman_command('modify-image %s --unauthenticated_access true' % (self.new_image_name))
         	self.assertEqual(returncode, 0)
@@ -720,6 +765,16 @@ class PutImageTest(RepomanCLITest):
     def test_put_image_f(self):
         PutImageTest.PutImage(self, 'put-image', '-f')
 
+    def test_put_image_owner(self):
+	(output, returncode) = self.run_repoman_command('whoami')
+#	parameter = '--owner ' + output
+	PutImageTest.PutImage(self, 'put-image', '--owner %s' % (output))
+    def test_put_image_o(self):
+	(output, returncode) = self.run_repoman_command('whoami')
+#	parameter = '-o ' + output
+        PutImageTest.PutImage(self, 'put-image', '-o %s' % (output))
+
+	
     def tearDown(self):
 	(output, returncode) = self.run_repoman_command('remove-image -f %s' %(self.new_image_name))	
 
