@@ -1105,7 +1105,59 @@ class UnshareImageWithUsersTest(RepomanCLITest):
 #				USER MANUPILATION SUBCOMMANDS					#
 #***********************************************************************************************#
 
-											
+
+
+
+#####################################################################
+#               COMMAND - 'repoman create-user'
+#####################################################################
+
+
+class CreateUserTest(RepomanCLITest):
+
+    def CreateUser(self, command, arg):
+	self.first_name = self.get_unique_image_name()
+	self.last_name = self.get_unique_image_name()
+	if (arg == '--email' or arg == '-e'):
+		arg = arg + ' ' + self.first_name + '@random.com'
+	elif (arg == '--full_name' or arg == '-f'):
+		arg = arg + ' "%s %s"' % (self.first_name, self.last_name)
+	(output, returncode) = self.run_repoman_command('%s %s "/C=CA/O=Grid/OU=phys.UVic.CA/CN=%s %s" %s' % (command, self.first_name,self.first_name, self.last_name, arg))										
+	p = re.search(r'OK.*Created new user %s' % (self.first_name), output)
+	self.assertEqual(returncode, 0)
+	self.assertTrue(p != None)
+	(output, returncode) = self.run_repoman_command('list-users')
+	p = re.search(self.first_name, output)
+	self.assertTrue(p != None)
+
+	if (re.search('-e',arg)):
+		(output, returncode) = self.run_repoman_command('list-users %s' % (self.first_name))
+		p = re.search(r'email : %s@random.com' % (self.first_name), output)
+		self.assertTrue(p != None)
+	elif (re.search('-f', arg)):
+		(output, returncode) = self.run_repoman_command('list-users %s' % (self.first_name))
+                p = re.search(r'full_name : %s %s' % (self.first_name, self.last_name), output)
+                self.assertTrue(p != None)
+	
+    def tearDown(self):
+	(output, returncode) = self.run_repoman_command('remove-user --force %s' % (self.first_name))
+
+    def test_create_user(self):
+	CreateUserTest.CreateUser(self, 'create-user', '')
+
+    def test_ci(self):
+	CreateUserTest.CreateUser(self, 'cu', '')
+
+    def test_create_user_email(self):
+	CreateUserTest.CreateUser(self, 'create-user', '--email')
+    def test_create_user_e(self):
+        CreateUserTest.CreateUser(self, 'create-user', '-e')
+
+    def test_create_user_full_name(self):
+	CreateUserTest.CreateUser(self, 'create-user', '--full_name')
+    def test_create_user_f(self):
+	CreateUserTest.CreateUser(self, 'create-user', '-f')
+
 #####################################################################
 #               COMMAND - 'repoman list-users'
 #####################################################################
