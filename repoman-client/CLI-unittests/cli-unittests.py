@@ -595,22 +595,32 @@ class ListImagesTest(RepomanCLITest):
         ListImagesTest.ListImagesGroup(self, '-g')
 
 
-    # Test the optional parameter 'image'
-    def test_list_images_image(self):
+    # Used for optional parameters 'image', '--owner' and '-o' (where the description of the image is outputted)
+    def ListImagesDesc(self, arg):
 	"""
-	This test runs the 'repoman list-images image' command, and checks if all the fields of the output match the expected fields of the image
-	"""
-	self.new_image_name = self.get_unique_image_name()
+        This test runs the 'repoman list-images image' command, and checks if all the fields of the output match the expected fields of the image
+        """
+        self.new_image_name = self.get_unique_image_name()
         (output, returncode) = self.run_repoman_command("create-image %s" % (self.new_image_name))
         self.assertEqual(returncode, 0)
 
-	# Check if the output is of the proper format
-	(output, returncode) = self.run_repoman_command("list-images %s" % (self.new_image_name))
-	p = re.search(r'checksum :.*\n\s*description :.*\n\s*expires :.*\n\s*file_url :.*\n\s*http_file_url :.*\n\s*hypervisor :.*\n\s*modified :.*\n\s*name : %s.*\n\s*os_arch :.*\n\s*os_type :.*\n\s*os_variant :.*\n\s*owner :.*\n\s*owner_user_name :.*\n\s*raw_file_uploaded :.*\n\s*read_only :.*\n\s*shared_with :.*\n\s*size :.*\n\s*unauthenticated_access :.*\n\s*uploaded :.*\n\s*uuid :.*\n\s*version :' % (self.new_image_name), output)
-	self.assertTrue( p != None)
+        # Check if the output is of the proper format
+        (output, returncode) = self.run_repoman_command("list-images %s %s" % (self.new_image_name, arg))
+        p = re.search(r'checksum :.*\n\s*description :.*\n\s*expires :.*\n\s*file_url :.*\n\s*http_file_url :.*\n\s*hypervisor :.*\n\s*modified :.*\n\s*name : %s.*\n\s*os_arch :.*\n\s*os_type :.*\n\s*os_variant :.*\n\s*owner :.*\n\s*owner_user_name :.*\n\s*raw_file_uploaded :.*\n\s*read_only :.*\n\s*shared_with :.*\n\s*size :.*\n\s*unauthenticated_access :.*\n\s*uploaded :.*\n\s*uuid :.*\n\s*version :' % (self.new_image_name), output)
+        self.assertTrue( p != None)
         self.assertEqual(returncode, 0)
 
+    # Test the optional parameter 'image'
+    def test_list_images_image(self):
+	ListImagesTest.ListImagesDesc(self, '')
 
+    # Test the optional parameters '--owner' and '-o'. Here the owner is passed as the current user just to test the optional parameter
+    def test_list_images_owner(self):
+	(output, returncode) = self.run_repoman_command('whoami')
+	ListImagesTest.ListImagesDesc(self, '--owner %s' % (output))
+    def test_list_images_o(self):
+        (output, returncode) = self.run_repoman_command('whoami')
+        ListImagesTest.ListImagesDesc(self, '-o %s' % (output))
 
     def ListImagesUser(self, arg):
 	"""
@@ -759,19 +769,18 @@ class PutImageTest(RepomanCLITest):
     def test_pi(self):
 	PutImageTest.PutImage(self, 'pi', '')
 
-    # Test the optional parameters, '--force' and '-f'
+    # Test the optional parameters '--force' and '-f'
     def test_put_image_force(self):
 	PutImageTest.PutImage(self, 'put-image', '--force')
     def test_put_image_f(self):
         PutImageTest.PutImage(self, 'put-image', '-f')
 
+    # Test the optional parameters '--owner' and '-o'
     def test_put_image_owner(self):
 	(output, returncode) = self.run_repoman_command('whoami')
-#	parameter = '--owner ' + output
 	PutImageTest.PutImage(self, 'put-image', '--owner %s' % (output))
     def test_put_image_o(self):
 	(output, returncode) = self.run_repoman_command('whoami')
-#	parameter = '-o ' + output
         PutImageTest.PutImage(self, 'put-image', '-o %s' % (output))
 
 	
@@ -800,10 +809,10 @@ class RemoveImageTest(RepomanCLITest):
 	(output, returncode) = self.run_repoman_command('create-image %s' % (self.new_image_name))
 	self.assertEqual(returncode, 0)
 
-	if (arg == ''):
+	if (arg == '' or re.search('-o', arg)):
 		# Run the 'remove-image' or 'ri' command. The 'yes yes' is used to pass 'yes' to the confirmation prompt
 		# Here the function run_repoman_command is not used since 'yes yes |' has to precede 'repoman'.
-		p = Popen('yes yes | repoman %s %s' % (command, self.new_image_name), shell=True, stdout=PIPE, stderr=STDOUT)
+		p = Popen('yes yes | repoman %s %s %s' % (command, self.new_image_name, arg), shell=True, stdout=PIPE, stderr=STDOUT)
         	output = p.communicate()[0]
 		m = re.search(r'OK.*Removed image', output)
 		self.assertTrue( m != None)
@@ -829,12 +838,19 @@ class RemoveImageTest(RepomanCLITest):
     def test_ri(self):
 	RemoveImageTest.RemoveImage(self, 'ri', '')
 
-    # Test the optional parameter '--force' and '-f'
+    # Test the optional parameters '--force' and '-f'
     def test_remove_image_force(self):
 	RemoveImageTest.RemoveImage(self, 'remove-image', '--force')
     def test_remove_image_f(self):
 	RemoveImageTest.RemoveImage(self, 'remove-image', '-f')
 	
+    # Test the optional parameters '--owner' and '-o' 
+    def test_remove_image_owner(self):
+	(output, returncode) = self.run_repoman_command('whoami')
+	RemoveImageTest.RemoveImage(self, 'remove-image', '--owner %s' % (output))
+    def test_remove_image_o(self):
+        (output, returncode) = self.run_repoman_command('whoami')
+        RemoveImageTest.RemoveImage(self, 'remove-image', '-o %s' % (output))
 
 
 #####################################################################
@@ -881,8 +897,13 @@ class ShareImageWithGroupsTest(RepomanCLITest):
     def test_sig(self):
         ShareImageWithGroupsTest.ShareImageWithGroups(self, 'sig', '')
 
-
-
+    # Test the optional parameters '--owner' and '-o'. The current user is passed as the owner of the image
+    def test_share_image_with_groups_owner(self):
+	(output, returncode) = self.run_repoman_command('whoami')
+	ShareImageWithGroupsTest.ShareImageWithGroups(self, 'share-image-with-groups', '--owner %s' % (output))
+    def test_share_image_with_groups_o(self):
+        (output, returncode) = self.run_repoman_command('whoami')
+        ShareImageWithGroupsTest.ShareImageWithGroups(self, 'share-image-with-groups', '-o %s' % (output))
 
 
 
@@ -934,15 +955,21 @@ class ShareImageWithUsersTest(RepomanCLITest):
 	(output, returncode) = self.run_repoman_command('remove-user --force %s' % (self.first_name))
 
 
-    # This tests the command 'share-image-with-users'
+    # Test the command 'share-image-with-users'
     def test_share_image_with_users(self):
 	ShareImageWithUsersTest.ShareImageWithUsers(self, 'share-image-with-users', '')
 
-    #This tests the alias 'siu'
+    # Test the alias 'siu'
     def test_siu(self):
 	ShareImageWithUsersTest.ShareImageWithUsers(self, 'siu', '')
 
-
+    # Test the optional parameter '--owner' and '-o'. The current user is passed as the owner of the image
+    def test_share_image_with_users_owner(self):
+	(output, returncode) = self.run_repoman_command('whoami')
+        ShareImageWithUsersTest.ShareImageWithUsers(self, 'share-image-with-users', '--owner %s' % (output))
+    def test_share_image_with_users_o(self):
+        (output, returncode) = self.run_repoman_command('whoami')
+        ShareImageWithUsersTest.ShareImageWithUsers(self, 'share-image-with-users', '-o %s' % (output))
 
 
 #####################################################################
@@ -993,6 +1020,14 @@ class UnshareImageWithGroupsTest(RepomanCLITest):
     def test_uig(self):
 	UnshareImageWithGroupsTest.UnshareImageWithGroups(self, 'uig', '')
 
+
+    # Test the optional parameters '--owner' and '-o'. The current user is passed as the owner of the image (same as default)
+    def test_unshare_image_with_groups(self):
+	(output, returncode) = self.run_repoman_command('whoami')
+        UnshareImageWithGroupsTest.UnshareImageWithGroups(self, 'unshare-image-with-groups', '--owner %s' % (output))
+    def test_unshare_image_with_groups_o(self):
+        (output, returncode) = self.run_repoman_command('whoami')
+        UnshareImageWithGroupsTest.UnshareImageWithGroups(self, 'unshare-image-with-groups', '-o %s' % (output))
 
 
 
@@ -1056,6 +1091,13 @@ class UnshareImageWithUsersTest(RepomanCLITest):
     def test_uiu(self):
         UnshareImageWithUsersTest.UnshareImageWithUsers(self, 'uiu', '')
 
+    # Test the optional parameters '--owner' and '-o'. The current user is passed as the owner of the image
+    def test_unshare_image_with_users_owner(self):
+	(output, returncode) = self.run_repoman_command('whoami')
+        UnshareImageWithUsersTest.UnshareImageWithUsers(self, 'unshare-image-with-users', '--owner %s' % (output))
+    def test_unshare_image_with_users_o(self):
+        (output, returncode) = self.run_repoman_command('whoami')
+        UnshareImageWithUsersTest.UnshareImageWithUsers(self, 'unshare-image-with-users', '-o %s' % (output))
 
 
 
