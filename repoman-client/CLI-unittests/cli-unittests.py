@@ -1478,6 +1478,85 @@ class CreateGroupTest(RepomanCLITest):
 
 
 #####################################################################
+#               COMMAND - 'repoman list-groups'
+#####################################################################
+
+
+class ListGroupsTest(RepomanCLITest):
+
+    def ListGroups(self, command, arg):
+	"""
+	This method is called whenever the 'list-groups' or 'lg' subcommands are tested. The argument command
+	stores the 'list-groups' or 'lg'. arg stores the optional parameters (is an empty string if no optional parameters are passed)
+	"""
+	# Generate a unique name for the new group to be created
+	self.new_group_name = self.get_unique_image_name()
+	# Create a group with the unique name and make the current user a group member
+	(user, status) = self.run_repoman_command('whoami')
+	(output, returncode) = self.run_repoman_command('create-group %s --users %s' % (self.new_group_name, user))  
+	self.assertEqual(returncode, 0)
+	
+	# For the optional parameter 'group', the name of the new group is assigned to arg
+	if (arg == 'group'):
+		arg = self.new_group_name
+	# For the optional parameter '--user' or '-u', the current user is added as a memeber  
+	if (re.search('-u', arg)):
+		arg = arg + ' ' + user
+	# Run the command for listing the groups (with or without the optional parameters)
+	(output, returncode) = self.run_repoman_command('%s %s' % (command, arg))
+	p = re.search(self.new_group_name, output)
+	self.assertTrue(p != None)
+	self.assertEqual(returncode, 0)
+
+	# Check if the decription of the group is outputted if the 'group' optional parameter is chosen
+	if (arg == self.new_group_name):
+		p = re.search(r'name :.*\n\s*permissions :.*\n\s*users :', output)
+		self.assertTrue(p != None)
+		self.assertEqual(returncode, 0)
+	# Check the fields if the '--long' or '-l' optional parameters are chosen
+	if (arg == '--long' or arg == '-l'):
+		p = re.search(r'Group Name\s*Members', output)	
+		self.assertTrue(p != None)
+		self.assertEqual(returncode, 0)
+
+    # Remove the group after the test completes
+    def tearDown(self):
+	(output, returncode) = self.run_repoman_command('remove-group --force %s' % (self.new_group_name))
+
+    # Test the command 'list-groups' without optional parameters
+    def test_list_groups(self):
+	ListGroupsTest.ListGroups(self, 'list-groups', '')
+
+    # Test the alias 'lg' without optional parameters
+    def test_lg(self):
+	ListGroupsTest.ListGroups(self, 'lg', '')
+
+    # Test the optional parameters '--all' and '-a'
+    def test_list_groups_all(self):
+	ListGroupsTest.ListGroups(self, 'list-groups', '--all')
+    def test_list_groups_a(self):
+	ListGroupsTest.ListGroups(self, 'list-groups', '-a')
+
+    # Test the optional parameter 'group'. The name of the group is generated and assigned in the ListGroups method
+    def test_list_groups_group(self):
+	ListGroupsTest.ListGroups(self, 'list-groups', 'group')
+
+    # Test the optional parameters '--long' and '-l'
+    def test_list_groups_long(self):
+	ListGroupsTest.ListGroups(self, 'list-groups', '--long')
+    def test_list_groups_l(self):
+	ListGroupsTest.ListGroups(self, 'list-groups', '-l')
+
+    # Test the optional parameters '--user' and '-u'. The current user is chosen as the user
+    def test_list_groups_user(self):
+	ListGroupsTest.ListGroups(self, 'list-groups', '--user')
+    def test_list_groups_u(self):
+	ListGroupsTest.ListGroups(self, 'list-groups', '-u')
+
+
+
+
+#####################################################################
 #####################################################################
 #####################################################################
 
