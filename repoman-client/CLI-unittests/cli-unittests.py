@@ -348,7 +348,23 @@ class ModifyImageTest(RepomanCLITest):
 	if (arg == '--new_name ' or arg == '-n '):
 		
 		random_name = self.get_unique_image_name()
-		arg = arg + random_name	
+		arg = arg + random_name
+	# If arg is --new_owner or -n parameter, create a new test user to be the new owner of the modified image
+	# For creating the test user, generate two unique names for the first and last names. The first name is used 
+	# for the username, email address of the user. The last name is used in the client dn and full name fields.
+	if (arg == '--new_owner' or arg == '-N'):
+		self.first_name = self.get_unique_image_name()
+		self.last_name = self.get_unique_image_name()		
+		(output, returncode) = self.run_repoman_command('create-user %s "/C=CA/O=Grid/OU=phys.UVic.CA/CN=%s %s" --email %s@random.com --full_name "%s %s"' % (self.first_name,self.first_name, self.last_name,self.first_name, self.first_name ,self.last_name))
+        	self.assertEqual(returncode, 0)
+		# add the username of the new owner to arg
+		arg = arg + ' ' + self.first_name
+	# If the arg is --owner or -o, the username of the current owner is retreived using the 'repoman whoami' command
+	# The owner parameter is used with the current user to check whether the it works properly though omitting it in this case
+	# would be the same as the default 	
+	if (arg == '--owner' or arg == '-o'):
+		(output, returncode) = self.run_repoman_command('whoami')
+		arg = arg + ' ' + output
 	# Run 'repoman modify-image' and check the output
 	(output, returncode) = self.run_repoman_command('modify-image %s %s' %(self.new_image_name, arg))
 	self.assertEqual(output, "[OK]     Modifying image.\n")
@@ -359,8 +375,12 @@ class ModifyImageTest(RepomanCLITest):
 		p = re.search('^\\s*name : %s\\s*$' % (random_name), output, flags=re.MULTILINE)
                 self.assertTrue(p != None)
 		
-		
-		
+	if (re.search('--new_owner', arg) or re.search('-N', arg)):
+		(output, returncode) = self.run_repoman_command('list-images %s --owner %s' % (self.new_image_name, self.first_name))
+		p = re.search('^\\s*owner : %s\\s*$' % (self.first_name), output, flags=re.MULTILINE)
+		self.assertTrue(p != None)	
+		(output, returncode) = self.run_repoman_command('remove-user --force %s' % (self.first_name))	
+	
 	# Call CheckOptions to check some common optional parameters of create-image and modify-image
 	if(random_name == None):
 		(output, returncode) = self.run_repoman_command('list-images %s' % (self.new_image_name))
@@ -428,10 +448,26 @@ class ModifyImageTest(RepomanCLITest):
     
     # Test the optional parameter '--new_name' or '-n'
     # A random name is kept as the new name which is generated later in the method ModifyImage
-    def test_modify_image_new_name(self, tearDown = None):
+    def test_modify_image_new_name(self):
 	ModifyImageTest.ModifyImage(self, '--new_name ')
     def test_modify_image_n(self):
 	ModifyImageTest.ModifyImage(self, '-n ')		
+
+
+    # Test the optional parameter '--new_owner' or '-N'
+    # A test user is created in the method ModifyImage which is used as the new owner for the image
+    def test_modify_image_new_owner(self):
+	ModifyImageTest.ModifyImage(self, '--new_owner')
+    def test_modify_image_N(self):
+	ModifyImageTest.ModifyImage(self, '-N')	
+
+
+    # Test the optional parameter '--owner' or '-o'
+    # The owner used is the current owner which is the same as the output for 'repoman whoami'
+    def test_modify_image_owner(self):
+	ModifyImageTest.ModifyImage(self, '--owner')
+    def test_modify_image_o(self):
+	ModifyImageTest.ModifyImage(self, '-o')
 
     # Test the optional parameter '--os_arch'
     # For this test, a random operating system architecture ('x86') is selected
@@ -559,22 +595,32 @@ class ListImagesTest(RepomanCLITest):
         ListImagesTest.ListImagesGroup(self, '-g')
 
 
-    # Test the optional parameter 'image'
-    def test_list_images_image(self):
+    # Used for optional parameters 'image', '--owner' and '-o' (where the description of the image is outputted)
+    def ListImagesDesc(self, arg):
 	"""
-	This test runs the 'repoman list-images image' command, and checks if all the fields of the output match the expected fields of the image
-	"""
-	self.new_image_name = self.get_unique_image_name()
+        This test runs the 'repoman list-images image' command, and checks if all the fields of the output match the expected fields of the image
+        """
+        self.new_image_name = self.get_unique_image_name()
         (output, returncode) = self.run_repoman_command("create-image %s" % (self.new_image_name))
         self.assertEqual(returncode, 0)
 
-	# Check if the output is of the proper format
-	(output, returncode) = self.run_repoman_command("list-images %s" % (self.new_image_name))
-	p = re.search(r'checksum :.*\n\s*description :.*\n\s*expires :.*\n\s*file_url :.*\n\s*http_file_url :.*\n\s*hypervisor :.*\n\s*modified :.*\n\s*name : %s.*\n\s*os_arch :.*\n\s*os_type :.*\n\s*os_variant :.*\n\s*owner :.*\n\s*owner_user_name :.*\n\s*raw_file_uploaded :.*\n\s*read_only :.*\n\s*shared_with :.*\n\s*size :.*\n\s*unauthenticated_access :.*\n\s*uploaded :.*\n\s*uuid :.*\n\s*version :' % (self.new_image_name), output)
-	self.assertTrue( p != None)
+        # Check if the output is of the proper format
+        (output, returncode) = self.run_repoman_command("list-images %s %s" % (self.new_image_name, arg))
+        p = re.search(r'checksum :.*\n\s*description :.*\n\s*expires :.*\n\s*file_url :.*\n\s*http_file_url :.*\n\s*hypervisor :.*\n\s*modified :.*\n\s*name : %s.*\n\s*os_arch :.*\n\s*os_type :.*\n\s*os_variant :.*\n\s*owner :.*\n\s*owner_user_name :.*\n\s*raw_file_uploaded :.*\n\s*read_only :.*\n\s*shared_with :.*\n\s*size :.*\n\s*unauthenticated_access :.*\n\s*uploaded :.*\n\s*uuid :.*\n\s*version :' % (self.new_image_name), output)
+        self.assertTrue( p != None)
         self.assertEqual(returncode, 0)
 
+    # Test the optional parameter 'image'
+    def test_list_images_image(self):
+	ListImagesTest.ListImagesDesc(self, '')
 
+    # Test the optional parameters '--owner' and '-o'. Here the owner is passed as the current user just to test the optional parameter
+    def test_list_images_owner(self):
+	(output, returncode) = self.run_repoman_command('whoami')
+	ListImagesTest.ListImagesDesc(self, '--owner %s' % (output))
+    def test_list_images_o(self):
+        (output, returncode) = self.run_repoman_command('whoami')
+        ListImagesTest.ListImagesDesc(self, '-o %s' % (output))
 
     def ListImagesUser(self, arg):
 	"""
@@ -639,13 +685,22 @@ class PutImageTest(RepomanCLITest):
         (output, returncode) = self.run_repoman_command('create-image %s' % (self.new_image_name))
         self.assertEqual(returncode, 0)
 
-        # Upload the file with the 'put-image' or 'pi' command into the newly created image
-        (output, returncode) = self.run_repoman_command('%s %s %s' % (command,random_file, self.new_image_name ))
-        p = re.search(r'Uploading %s to image.+\n.*OK.*%s uploaded to image' % (random_file, random_file), output)
-	self.assertTrue( p != None)
-	self.assertEqual(returncode, 0)
-
-	if (arg == ''):
+	# If the '--owner' or '-o' parameters are not passed, the first command for put-image runs without any optional parameters (arg)
+	# Uploading the dummy file is also required for the '--force' or '-f' parameters since its meant to overwrite the existing image file	
+	if (re.search('-o', arg) == None):
+	        # Upload the file with the 'put-image' or 'pi' command into the newly created image
+        	(output, returncode) = self.run_repoman_command('%s %s %s' % (command,random_file, self.new_image_name ))
+        	p = re.search(r'Uploading %s to image.+\n.*OK.*%s uploaded to image' % (random_file, random_file), output)
+		self.assertTrue( p != None)
+		self.assertEqual(returncode, 0)
+	# Include '--owner' or '-o' parameters if they are passed in arg
+	else:
+		(output, returncode) = self.run_repoman_command('%s %s %s %s' % (command,random_file, self.new_image_name, arg ))
+                p = re.search(r'Uploading %s to image.+\n.*OK.*%s uploaded to image' % (random_file, random_file), output)
+                self.assertTrue( p != None)
+                self.assertEqual(returncode, 0)
+	
+	if (arg == '' or re.search('-o', arg)):
 	        # Change the unauthenticated access to true so that the file can be downloaded
         	(output, returncode) = self.run_repoman_command('modify-image %s --unauthenticated_access true' % (self.new_image_name))
         	self.assertEqual(returncode, 0)
@@ -714,12 +769,21 @@ class PutImageTest(RepomanCLITest):
     def test_pi(self):
 	PutImageTest.PutImage(self, 'pi', '')
 
-    # Test the optional parameters, '--force' and '-f'
+    # Test the optional parameters '--force' and '-f'
     def test_put_image_force(self):
 	PutImageTest.PutImage(self, 'put-image', '--force')
     def test_put_image_f(self):
         PutImageTest.PutImage(self, 'put-image', '-f')
 
+    # Test the optional parameters '--owner' and '-o'
+    def test_put_image_owner(self):
+	(output, returncode) = self.run_repoman_command('whoami')
+	PutImageTest.PutImage(self, 'put-image', '--owner %s' % (output))
+    def test_put_image_o(self):
+	(output, returncode) = self.run_repoman_command('whoami')
+        PutImageTest.PutImage(self, 'put-image', '-o %s' % (output))
+
+	
     def tearDown(self):
 	(output, returncode) = self.run_repoman_command('remove-image -f %s' %(self.new_image_name))	
 
@@ -745,10 +809,10 @@ class RemoveImageTest(RepomanCLITest):
 	(output, returncode) = self.run_repoman_command('create-image %s' % (self.new_image_name))
 	self.assertEqual(returncode, 0)
 
-	if (arg == ''):
+	if (arg == '' or re.search('-o', arg)):
 		# Run the 'remove-image' or 'ri' command. The 'yes yes' is used to pass 'yes' to the confirmation prompt
 		# Here the function run_repoman_command is not used since 'yes yes |' has to precede 'repoman'.
-		p = Popen('yes yes | repoman %s %s' % (command, self.new_image_name), shell=True, stdout=PIPE, stderr=STDOUT)
+		p = Popen('yes yes | repoman %s %s %s' % (command, self.new_image_name, arg), shell=True, stdout=PIPE, stderr=STDOUT)
         	output = p.communicate()[0]
 		m = re.search(r'OK.*Removed image', output)
 		self.assertTrue( m != None)
@@ -774,12 +838,19 @@ class RemoveImageTest(RepomanCLITest):
     def test_ri(self):
 	RemoveImageTest.RemoveImage(self, 'ri', '')
 
-    # Test the optional parameter '--force' and '-f'
+    # Test the optional parameters '--force' and '-f'
     def test_remove_image_force(self):
 	RemoveImageTest.RemoveImage(self, 'remove-image', '--force')
     def test_remove_image_f(self):
 	RemoveImageTest.RemoveImage(self, 'remove-image', '-f')
 	
+    # Test the optional parameters '--owner' and '-o' 
+    def test_remove_image_owner(self):
+	(output, returncode) = self.run_repoman_command('whoami')
+	RemoveImageTest.RemoveImage(self, 'remove-image', '--owner %s' % (output))
+    def test_remove_image_o(self):
+        (output, returncode) = self.run_repoman_command('whoami')
+        RemoveImageTest.RemoveImage(self, 'remove-image', '-o %s' % (output))
 
 
 #####################################################################
@@ -826,8 +897,13 @@ class ShareImageWithGroupsTest(RepomanCLITest):
     def test_sig(self):
         ShareImageWithGroupsTest.ShareImageWithGroups(self, 'sig', '')
 
-
-
+    # Test the optional parameters '--owner' and '-o'. The current user is passed as the owner of the image
+    def test_share_image_with_groups_owner(self):
+	(output, returncode) = self.run_repoman_command('whoami')
+	ShareImageWithGroupsTest.ShareImageWithGroups(self, 'share-image-with-groups', '--owner %s' % (output))
+    def test_share_image_with_groups_o(self):
+        (output, returncode) = self.run_repoman_command('whoami')
+        ShareImageWithGroupsTest.ShareImageWithGroups(self, 'share-image-with-groups', '-o %s' % (output))
 
 
 
@@ -879,15 +955,21 @@ class ShareImageWithUsersTest(RepomanCLITest):
 	(output, returncode) = self.run_repoman_command('remove-user --force %s' % (self.first_name))
 
 
-    # This tests the command 'share-image-with-users'
+    # Test the command 'share-image-with-users'
     def test_share_image_with_users(self):
 	ShareImageWithUsersTest.ShareImageWithUsers(self, 'share-image-with-users', '')
 
-    #This tests the alias 'siu'
+    # Test the alias 'siu'
     def test_siu(self):
 	ShareImageWithUsersTest.ShareImageWithUsers(self, 'siu', '')
 
-
+    # Test the optional parameter '--owner' and '-o'. The current user is passed as the owner of the image
+    def test_share_image_with_users_owner(self):
+	(output, returncode) = self.run_repoman_command('whoami')
+        ShareImageWithUsersTest.ShareImageWithUsers(self, 'share-image-with-users', '--owner %s' % (output))
+    def test_share_image_with_users_o(self):
+        (output, returncode) = self.run_repoman_command('whoami')
+        ShareImageWithUsersTest.ShareImageWithUsers(self, 'share-image-with-users', '-o %s' % (output))
 
 
 #####################################################################
@@ -938,6 +1020,14 @@ class UnshareImageWithGroupsTest(RepomanCLITest):
     def test_uig(self):
 	UnshareImageWithGroupsTest.UnshareImageWithGroups(self, 'uig', '')
 
+
+    # Test the optional parameters '--owner' and '-o'. The current user is passed as the owner of the image (same as default)
+    def test_unshare_image_with_groups(self):
+	(output, returncode) = self.run_repoman_command('whoami')
+        UnshareImageWithGroupsTest.UnshareImageWithGroups(self, 'unshare-image-with-groups', '--owner %s' % (output))
+    def test_unshare_image_with_groups_o(self):
+        (output, returncode) = self.run_repoman_command('whoami')
+        UnshareImageWithGroupsTest.UnshareImageWithGroups(self, 'unshare-image-with-groups', '-o %s' % (output))
 
 
 
@@ -1001,6 +1091,13 @@ class UnshareImageWithUsersTest(RepomanCLITest):
     def test_uiu(self):
         UnshareImageWithUsersTest.UnshareImageWithUsers(self, 'uiu', '')
 
+    # Test the optional parameters '--owner' and '-o'. The current user is passed as the owner of the image
+    def test_unshare_image_with_users_owner(self):
+	(output, returncode) = self.run_repoman_command('whoami')
+        UnshareImageWithUsersTest.UnshareImageWithUsers(self, 'unshare-image-with-users', '--owner %s' % (output))
+    def test_unshare_image_with_users_o(self):
+        (output, returncode) = self.run_repoman_command('whoami')
+        UnshareImageWithUsersTest.UnshareImageWithUsers(self, 'unshare-image-with-users', '-o %s' % (output))
 
 
 
@@ -1008,7 +1105,80 @@ class UnshareImageWithUsersTest(RepomanCLITest):
 #				USER MANUPILATION SUBCOMMANDS					#
 #***********************************************************************************************#
 
-											
+
+
+
+#####################################################################
+#               COMMAND - 'repoman create-user'
+#####################################################################
+
+
+class CreateUserTest(RepomanCLITest):
+
+    def CreateUser(self, command, arg):
+	"""
+	This method is used whenever the create-user or cu subcommand is tested. The argument 'command'
+	stores the command 'create-user' or its alias 'cu'. The argument arg stores any optional parameters.
+	If passed without optional parameters, arg is an empty string.
+	"""
+	# Get a unique name for the first and last names of the user to be created
+	self.first_name = self.get_unique_image_name()
+	self.last_name = self.get_unique_image_name()
+	
+	# If the optional parameters '--email' or '-e is chosen, add a random email address with the first name and domain name 'random.com'
+	if (arg == '--email' or arg == '-e'):
+		arg = arg + ' ' + self.first_name + '@random.com'
+	# If the optional parameters '--full' or '-f' is chosen, add the first and last names
+	elif (arg == '--full_name' or arg == '-f'):
+		arg = arg + ' "%s %s"' % (self.first_name, self.last_name)
+	
+	# Run the repoman command for creating the user 
+	(output, returncode) = self.run_repoman_command('%s %s "/C=CA/O=Grid/OU=phys.UVic.CA/CN=%s %s" %s' % (command, self.first_name,self.first_name, self.last_name, arg))
+	p = re.search(r'OK.*Created new user %s' % (self.first_name), output)
+	self.assertEqual(returncode, 0)
+	self.assertTrue(p != None)
+	# Check if the user is listed in 'repoman list-users'
+	(output, returncode) = self.run_repoman_command('list-users')
+	p = re.search(self.first_name, output)
+	self.assertTrue(p != None)
+
+	# If the email address or full name is specified, the address/full name is checked in the description of the user
+	if (re.search('-e',arg)):
+		(output, returncode) = self.run_repoman_command('list-users %s' % (self.first_name))
+		p = re.search(r'email : %s@random.com' % (self.first_name), output)
+		self.assertTrue(p != None)
+	elif (re.search('-f', arg)):
+		(output, returncode) = self.run_repoman_command('list-users %s' % (self.first_name))
+                p = re.search(r'full_name : %s %s' % (self.first_name, self.last_name), output)
+                self.assertTrue(p != None)
+
+    # Remove the user that was created at the end of the test	
+    def tearDown(self):
+	(output, returncode) = self.run_repoman_command('remove-user --force %s' % (self.first_name))
+
+    # Test the command without optional parameters
+    def test_create_user(self):
+	CreateUserTest.CreateUser(self, 'create-user', '')
+
+    # Test the alias of the command (without optional parameters)
+    def test_cu(self):
+	CreateUserTest.CreateUser(self, 'cu', '')
+
+    # Test the optional parameters '--email' or '-e'
+    def test_create_user_email(self):
+	CreateUserTest.CreateUser(self, 'create-user', '--email')
+    def test_create_user_e(self):
+        CreateUserTest.CreateUser(self, 'create-user', '-e')
+
+    # Test the optional parameters '--full_name' or '-f'
+    def test_create_user_full_name(self):
+	CreateUserTest.CreateUser(self, 'create-user', '--full_name')
+    def test_create_user_f(self):
+	CreateUserTest.CreateUser(self, 'create-user', '-f')
+
+
+
+
 #####################################################################
 #               COMMAND - 'repoman list-users'
 #####################################################################
@@ -1232,6 +1402,156 @@ class RemoveUserTest(RepomanCLITest):
 	RemoveUserTest.RemoveUser(self, 'remove-user', '--force')
     def test_remove_user_f(self):
         RemoveUserTest.RemoveUser(self, 'remove-user', '-f')
+
+
+
+
+
+#***********************************************************************************************#
+#                               GROUP MANUPILATION SUBCOMMANDS                                  #
+#***********************************************************************************************#
+
+
+
+
+#####################################################################
+#               COMMAND - 'repoman create-group'
+#####################################################################
+
+
+class CreateGroupTest(RepomanCLITest):
+
+    def CreateGroup(self, command, arg):
+	"""
+	This method is called whenever the 'create-group' or 'cg' command is tested. The command or its alias is stored in the 
+	argument 'command' and optional parameters are stored in the argument 'arg'. 
+	"""
+	# Generate a unique name for the new group
+	self.new_group_name = self.get_unique_image_name()
+	
+	# Run the subcommand and check the output and status
+	(output, returncode) = self.run_repoman_command('%s %s %s' % (command, self.new_group_name, arg))
+	p = re.search(r"OK.*Creating new group: '%s'" % (self.new_group_name), output)
+	self.assertTrue(p != None)
+	self.assertEqual(returncode, 0)
+
+	# Check if the group can be listed
+	(output, returncode) = self.run_repoman_command('list-groups %s' % (self.new_group_name))
+	p = re.search(r'name : %s' % (self.new_group_name), output)
+	self.assertTrue(p != None)
+	
+	# Check the changes due to the optional parameters
+	if (re.search('-p',arg)):
+		p = re.search(r'permissions : group_create, group_delete, group_modify, group_modify_membership, group_modify_permissions, image_create, image_delete, image_delete_group, image_modify, image_modify_group, user_create, user_delete, user_modify, user_modify_self', output)
+        	self.assertTrue(p != None)
+	if (re.search('-u', arg)):
+		(user, status) = self.run_repoman_command('whoami')
+		p = re.search(r'users :.*%s' % (user), output)
+                self.assertTrue(p != None)
+		
+    # Remove the group after the tests
+    def tearDown(self):
+	(output, returncode) = self.run_repoman_command('remove-group --force %s' % (self.new_group_name))
+
+    # Test the command 'create-group' without optional parameters
+    def test_create_group(self):
+	CreateGroupTest.CreateGroup(self, 'create-group', '')
+
+    # Test the alias 'cu' without optional parameters
+    def test_cg(self):
+	CreateGroupTest.CreateGroup(self, 'cg', '')
+
+    # Test the optional parameters '--permissions' or '-p'. Here all the possible permissions are given to the group
+    def test_create_group_permissions(self):
+	CreateGroupTest.CreateGroup(self, 'create-group', '--permissions group_create,group_delete,group_modify,group_modify_membership,group_modify_permissions,image_create,image_delete,image_delete_group,image_modify,image_modify_group,user_create,user_delete,user_modify,user_modify_self')
+    def test_create_group_p(self):
+	CreateGroupTest.CreateGroup(self, 'create-group', '-p group_create,group_delete,group_modify,group_modify_membership,group_modify_permissions,image_create,image_delete,image_delete_group,image_modify,image_modify_group,user_create,user_delete,user_modify,user_modify_self')	
+
+    # Test the optional parameters '--users' and '-u'. Here the current user is passed as the user of the group
+    def test_create_group_users(self):
+	(output, returncode) = self.run_repoman_command('whoami')
+	CreateGroupTest.CreateGroup(self, 'create-group', '--users %s' % (output))
+    def test_create_group_u(self):
+	(output, returncode) = self.run_repoman_command('whoami')
+        CreateGroupTest.CreateGroup(self, 'create-group', '-u %s' % (output))
+
+
+
+#####################################################################
+#               COMMAND - 'repoman list-groups'
+#####################################################################
+
+
+class ListGroupsTest(RepomanCLITest):
+
+    def ListGroups(self, command, arg):
+	"""
+	This method is called whenever the 'list-groups' or 'lg' subcommands are tested. The argument command
+	stores the 'list-groups' or 'lg'. arg stores the optional parameters (is an empty string if no optional parameters are passed)
+	"""
+	# Generate a unique name for the new group to be created
+	self.new_group_name = self.get_unique_image_name()
+	# Create a group with the unique name and make the current user a group member
+	(user, status) = self.run_repoman_command('whoami')
+	(output, returncode) = self.run_repoman_command('create-group %s --users %s' % (self.new_group_name, user))  
+	self.assertEqual(returncode, 0)
+	
+	# For the optional parameter 'group', the name of the new group is assigned to arg
+	if (arg == 'group'):
+		arg = self.new_group_name
+	# For the optional parameter '--user' or '-u', the current user is added as a memeber  
+	if (re.search('-u', arg)):
+		arg = arg + ' ' + user
+	# Run the command for listing the groups (with or without the optional parameters)
+	(output, returncode) = self.run_repoman_command('%s %s' % (command, arg))
+	p = re.search(self.new_group_name, output)
+	self.assertTrue(p != None)
+	self.assertEqual(returncode, 0)
+
+	# Check if the decription of the group is outputted if the 'group' optional parameter is chosen
+	if (arg == self.new_group_name):
+		p = re.search(r'name :.*\n\s*permissions :.*\n\s*users :', output)
+		self.assertTrue(p != None)
+		self.assertEqual(returncode, 0)
+	# Check the fields if the '--long' or '-l' optional parameters are chosen
+	if (arg == '--long' or arg == '-l'):
+		p = re.search(r'Group Name\s*Members', output)	
+		self.assertTrue(p != None)
+		self.assertEqual(returncode, 0)
+
+    # Remove the group after the test completes
+    def tearDown(self):
+	(output, returncode) = self.run_repoman_command('remove-group --force %s' % (self.new_group_name))
+
+    # Test the command 'list-groups' without optional parameters
+    def test_list_groups(self):
+	ListGroupsTest.ListGroups(self, 'list-groups', '')
+
+    # Test the alias 'lg' without optional parameters
+    def test_lg(self):
+	ListGroupsTest.ListGroups(self, 'lg', '')
+
+    # Test the optional parameters '--all' and '-a'
+    def test_list_groups_all(self):
+	ListGroupsTest.ListGroups(self, 'list-groups', '--all')
+    def test_list_groups_a(self):
+	ListGroupsTest.ListGroups(self, 'list-groups', '-a')
+
+    # Test the optional parameter 'group'. The name of the group is generated and assigned in the ListGroups method
+    def test_list_groups_group(self):
+	ListGroupsTest.ListGroups(self, 'list-groups', 'group')
+
+    # Test the optional parameters '--long' and '-l'
+    def test_list_groups_long(self):
+	ListGroupsTest.ListGroups(self, 'list-groups', '--long')
+    def test_list_groups_l(self):
+	ListGroupsTest.ListGroups(self, 'list-groups', '-l')
+
+    # Test the optional parameters '--user' and '-u'. The current user is chosen as the user
+    def test_list_groups_user(self):
+	ListGroupsTest.ListGroups(self, 'list-groups', '--user')
+    def test_list_groups_u(self):
+	ListGroupsTest.ListGroups(self, 'list-groups', '-u')
 
 
 
