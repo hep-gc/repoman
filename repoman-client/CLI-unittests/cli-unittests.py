@@ -1413,6 +1413,30 @@ class RemoveUserTest(RepomanCLITest):
 
 
 
+#####################################################################
+#               COMMAND - 'repoman add-permissions-to-groups'
+#####################################################################
+
+
+class AddPermissionsToGroup(RepomanCLITest):
+
+    def AddPermissionsToGroup(self, command):
+	"""
+	This method is called whenever the 'add-permissions-to-groups' or 'apg' commands are tested. 
+	Here a group is created with a unique name and without any permissions. All the possible permissions
+	are added using the command and the output and status are checked. The presence of the permissions 
+	are also checked in the description of the group.
+	"""
+	# Generate a unique name for the new group 
+	self.new_group_name = self.get_unique_image_name()
+	# Create a new group without any permissions
+	(output, returncode) = self.run_repoman_command('create-group %s' % (self.new_group_name))
+	self.assertEqual(returncode, 0)
+	
+	# Add all possible permissions using the command 'add-permissions-to-groups' or 'apg'
+	(output, returncode) = self.run_repoman_command('%s %s group_create, group_delete, group_modify, group_modify_membership, group_modify_permissions, image_create, image_delete, image_delete_group, image_modify, image_modify_group, user_create, user_delete, user_modify, user_modify_self' % (command, self.new_group_name)) 
+	
+
 
 #####################################################################
 #               COMMAND - 'repoman create-group'
@@ -1531,6 +1555,14 @@ class ListGroupsTest(RepomanCLITest):
     def test_lg(self):
 	ListGroupsTest.ListGroups(self, 'lg', '')
 
+
+
+	#########################################################
+        #               OPTIONAL PARAMETERS                     #       
+        #########################################################
+
+
+
     # Test the optional parameters '--all' and '-a'
     def test_list_groups_all(self):
 	ListGroupsTest.ListGroups(self, 'list-groups', '--all')
@@ -1555,6 +1587,82 @@ class ListGroupsTest(RepomanCLITest):
 
 
 
+
+
+#####################################################################
+#               COMMAND - 'repoman modify-group'
+#####################################################################
+
+
+#class ModifyGroupTest(RepomanCLITest):
+
+#    def ModifyGroup(self, command, arg):
+#	"""
+#	This method is called whenever the 'modify-group' or 'mg' command is used.
+#	The argument command stores either 'modify-group' or 'mg' while arg stores the optional parameters.
+#	"""
+
+
+#####################################################################
+#               COMMAND - 'repoman remove-group'
+#####################################################################
+
+
+class RemoveGroupTest(RepomanCLITest):
+
+    def RemoveGroup(self, command, arg):
+	"""
+	This method is called whenever the 'remove-group' or 'rg' command is used. The argument command
+	stores the command or its alias, while arg stores the optional parameters. Here a group is first created 
+	with a unique name, it is removed by running the command and its absence is checked in the command
+	'repoman list-groups --all'.
+	"""
+	# Generate a unique name for the group and create a group
+	self.new_group_name = self.get_unique_image_name()
+	(output, returncode) = self.run_repoman_command('create-group %s' % (self.new_group_name))
+	self.assertEqual(returncode, 0)
+
+	# If the command is passed without optional parameters, use the 'yes yes' command to automatically agree
+	# to the confirmation prompt for removing the group
+	# Here the function run_repoman_command is not used since 'yes yes |' has to precede 'repoman'.
+        if (arg == ''):
+	        p = Popen('yes yes | repoman %s %s' % (command, self.new_group_name), shell=True, stdout=PIPE, stderr=STDOUT)
+                output = p.communicate()[0]
+                m = re.search(r'OK.*Removed group %s' % (self.new_group_name), output)
+                self.assertTrue( m != None)
+                self.assertEqual(p.returncode, 0)
+	# When the '--force' or '-f' optional parameter is used, it is run using 'run_repoman_command'
+        elif (arg == '--force' or arg == '-f'):
+                # Remove the group forcefully
+                (output, returncode) = self.run_repoman_command('%s %s %s' % (command, self.new_group_name, arg))
+                m = re.search(r'OK.*Removed group %s' % (self.new_group_name), output)
+                self.assertTrue( m != None)
+                self.assertEqual(returncode, 0)
+	
+	# Check the absence of the group in 'repoman list-groups --all'
+	(output, returncode) = self.run_repoman_command('list-groups --all')
+	p = re.search(self.new_group_name, output)
+	self.assertTrue(p == None)
+	
+    # Test the command 'remove-group' without optional parameters
+    def test_remove_group(self):
+	RemoveGroupTest.RemoveGroup(self, 'remove-group', '')
+
+    # Test the alias without optional parameters
+    def test_rg(self):
+	RemoveGroupTest.RemoveGroup(self, 'rg', '')
+
+    # Test the optional parameters '--force' and '-f'
+    def test_remove_group_force(self):
+	RemoveGroupTest.RemoveGroup(self, 'remove-group', '--force')
+    def test_remove_group_f(self):
+	RemoveGroupTest.RemoveGroup(self, 'remove-group', '-f')
+
+
+	
+
+
+ 
 
 #####################################################################
 #####################################################################
