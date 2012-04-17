@@ -1414,11 +1414,11 @@ class RemoveUserTest(RepomanCLITest):
 
 
 #####################################################################
-#               COMMAND - 'repoman add-permissions-to-groups'
+#               COMMAND - 'repoman add-permissions-to-group'
 #####################################################################
 
 
-class AddPermissionsToGroup(RepomanCLITest):
+class AddPermissionsToGroupTest(RepomanCLITest):
 
     def AddPermissionsToGroup(self, command):
 	"""
@@ -1434,8 +1434,82 @@ class AddPermissionsToGroup(RepomanCLITest):
 	self.assertEqual(returncode, 0)
 	
 	# Add all possible permissions using the command 'add-permissions-to-groups' or 'apg'
-	(output, returncode) = self.run_repoman_command('%s %s group_create, group_delete, group_modify, group_modify_membership, group_modify_permissions, image_create, image_delete, image_delete_group, image_modify, image_modify_group, user_create, user_delete, user_modify, user_modify_self' % (command, self.new_group_name)) 
+	(output, returncode) = self.run_repoman_command('%s %s group_create,group_delete,group_modify,group_modify_membership,group_modify_permissions,image_create,image_delete,image_delete_group,image_modify,image_modify_group,user_create,user_delete,user_modify,user_modify_self' % (command, self.new_group_name)) 
+	p = re.findall(r'OK.*Adding permission:', output)	
+	self.assertEqual(len(p), 14)
+	self.assertEqual(returncode, 0)
+
+	# Check if the permissions show in the description of the group
+	(output, returncode) = self.run_repoman_command('list-groups %s' % (self.new_group_name))
+	p = re.search(r'permissions : group_create, group_delete, group_modify, group_modify_membership, group_modify_permissions, image_create, image_delete, image_delete_group, image_modify, image_modify_group, user_create, user_delete, user_modify, user_modify_self', output)
+	self.assertTrue(p != None)
+	self.assertEqual(returncode, 0)
+
+
+    # Remove the group after the end of the test
+    def tearDown(self):
+	(output, returncode) = self.run_repoman_command('remove-group %s --force' % (self.new_group_name))
+
+    # Test the command 'add-permissions-to-group' 
+    def test_add_permissions_to_group(self):
+	AddPermissionsToGroupTest.AddPermissionsToGroup(self, 'add-permissions-to-group')
+
+    # Test the alias 'apg'
+    def test_apg(self):
+	AddPermissionsToGroupTest.AddPermissionsToGroup(self, 'apg')
+
+
+
+
+
+#####################################################################
+#               COMMAND - 'repoman add-users-to-group'
+#####################################################################
+
+
+class AddUsersToGroupTest(RepomanCLITest):
+
+    def AddUsersToGroup(self, command):
+	"""
+	This method is used whenever the 'add-users-to-group' or 'aug' subcommand is tested. The command or its alias
+	is passed into the argument 'command'. Here a group is created without any permissions or members. Then the command
+	is used to add the current user to the group. The status and output is checked. The presence of the user is also checked
+	in the description of the group.
+	"""
+	# Get a unique name for the group and create the group without permissions or users
+	self.new_group_name = self.get_unique_image_name()
+	(output, returncode) = self.run_repoman_command('create-group %s' % (self.new_group_name))
+	self.assertEqual(returncode, 0)
+	# Get the username of the current user and store it in the variable 'user'
+	(user, status) = self.run_repoman_command('whoami')
 	
+	# Run the 'add-users-to-group' or 'aug' command
+	(output, returncode) = self.run_repoman_command('%s %s %s' % (command, self.new_group_name, user))
+	p = re.search(r'OK.*Adding user:', output)
+	self.assertTrue(p != None)
+	self.assertEqual(returncode, 0)
+	
+	# Check the presence of the current user in the description of the group 
+	(output, returncode) = self.run_repoman_command('list-groups %s' % (self.new_group_name))
+	p = re.search(r'users :.*%s' % (user), output)
+	self.assertTrue(p != None)
+	self.assertEqual(returncode, 0)
+	
+    # Remove the group after test completes
+    def tearDown(self):
+	(output, returncode) = self.run_repoman_command('remove-group --force %s' % (self.new_group_name))
+	
+
+    # Test the command 'add-users-to-group'
+    def test_add_user_to_group(self):
+	AddUsersToGroupTest.AddUsersToGroup(self, 'add-users-to-group')
+
+    # Test the alias 'aug'
+    def test_aug(self):
+	AddUsersToGroupTest.AddUsersToGroup(self, 'aug')
+	
+	
+
 
 
 #####################################################################
@@ -1660,6 +1734,102 @@ class RemoveGroupTest(RepomanCLITest):
 
 
 	
+
+
+#####################################################################
+#	COMMAND - 'repoman remove-permissions-from-group'
+#####################################################################
+
+
+class RemovePermissionsFromGroupTest(RepomanCLITest):
+
+    def RemovePermissionsFromGroup(self, command):
+	"""
+	This method is used whenever the 'remove-permissions-from-group' or 'rpg' command is used. The command
+	or its alias is stored in the argument 'command'. Here a group is created with a unique name and with
+	all possible permissions. All the permissions are then removed using the command to be tested or its 
+	alias. The status and output are checked. The absence of the permissions is also checked in the description
+	of the group.
+	"""
+	# Generate a unique name for the group
+	self.new_group_name = self.get_unique_image_name()
+	# Create group with unique name and all possible permissions
+	(output, returncode) = self.run_repoman_command('create-group %s --permissions group_create,group_delete,group_modify,group_modify_membership,group_modify_permissions,image_create,image_delete,image_delete_group,image_modify,image_modify_group,user_create,user_delete,user_modify,user_modify_self' % (self.new_group_name))
+	self.assertEqual(returncode, 0)
+	
+	# Remove the permissions using the command or its alias
+	(output, returncode) = self.run_repoman_command('%s %s group_create,group_delete,group_modify,group_modify_membership,group_modify_permissions,image_create,image_delete,image_delete_group,image_modify,image_modify_group,user_create,user_delete,user_modify,user_modify_self' % (command, self.new_group_name))
+	p = re.findall(r'OK.*Removing permission:', output)
+	self.assertEqual(len(p), 14)
+	self.assertEqual(returncode, 0)
+
+	# Check the absence of the permissions in the description of the group
+	(output, returncode) = self.run_repoman_command('list-groups %s' % (self.new_group_name))
+	p = re.search(r'permissions :\s*\n\s*users :', output)
+	self.assertTrue(p != None)
+	self.assertEqual(returncode, 0)
+
+    # Remove the group after the test completes
+    def tearDown(self):
+	(output, returncode) = self.run_repoman_command('remove-group --force %s' % (self.new_group_name))
+
+    # Test the command 'remove-permissions-from-group'
+    def test_remove_permissions_from_group(self):
+	RemovePermissionsFromGroupTest.RemovePermissionsFromGroup(self, 'remove-permissions-from-group')
+
+    # Test the alias 'rpg'
+    def test_rpg(self):
+        RemovePermissionsFromGroupTest.RemovePermissionsFromGroup(self, 'rpg')
+
+
+
+
+#####################################################################
+#       	COMMAND - 'repoman remove-users-from-group'
+#####################################################################
+
+
+class RemoveUsersFromGroupTest(RepomanCLITest):
+
+    def RemoveUsersFromGroup(self, command):
+	"""
+	This method is used whenever the command 'remove-users-from-group' or its alias 'rug' is used. The command 
+	or its alias is stored in the argument 'command'. Here a unique name for the group is first generated. The
+	group is created using the unique name and with the current user as one of its members. The user is then 
+	removed using the command to be tested or its alias. The status and output are checked. The absence of the
+	user is also checked in the description of the group.
+	"""
+	# Generate a unique name for the group
+	self.new_group_name = self.get_unique_image_name()
+	# Create the group with the current user as a group member.
+	# The current user is stored in 'user'
+	(user, status) = self.run_repoman_command('whoami')
+	(output, returncode) = self.run_repoman_command('create-group %s --users %s' % (self.new_group_name, user))
+	self.assertEqual(returncode, 0)
+
+	# Remove the current user from the group using the command to be tested or the alias
+	(output, returncode) = self.run_repoman_command('%s %s %s' % (command, self.new_group_name, user))
+	p = re.search(r'OK.*Removing user:', output)
+	self.assertTrue(p != None)
+	self.assertEqual(returncode, 0)
+
+	# Check the absence of the user in the description of the group
+	(output, returncode) = self.run_repoman_command('list-groups %s' % (self.new_group_name))
+	p = re.search(user, output)
+	self.assertTrue(p == None)
+	self.assertEqual(returncode, 0)
+	
+    # Remove the group after the completion of the test
+    def tearDown(self):
+	(output, returncode) = self.run_repoman_command('remove-group --force %s' % (self.new_group_name))
+
+    # Test the command 'remove-users-from-group'
+    def test_remove_users_from_group(self):
+	RemoveUsersFromGroupTest.RemoveUsersFromGroup(self, 'remove-users-from-group')
+
+    # Test the alias 'rug'
+    def test_rug(self):
+	RemoveUsersFromGroupTest.RemoveUsersFromGroup(self, 'rug')
 
 
  
