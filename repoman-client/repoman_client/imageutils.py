@@ -155,7 +155,7 @@ class ImageUtils(object):
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT)
         if not p:
             log.error("Error calling: %s" % (cmd))
-            raise ImageUtilError("Error creating bootable partition.")
+            raise ImageUtilError("Error creating MBR on %s." % (path))
         p.stdin.write('device (hd0) %s\n' % (path))
         p.stdin.write('root (hd0,0)\n')
         p.stdin.write('setup (hd0)\n')
