@@ -79,7 +79,7 @@ class ImageUtils(object):
         null_f.close()
 
     def create_bootable_partition(self, path):
-        cmd = "sfdisk %s" % (path)
+        cmd = "/sbin/sfdisk %s" % (path)
         log.debug("Creating bootable partition on %s" % (path))
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT)
         if not p:
