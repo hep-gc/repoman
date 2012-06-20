@@ -116,7 +116,7 @@ class ImageUtils(object):
         null_f.close()
             
     def create_device_map(self, path):
-        cmd = "kpartx -av %s" % (path)
+        cmd = "/sbin/kpartx -av %s" % (path)
         log.debug("Creating device map for %s" % (path))
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         if not p:
@@ -136,7 +136,7 @@ class ImageUtils(object):
         return '/dev/mapper/%s' % (m.group(1))
 
     def delete_device_map(self, path):
-        cmd = "kpartx -d %s" % (path)
+        cmd = "/sbin/kpartx -d %s" % (path)
         log.debug("Deleting device map for %s" % (path))
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         if not p:
