@@ -150,7 +150,7 @@ class ImageUtils(object):
         log.debug("Device map deleted for %s" % (path))
 
     def install_mbr(self, path):
-        cmd = "grub"
+        cmd = "/sbin/grub"
         log.debug("Creating MBR on %s" % (path))
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT)
         if not p:
