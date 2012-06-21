@@ -132,14 +132,20 @@ class Config(object):
                        'snapshot' : 'repoman-fscopy.img',
                        'mountpoint' : 'repoman-fscopy',
                        'system_excludes' : '/dev/* /mnt/* /proc/* /root/.ssh /sys/* /tmp/*',
-                       'user_excludes' : ''}
+                       'user_excludes' : '',
+                       'restricted_path' : '/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin'}
 
 
     def __init__(self):
-        # The internal configuration value container.  In this case, we use
-        # a ConfigParser object.
-        self._config = None
 
+        # The internal configuration value containers.  In this case, we use
+        # a ConfigParser object.
+        # We have 2 configuration containers: 1 for the system-wide
+        # configuration only, and a second one which is for the combination of
+        # all configuration files parsed.
+        self._global_config = None
+        self._config = None
+        
         self.files_parsed = None
 
         # The possible paths of configuration files.
@@ -169,6 +175,18 @@ class Config(object):
     # could not be parsed successfully.
     def _read_config(self):
         self._config = ConfigParser.ConfigParser()
+        self._global_config = ConfigParser.ConfigParser()
+
+        # Try to read the global config alone first.
+        try:
+            files_parsed = self._global_config.read([self._global_config_file])
+            if len(files_parsed) == 0:
+                self._global_config = None
+
+        except Exception, e:
+            raise ClientConfigurationError('Error reading configuration file(s).\n%s' % (e))
+
+        # Now try to read all the config files.
         try:
             files_parsed = self._config.read([self._global_config_file,
                                               self._config_env_var,
@@ -342,7 +360,25 @@ class Config(object):
                 raise ClientConfigurationError('Error writing Repoman configuration file at %s\n%s' % (self._user_config_file, e))
         
 
+    def get_restricted_env(self):
+        """
+        This method will return a restricted environment to be used when
+        making subprocess calls which require enhanced security.
+        (i.e., which are run as sudo)
+        Note that only the system-wide repoman config file will be
+        consulted for the restricted environment settings.
+        If no system-wide repoman configuration file is present, then
+        a default restricted environment will be used.
+        """
+        restricted_path = self.config_defaults['restricted_path']
+        if self._global_config and self._global_config.has_section('Security') and self._global_config.has_option('Security', 'restricted_path'):
+            restricted_path = self._global_config.get('Security', 'restricted_path')
 
+        restricted_env = os.environ.copy()
+        restricted_env['PATH'] = restricted_path
+        return restricted_env
+
+        
 # Globally accessible Config() singleton instance.
 config = None
 try:

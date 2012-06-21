@@ -7,7 +7,7 @@ import fcntl
 import tempfile
 from repoman_client.logger import log
 from repoman_client.exceptions import ImageUtilError
-
+from repoman_client.config import config
 
 class ImageUtils(object):
     def __init__(self, lockfile, imagepath, mountpoint, system_excludes, user_excludes, size=None, partition=False):
@@ -62,26 +62,25 @@ class ImageUtils(object):
         return '/'
         
     def label_image(self, path, label='/'):
-        cmd = "/sbin/tune2fs -L %s %s" % (label, path)
+        cmd = ['tune2fs', '-L', label, path]
         log.debug("Labeling image: '%s'" % cmd)
-        if subprocess.Popen(cmd, shell=True).wait():
+        if subprocess.Popen(cmd, shell=False, env=config.get_restricted_env()).wait():
             log.error("Unable to label image")
             raise ImageUtilError("Unable to label Image")
         
     def dd_sparse(self, path, size_bytes):
-        cmd = ("dd if=/dev/zero of=%s count=0 bs=1 seek=%s" 
-               % (path, size_bytes))
+        cmd = ['dd', 'if=/dev/zero', 'of=%s' % path, 'count=0', 'bs=1', 'seek=%s' % size_bytes]
         log.debug("Creating sparse file: '%s'" % cmd)
         null_f = open('/dev/null', 'w')
-        if subprocess.Popen(cmd, shell=True, stdout=null_f, stderr=null_f).wait():
+        if subprocess.Popen(cmd, shell=False, stdout=null_f, stderr=null_f, env=config.get_restricted_env()).wait():
             log.error("Unable to create sparse file")
             raise ImageUtilError("Error creating sparse file")
         null_f.close()
 
     def create_bootable_partition(self, path):
-        cmd = "/sbin/sfdisk %s" % (path)
+        cmd = ['sfdisk', path]
         log.debug("Creating bootable partition on %s" % (path))
-        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT)
+        p = subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT, env=config.get_restricted_env())
         if not p:
             log.error("Error calling: %s" % (cmd))
             raise ImageUtilError("Error creating bootable partition.")
@@ -107,18 +106,18 @@ class ImageUtils(object):
     def mkfs(self, path, fs_type='ext3', label='/'):
         if fs_type == None:
             fs_type = 'ext3' # Default to ext3 if autodetection failed.
-        cmd = "/sbin/mkfs -t %s -F -L %s %s" % (fs_type, label, path)
+        cmd = ['mkfs', '-t', fs_type, '-F', '-L', label, path]
         log.debug("Creating file system: '%s'" % cmd)
         null_f = open('/dev/null', 'w')
-        if subprocess.Popen(cmd, shell=True, stdout=null_f, stderr=null_f).wait():
+        if subprocess.Popen(cmd, shell=False, stdout=null_f, stderr=null_f, env=config.get_restricted_env()).wait():
             log.error("Unable to create filesystem")
             raise ImageUtilError("Error creating filesystem.")
         null_f.close()
             
     def create_device_map(self, path):
-        cmd = "/sbin/kpartx -av %s" % (path)
+        cmd = ['kpartx', '-av' , path]
         log.debug("Creating device map for %s" % (path))
-        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        p = subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=config.get_restricted_env())
         if not p:
             log.error("Error calling: %s" % (cmd))
             raise ImageUtilError("Error creating device map.")
@@ -136,9 +135,9 @@ class ImageUtils(object):
         return '/dev/mapper/%s' % (m.group(1))
 
     def delete_device_map(self, path):
-        cmd = "/sbin/kpartx -d %s" % (path)
+        cmd = ['kpartx', '-d', path]
         log.debug("Deleting device map for %s" % (path))
-        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        p = subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=config.get_restricted_env())
         if not p:
             log.error("Error calling: %s" % (cmd))
             raise ImageUtilError("Error deleting device map.")
@@ -150,9 +149,9 @@ class ImageUtils(object):
         log.debug("Device map deleted for %s" % (path))
 
     def install_mbr(self, path):
-        cmd = "/sbin/grub"
+        cmd = ['grub']
         log.debug("Creating MBR on %s" % (path))
-        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT)
+        p = subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT, env=config.get_restricted_env())
         if not p:
             log.error("Error calling: %s" % (cmd))
             raise ImageUtilError("Error creating MBR on %s." % (path))
@@ -179,11 +178,11 @@ class ImageUtils(object):
         if self.partition:
             if not self.device_map:
                 self.device_map = self.create_device_map(self.imagepath)
-            cmd = "mount %s %s" % (self.device_map, self.mountpoint)
+            cmd = ['mount', self.device_map, self.mountpoint]
         else:
-            cmd = "mount -o loop %s %s" % (self.imagepath, self.mountpoint)
+            cmd = ['mount', '-o', 'loop', self.imagepath, self.mountpoint]
         log.debug("running [%s]" % (cmd))
-        if subprocess.Popen(cmd, shell=True).wait():
+        if subprocess.Popen(cmd, shell=False, env=config.get_restricted_env()).wait():
             raise ImageUtilError("Unable to Mount image")
         log.debug("Image mounted: '%s'" % cmd)
         
@@ -192,8 +191,8 @@ class ImageUtils(object):
         if not self.check_mounted():
             log.debug('Image already unmounted')
             return
-        cmd = "umount %s" % self.mountpoint
-        if subprocess.Popen(cmd, shell=True).wait():
+        cmd = ['umount',  self.mountpoint]
+        if subprocess.Popen(cmd, shell=False, env=config.get_restricted_env()).wait():
             raise ImageUtilError("Unable to unmount image")
         log.debug("Image unmounted: '%s'" % cmd)
         if self.partition and self.device_map != None:
@@ -226,9 +225,8 @@ class ImageUtils(object):
             self.lock = None
 
     def destroy_files(self, *args):
-        items = " ".join(args)
-        cmd = "rm -rf %s" % items
-        subprocess.call(cmd, shell=True)
+        cmd = ['rm', '-rf'] + list(args)
+        subprocess.call(cmd, shell=False, env=config.get_restricted_env())
         log.debug("Destroyed files: '%s'" % cmd)
 
     def image_exists(self):
@@ -289,7 +287,7 @@ class ImageUtils(object):
             flags += '--stats --progress ' 
         cmd = "rsync -a --sparse %s --delete %s / %s" % (flags, exclude_list, self.mountpoint)
         log.debug("%s" % cmd)
-        p = subprocess.Popen(cmd, shell=True).wait()
+        p = subprocess.Popen(cmd, shell=True, env=config.get_restricted_env()).wait()
         if p:
             log.error("Rsync encountered an issue. return code: '%s'" % p)
             raise ImageUtilError("Rsync failed.  Aborting.")
