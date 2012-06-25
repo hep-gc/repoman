@@ -10,14 +10,14 @@ from repoman_client.exceptions import ImageUtilError
 from repoman_client.config import config
 
 class ImageUtils(object):
-    def __init__(self, lockfile, imagepath, mountpoint, system_excludes, user_excludes, size=None, partition=False):
+    def __init__(self, lockfile, imagepath, mountpoint, system_excludes, user_excludes, size=None):
         self.lockfile = lockfile
         self.imagepath = imagepath
         self.mountpoint = mountpoint
         self.system_excludes = system_excludes
         self.user_excludes = user_excludes
         self.imagesize = size
-        self.partition = partition
+        self.partition = self.is_disk_partitioned()
         # The following is used to keep track of where is the device map
         # for partitioned images.  Not used when images are not partitioned.
         self.device_map = None
@@ -34,7 +34,39 @@ class ImageUtils(object):
                 'gid':stats.st_gid,
                 'mode':stats.st_mode,
                 'size':stats.st_size}
-                
+
+
+    def is_disk_partitioned(self):
+        """
+        Detects if the disk is partitioned or not.
+        Returns True if the disk is partitioned, False otherwise.
+        Note: This method requires the sfdisk command.
+        """
+        cmd = ['sfdisk', '-V']
+        log.debug("Checking if disk is partitioned...")
+        p = subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=config.get_restricted_env())
+        if not p:
+            log.error("Error calling: %s" % (cmd))
+            raise ImageUtilError("Error checking if disk is partitioned.")
+        stdout = p.communicate()[0]
+        log.debug("[%s] output:\n%s" % (cmd, stdout))
+        if p.returncode == 0:
+            # Disk is partitioned; no warnings or errors
+            return_value = True
+        elif stdout and (stdout.find('no partition table present') != -1):
+            # Disk is not partitioned
+            return_value = False
+        else:
+            # If we get here, we assume that the disk is partitioned.
+            # Usually, we will get here is sfdisk -V returned some warning
+            # messages about the existing partitions on the disk, such as
+            # a complaint about an extended partition does not start at a 
+            # cylinder boundary and stuff like that.
+            return_value = True
+        log.debug('Disk is partitioned? %s' % (return_value))
+        return return_value
+         
+
     #
     # This method is used to recreate a file or directory on the
     # destination if it is present in the origin.
