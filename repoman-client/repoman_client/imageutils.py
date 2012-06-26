@@ -42,7 +42,7 @@ class ImageUtils(object):
         Returns True if the disk is partitioned, False otherwise.
         Note: This method requires the sfdisk command.
         """
-        cmd = ['sfdisk', '-V']
+        cmd = ['sfdisk', '-V', '/dev/sda']
         log.debug("Checking if disk is partitioned...")
         p = subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=config.get_restricted_env())
         if not p:
