@@ -153,8 +153,8 @@ class ImageUtils(object):
         if not p:
             log.error("Error calling: %s" % (cmd))
             raise ImageUtilError("Error creating device map.")
-        stdout = p.communicate()[0]
-        log.debug("[%s] output:\n%s" % (cmd, stdout))
+        (stdout, stderr) = p.communicate()
+        log.debug("[%s] output stdout:\n%s\n\noutput stderr:\n%s" % (cmd, stdout, stderr))
         if p.returncode != 0:
             log.error("Device map creation command returned error: %d" % (p.returncode))
             raise ImageUtilError("Error creating device map.")
