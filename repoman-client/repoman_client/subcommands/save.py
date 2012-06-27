@@ -142,7 +142,7 @@ class Save(SubCommand):
                 hypervisors.append(supported_hypervisor)
 
         if len(hypervisors) > 0:
-            kwargs['hypervisor'] = ','.split(hypervisors)
+            kwargs['hypervisor'] = ','.join(hypervisors)
 
 
             
