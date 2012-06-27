@@ -260,7 +260,7 @@ Options:
 .image_owner
 
 .TP
-\fBsi\fP, \fBsave-image\fP \fIimage\fP [\fB--unauthenticated_access\fP [\fBtrue\fP|\fBfalse\fP]] [\fB--clean\fP] [\fB--description\fP \fIvalue\fP] [\fB--force\fP] [\fB--gzip\fP] [\fB--hypervisor\fP \fIvalue\fP}] [\fB--owner\fP \fIuser\fP] [\fB--os_variant\fP \fIvalue\fP] [\fB--os_arch\fP \fIvalue\fP] [\fB--os_type\fP \fIvalue\fP] [\fB--resize\fP \fISIZE\fP] [\fB--verbose\fP]
+\fBsi\fP, \fBsave-image\fP \fIimage\fP [\fB--unauthenticated_access\fP [\fBtrue\fP|\fBfalse\fP]] [\fB--clean\fP] [\fB--description\fP \fIvalue\fP] [\fB--force\fP] [\fB--gzip\fP] [\fB--owner\fP \fIuser\fP] [\fB--os_variant\fP \fIvalue\fP] [\fB--os_arch\fP \fIvalue\fP] [\fB--os_type\fP \fIvalue\fP] [\fB--resize\fP \fISIZE\fP] [\fB--verbose\fP]
 \#-----------------------------------------------------------------------------------------------------
 Takes a snapshot of your running system's filesystem (except paths listed under \fIsystem-excludes\fP and \fI user-excludes\fP in repoman configuration file).
 If \fIname\fP is not in your user's domain, an image-slot entry is created with the supplied metadata information.
@@ -285,8 +285,6 @@ Options:
 \fB--force\fP \- Force uploading even if it overwrites an existing image.
 
 \fB--gzip\fP \- Upload the image compressed with gzip.
-
-.image_hypervisor
 
 .image_owner
 

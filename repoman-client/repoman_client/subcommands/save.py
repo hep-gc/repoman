@@ -30,7 +30,6 @@ class Save(SubCommand):
         self.get_arg_parser().add_argument('-d', '--description', metavar = 'value', help = 'Description of the image.')
         self.get_arg_parser().add_argument('-f', '--force', action = 'store_true', default = False, help = 'Force uploading even if it overwrites an existing image.')
         self.get_arg_parser().add_argument('--gzip', action='store_true', default = False, help = 'Upload the image compressed with gzip.')
-        self.get_arg_parser().add_argument('-h', '--hypervisor', metavar = 'value', help = 'The hypervisor. Ex: xen, kvm, etc.')
         self.get_arg_parser().add_argument('-o', '--owner', metavar = 'user', help = 'The owner of the named image. The default is the ID of the current repoman user which can  be determined with the command "repoman whoami" command.')
         self.get_arg_parser().add_argument('--os_arch', choices = ['x86', 'x86_64'], help = 'The operating system architecture.')
         self.get_arg_parser().add_argument('--os_type', metavar = 'value', help = 'The operating system type. Ex: linux, unix, windows, etc.')
@@ -114,8 +113,6 @@ class Save(SubCommand):
                 kwargs['unauthenticated_access'] = False
             if args.description:
                 kwargs['description'] = args.description
-            if args.hypervisor:
-                kwargs['hypervisor'] = args.hypervisor
             if args.owner:
                 kwargs['owner'] = args.owner
             if args.os_arch:
@@ -131,15 +128,22 @@ class Save(SubCommand):
             log.error("%s" % e)
             raise SubcommandFailure(self, "Could not write to %s, are you root?" % (self.metadata_file), e)
             
-        # Check for required grub.conf-<hypervisor> files for multi-hypervisor
-        # images.
+        # Auto-detect the current hypervisor and add it to the list of hypervisors.
         hypervisors = []
-        if exists and ('hypervisor' in image) and (image['hypervisor'] != None):
-            hypervisors = image['hypervisor'].split(',')
-        if args.hypervisor: # args.hypervisor takes precedence over the image hypervisor metadata variable
-            hypervisors = args.hypervisor.split(',')
-        if len(hypervisors) > 1 and not self.check_required_grub_configs(hypervisors):
-            raise SubcommandFailure(self, "Missing /boot/grub/grub.conf-<hypervisor> file.  Please make sure that your local system contains a /boot/grub/grub.conf-<hypervisor> file for each hypervisor it supports (as listed in the hypervisor metadata variable).")
+        current_hypervisor = image_utils.get_current_hypervisor()
+        if current_hypervisor and (not (current_hypervisor in hypervisors)):
+            hypervisors.append(current_hypervisor)
+
+        # Now let's look at the file system to determine if this image supports other
+        # hypervisors and add these to the list of hypervisors.
+        supported_hypervisors = image_utils.get_supported_hypervisors()
+        for supported_hypervisor in supported_hypervisors:
+            if not (supported_hypervisor in hypervisors):
+                hypervisors.append(supported_hypervisor)
+
+        if len(hypervisors) > 0:
+            kwargs['hypervisor'] = ','.split(hypervisors)
+
 
             
         try:

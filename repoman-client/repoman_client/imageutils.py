@@ -68,6 +68,39 @@ class ImageUtils(object):
          
 
     #
+    # Utility method to try to auto-detect the current
+    # hypervisor.
+    #
+    def get_current_hypervisor(self):
+        if os.path.exists('/proc/xen'):
+            # /proc/xen exists on this system.  Assume we are running in Xen.
+            return 'xen'
+        elif open('/proc/cpuinfo').read().find('QEMU Virtual CPU') != -1:
+            return 'kvm'
+        else:
+            # Could not auto detect hypervisor; return None
+            return None
+
+
+    #
+    # Utility method to try to auto-detect the supported
+    # hypervisors.
+    # This will return a list of hypervisors for which this image
+    # can boot.
+    # Currently, this is simply done by testing for the existence of
+    # the following files:
+    #  /boot/grub/grub.conf-xen
+    #  /boot/grub/grub.conf-kvm
+    #
+    def get_supported_hypervisors(self):
+        hypervisors = []
+        if os.path.exists('/boot/grub/grub.conf-xen'):
+            hypervisors.append('xen')
+        if os.path.exists('/boot/grub/grub.conf-kvm'):
+            hypervisors.append('kvm')
+        return hypervisors
+
+    #
     # This method is used to recreate a file or directory on the
     # destination if it is present in the origin.
     # If the file or directory does not exist in the origin, then
