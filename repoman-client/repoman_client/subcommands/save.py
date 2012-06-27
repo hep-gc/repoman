@@ -105,6 +105,25 @@ class Save(SubCommand):
                                  config.user_excludes.split(),
                                  size=args.resize*1024*1024)
         
+
+
+        # Auto-detect the current hypervisor and add it to the list of hypervisors.
+        hypervisors = []
+        current_hypervisor = image_utils.get_current_hypervisor()
+        if current_hypervisor and (not (current_hypervisor in hypervisors)):
+            hypervisors.append(current_hypervisor)
+
+        # Now let's look at the file system to determine if this image supports other
+        # hypervisors and add these to the list of hypervisors.
+        supported_hypervisors = image_utils.get_supported_hypervisors()
+        for supported_hypervisor in supported_hypervisors:
+            if not (supported_hypervisor in hypervisors):
+                hypervisors.append(supported_hypervisor)
+
+        if len(hypervisors) > 0:
+            kwargs['hypervisor'] = ','.join(hypervisors)
+
+
         try:
             # Set image metadata from given arguments.
             if args.unauthenticated_access and args.unauthenticated_access.lower() == 'true':
@@ -128,23 +147,6 @@ class Save(SubCommand):
             log.error("%s" % e)
             raise SubcommandFailure(self, "Could not write to %s, are you root?" % (self.metadata_file), e)
             
-        # Auto-detect the current hypervisor and add it to the list of hypervisors.
-        hypervisors = []
-        current_hypervisor = image_utils.get_current_hypervisor()
-        if current_hypervisor and (not (current_hypervisor in hypervisors)):
-            hypervisors.append(current_hypervisor)
-
-        # Now let's look at the file system to determine if this image supports other
-        # hypervisors and add these to the list of hypervisors.
-        supported_hypervisors = image_utils.get_supported_hypervisors()
-        for supported_hypervisor in supported_hypervisors:
-            if not (supported_hypervisor in hypervisors):
-                hypervisors.append(supported_hypervisor)
-
-        if len(hypervisors) > 0:
-            kwargs['hypervisor'] = ','.join(hypervisors)
-
-
             
         try:
             print "Starting the snapshot process.  Please be patient, this will take a while."
