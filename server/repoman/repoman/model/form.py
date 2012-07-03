@@ -62,7 +62,7 @@ class UniqueCertDN(formencode.FancyValidator):
 class UniqueEmail(formencode.FancyValidator):
     def _to_python(self, value, state):
         user_q = meta.Session.query(model.User)
-        if user_q.filter(model.User.email==value).first():
+        if value != None and user_q.filter(model.User.email==value).first():
             state = 'CONFLICT'
             raise formencode.Invalid('conflict', value, state)
         else:
@@ -77,7 +77,6 @@ class ModifyUserForm(formencode.Schema):
     cert_dn = formencode.All(formencode.validators.String(if_missing=None),
                              UniqueCertDN())
     email = formencode.All(formencode.validators.String(if_missing=None),
-                           formencode.validators.Email(),
                            UniqueEmail())
  
 class NewUserForm(formencode.Schema):
@@ -89,14 +88,13 @@ class NewUserForm(formencode.Schema):
                                UniqueUsername())
     cert_dn = formencode.All(formencode.validators.String(not_empty=True),
                              UniqueCertDN())
-    email = formencode.All(formencode.validators.String(not_empty=True),
-                           formencode.validators.Email(),
-                           UniqueEmail())
-    full_name = formencode.validators.String(not_empty=True)
 
     # Default fields here
+    full_name = formencode.validators.String(if_missing=None)
     groups = formencode.validators.String(if_missing=False)
     suspended = formencode.validators.Bool(if_missing=False)
+    email = formencode.All(formencode.validators.String(if_missing=None),
+                           UniqueEmail())
 
 
 ###################

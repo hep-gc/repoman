@@ -1,0 +1,29 @@
+This directory contains the unit testing for the repoman command line
+interface (CLI).  This is meant to be high-level testing (i.e.,
+testing of the repoman script itself), as opposed to lower-level
+testing (i.e., module or class level testing).
+
+To run the tests, follow the recipe below:
+
+1. Deploy the latest repoman client on your desktop.
+
+   $ cd repoman-client
+   $ sudo python ./setup.py install
+
+2. Make sure your proxy is valid:
+
+   $ grid-proxy-init
+
+3. IMPORTANT: Make sure you point your repoman client
+   to the development repoman server (vm129.cloud.nrc.ca).
+   Do a 'repoman about' to verify this.
+
+   $ repoman about
+   ...
+   repository_host: vm129.cloud.nrc.ca
+   ...
+
+4. Run the unit tests:
+   $ cd CLI-unittests
+   $ python cli-unittests.py
+
