@@ -14,7 +14,7 @@ class User(Base):
     id = Column(Integer, primary_key=True)
 
     user_name = Column(String(100), unique=True)    # unique user name
-    email = Column(String(100), unique=True)        # unique email address
+    email = Column(String(100), default=None)       # non-empty email addresses will be checked for uniqueness via the form validators 
     full_name = Column(String(256), default='')     # full name of user
     password = Column(String(100), default='')      # password of user
 
