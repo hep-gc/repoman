@@ -31,7 +31,7 @@ class Image(Base):
     os_variant = Column(String(100))            # sl55, debian, etc
     os_type = Column(String(100))               # linux, windows, unix, etc.
     os_arch = Column(String(100))               # x86, x86_64
-    hypervisor = Column(String(100))            # xen, kvm, etc.
+    hypervisor = Column(String(100))            # xen, kvm, etc.  (for multi-hypervisor images, multiple hypervisors can be specified by separating them with a comma.)
 
     path = Column(String(256), default='')      # path to file (';' seperated for multi-hypervisor images)
 
