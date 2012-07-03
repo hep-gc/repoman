@@ -70,19 +70,25 @@ class ImagesController(BaseController):
                     abort(501, 'Multi-hypervisor support with compressed images is not implemented yet.')
                 
                 try:
-                    # Save a copy for each supported hypervisors.
+                    # Make a copy for each supported hypervisors.
+                    # We need to make (n-1) copies, where n = (number of supported hypervisors).
+                    # (The existing uploaded copy is renamed; this saves one copy operation.)
                     file_names = []
                     for h in hypervisors:
                         file_name = '%s_%s_%s' % (user, image.name, h)
                         file_names.append(file_name)
                         final_path = path.join(app_globals.image_storage, file_name)
-                        log.debug("Copying %s to %s" % (image_file, final_path))
-                        shutil.copy2(image_file, final_path)
+                        if h == hypervisors[-1]:
+                            # last element; move/rename, don't copy
+                            log.debug("Moving %s to %s" % (image_file, final_path))
+                            shutil.move(image_file, final_path)
+                        else:
+                            log.debug("Copying %s to %s" % (image_file, final_path))
+                            shutil.copy2(image_file, final_path)
                 except Exception, e:
                     abort(500, '500 Internal Error - Error uploading file %s' %e)
                 finally:
-                    log.debug("Cleaning up: deleting %s" % (image_file))
-                    remove(image_file)
+                    pass
 
 
                 # If image supports multiple hypervisors, mount each of the images and
@@ -485,10 +491,10 @@ class ImagesController(BaseController):
 
     def create_grub_symlink(self, imagepath, hypervisor):
         log.debug("Creating grub.conf symlink on %s" % (imagepath))
-        cmd = "guestfish -a %s -i ln-sf /boot/grub/grub.conf-%s /boot/grub/grub.conf" % (imagepath, hypervisor)
+        cmd = ['guestfish', '-a', imagepath, '-i', 'ln-sf', '/boot/grub/grub.conf-%s' % (hypervisor),  '/boot/grub/grub.conf']
         log.debug("Symlink creation command: %s" % (cmd))
         try:
-            p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            p = subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         except OSError, e:
             log.error("Error calling: %s\n%s" % (cmd, e))
             raise e
