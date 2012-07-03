@@ -23,13 +23,6 @@ class CreateUser(SubCommand):
         self.get_arg_parser().add_argument('-f', '--full_name', metavar = 'name', help = 'The full name of the user.')
 
     def validate_args(self, args):
-        # Temp code to force user to enter all attributes.
-        # Clean this up once the server code has been updated to make the email
-        # and full name attributes optional.
-        if not args.email:
-            raise InvalidArgumentError('Please specify the new user\'s email address.')
-        if not args.full_name:
-            raise InvalidArgumentError('Please specify the new user\'s full name.')
         if not re.match('^[a-zA-Z0-9_-]+$', args.user):
             raise InvalidArgumentError('Invalid username.  Please see "repoman help %s" for acceptable username syntax.' % (self.command))
         if args.email and not re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", args.email):

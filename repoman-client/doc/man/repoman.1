@@ -84,7 +84,7 @@ If omitted, the image is downloaded to a file with the same name as the image in
 \#
 \#
 \# END MACRO SECTION
-.TH REPOMAN 1 "12 January 2012"
+.TH REPOMAN 1 "27 June 2012"
 .SH NAME
 repoman \- a command to interact with repoman Virtual Machine (VM) image repositories
 .SH SYNOPSIS
@@ -605,6 +605,44 @@ The ability to modify any\fB???\fP of a user's attributes.
 .TP
 \fBuser_modify_self\fP
 The ability to modify your own attributes.
+
+.SH DUAL-HYPERVISOR SUPPORT
+The repoman client and server contain logic to manage specially crafted VM images capable of running para-virtualized (pvm) under the Xen hypervisor and hardware virtualized (hvm) under the KVM hypervisor.   
+Such an image is said to be a "dual-hypervisor" image.
+This section discribes the requiements of a dual-hypervisor image and any special considerations associated with its use and management.
+
+A dual-hypervisor image is a single file and must have the following attributes:
+
+\(bu Contains a Master Boot Record (MBR).
+
+\(bu Contains the GRUB boot loader images.
+
+\(bu Contains a single bootable linux partition.
+
+\(bu The linux partition must be formatted with a filesystem supported by the GRUB boot loader.
+
+\(bu The linux partition must contain the /boot, /boot/grub, /lib/modules directories, and any required swap files.
+
+\(bu The /boot directory must contain all kernel images that may be booted either under KVM or under Xen.
+
+\(bu The /lib/modules directory will contain a subdirectory for each bootable kernel which in turn must contain all kernel modules required by the associated kernel.
+
+\(bu The /boot/grub directory must contain the following GRUB configuration files:
+
+.in +3
+
+\(bu A GRUB configuration file named "grub.conf-kvm" accessible by the GRUB boot loader and capable of booting a Linux kernel in a hardware virtualized machine running under the KVM hypervisor.
+
+\(bu A GRUB configuration file named "grub.conf-xen" accessible by the GRUB boot loader and capable of booting a Linux kernel in a para-virtualized machine running under the Xen hypervisor.
+
+\(bu A symolic link named "grub.conf" pointing to the active GRUB configuration file, either "grub.conf-kvm" or "grub.conf-xen".
+
+\(bu A second symolic link pointing to the inactive GRUB configuration file. This symbolic link will be named either "grub.conf-kvm_symlink" if the KVM configuration file is inactive or "grub.conf-xen_symlink" if the Xen configuration is inactive.
+
+.in
+
+The "save-image" function of the repoman client recognizes the structure of the running VM image and faithfully reproduces the partition layout in preparation for the image upload to the server.
+For its part, the server recognizes a dual-hypervisor image by inspecting the partition layout and the presnce of the necessary GRUB configuration files/symbolic links, to provide an appropriate image on request either for a client on a KVM hypervisor host or a client on a Xen hypervisor host. 
 
 .SH FILES
 .TP
