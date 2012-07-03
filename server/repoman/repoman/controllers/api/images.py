@@ -48,7 +48,6 @@ class ImagesController(BaseController):
 
     def put_raw_by_user(self, user, image, format='json'):
         log.debug('put_raw_by_user')
-        #return request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE')
         image_q = meta.Session.query(Image)
         image = image_q.filter(Image.name==image)\
                        .filter(Image.owner.has(User.user_name==user)).first()
