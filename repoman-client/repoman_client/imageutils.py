@@ -317,10 +317,53 @@ class ImageUtils(object):
         if self.partition:
             self.create_bootable_partition(imagepath)
             self.device_map = self.create_device_map(imagepath)
-            self.mkfs(self.device_map, label='root', fs_type = self.detect_fs_type('/'))
+            label = self.get_fs_label('/')
+            if label == None:
+                raise ImageUtilError("Your VM is partitioned but the partition where / is mounted is not labeled.  Please see the repoman manpages for more information about the requirements for partitioned images.")
+            self.mkfs(self.device_map, label=label, fs_type = self.detect_fs_type('/'))
         else:
             self.mkfs(imagepath, fs_type = self.detect_fs_type('/'))
+
+
+
+    def get_fs_label(self, partition = '/'):
+        """
+        Returns the given partition's label, or None if the partition has no label.
+        """
+        log.debug("Detecting label for %s ..." % (partition))
+
+        # First detect the partition's disk.
+        cmd = ['df', partition]
+        p = subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=config.get_restricted_env())
+        if not p:
+            log.error("Error calling: %s" % (cmd))
+            raise ImageUtilError("Error getting partition's disk for %s" % (partition))
+
+        stdout = p.communicate()[0]
+        log.debug("[%s] output:\n%s" % (cmd, stdout))
+        feilds = stdout.split('\n')[1].split()
+        log.debug("'%s' is on disk %s" % (partition, feilds[0]))
+
+        # Now use tune2fs to extract that partition's label
+        cmd = ['tune2fs', '-l', feilds[0]]
+        p = subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=config.get_restricted_env())
+        if not p:
+            log.error("Error calling: %s" % (cmd))
+            raise ImageUtilError("Error getting label for partition %s" % (feilds[0]))
+
+        stdout = p.communicate()[0]
+        log.debug("[%s] output:\n%s" % (cmd, stdout))
+
+        label = None
+        for l in stdout.split('\n'):
+            if l.startswith('Filesystem volume name'):
+                label = l.split(':')[1].strip()
+                if label == '<none>':
+                    label = None
+                break
+        return label
     
+
     def sync_fs(self, verbose):
         #TODO: add progress bar into rsync somehow
         log.info("Starting Sync Process")
