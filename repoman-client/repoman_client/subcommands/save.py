@@ -4,7 +4,7 @@ from repoman_client.config import config
 from repoman_client.utils import yes_or_no
 from repoman_client.imageutils import ImageUtils
 from repoman_client.logger import log
-from repoman_client.exceptions import RepomanError, ImageUtilError, SubcommandFailure
+from repoman_client.exceptions import RepomanError, ImageUtilError, SubcommandFailure, InvalidArgumentError 
 import sys
 import re
 import os
