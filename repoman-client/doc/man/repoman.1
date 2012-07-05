@@ -617,7 +617,28 @@ A dual-hypervisor image is a single file and must have the following attributes:
 
 \(bu Contains a single bootable linux partition.
 
-\(bu The linux partition must be formatted with a filesystem supported by the GRUB boot loader.
+\(bu The linux partition must be formatted with a filesystem supported by the GRUB boot loader and given a valid f
+ilesystem label. Partitions can be labelled with either the "mkfs" or "tune2fs" commands.
+
+\(bu All booting and mounting of patitions must be via filesystem labels and not device names.
+For example, if you have a bootable partition "/dev/hda1" labelled "/" and a blankspace partition "/dev/hdb" label
+led "blankspace", then the following would be appropriate "/boot/grub/grub.conf" entries:
+.sp
+.nf
+        title Scientific Linux SL (2.6.18-308.8.2.el5)
+            root (hd0,0)
+            kernel /boot/vmlinuz-2.6.18-308.8.2.el5 ro root=LABEL=/
+            initrd /boot/initrd-2.6.18-308.8.2.el5.img
+.ad
+.sp
+and
+.sp
+.nf
+            LABEL=/             /            ext3   defaults   1 1
+            LABEL=blankspace    /scratch     ext2   defaults   1 0
+.ad
+.sp
+would be appropriate "/etc/fstab" entries
 
 \(bu The linux partition must contain the /boot, /boot/grub, /lib/modules directories, and any required swap files.
 
