@@ -490,9 +490,9 @@ class ImagesController(BaseController):
 
 
     def create_grub_symlink(self, imagepath, hypervisor):
-        log.debug("Creating grub.conf symlink on %s" % (imagepath))
-        cmd = ['guestfish', '-a', imagepath, '-i', 'ln-sf', '/boot/grub/grub.conf-%s' % (hypervisor),  '/boot/grub/grub.conf']
-        log.debug("Symlink creation command: %s" % (cmd))
+        log.debug("Creating grub.conf on %s for hypervisor %s" % (imagepath, hypervisor))
+        cmd = ['guestfish', '-a', imagepath, 'launch', ':', 'mount' , '/dev/vda1', '/', ':', 'cp', '/boot/grub/grub.conf-%s' % (hypervisor), '/boot/grub/grub.conf']
+        log.debug("grub.conf creation command: %s" % (cmd))
         try:
             p = subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         except OSError, e:
@@ -501,10 +501,10 @@ class ImagesController(BaseController):
         stdout = p.communicate()[0]
         log.debug("[%s] output:\n%s" % (cmd, stdout))
         if p.returncode != 0:
-            log.error("grub.conf symlink creation command returned error: %d" % (p.returncode))
-            raise Exception("Error creating grub.conf symlink.")
+            log.error("Multi-hypervisor grub.conf creation command on image %s returned error: %d" % (imagepath, p.returncode))
+            raise Exception("Error creating multi-hypervisor grub.conf.")
         else:
-            log.debug("Symlink creation command returned successfully.")
+            log.debug("Multi-hypervisor grub.conf creation on image %s for hypervisor %s returned successfully." % (imagepath, hypervisor))
 
     def is_gzip(self, path):
         """
