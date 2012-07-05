@@ -40,9 +40,8 @@ class ImageUtils(object):
         """
         Detects if the disk is partitioned or not.
         Returns True if the disk is partitioned, False otherwise.
-        Note: This method requires the sfdisk command.
         """
-        cmd = ['sfdisk', '-V', '/dev/sda']
+        cmd = ['df', '/']
         log.debug("Checking if disk is partitioned...")
         p = subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=config.get_restricted_env())
         if not p:
@@ -50,21 +49,13 @@ class ImageUtils(object):
             raise ImageUtilError("Error checking if disk is partitioned.")
         stdout = p.communicate()[0]
         log.debug("[%s] output:\n%s" % (cmd, stdout))
-        if p.returncode == 0:
-            # Disk is partitioned; no warnings or errors
-            return_value = True
-        elif stdout and (stdout.find('no partition table present') != -1):
-            # Disk is not partitioned
-            return_value = False
+        feilds = stdout.split('\n')[1].split()
+        if feilds[0][-1].isdigit():
+            log.debug('Disk is partitioned.')
+            return True
         else:
-            # If we get here, we assume that the disk is partitioned.
-            # Usually, we will get here is sfdisk -V returned some warning
-            # messages about the existing partitions on the disk, such as
-            # a complaint about an extended partition does not start at a 
-            # cylinder boundary and stuff like that.
-            return_value = True
-        log.debug('Disk is partitioned? %s' % (return_value))
-        return return_value
+            log.debug('Disk is not partitioned.')
+            return False
          
 
     #
