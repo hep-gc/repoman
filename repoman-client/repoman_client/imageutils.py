@@ -359,6 +359,7 @@ class ImageUtils(object):
             if l.startswith('Filesystem volume name'):
                 label = l.split(':')[1].strip()
                 if label == '<none>':
+                    log.debug("Partition %s has no label." % (feilds[0]))
                     label = None
                 break
         return label
