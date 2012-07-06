@@ -456,12 +456,11 @@ class ImageUtils(object):
 
  
 
-        log.info("Mounting image")
         self.mount_image()
         try:
             log.info("Syncing file system")
             self.sync_fs(verbose)
-            self.unmount_image()
+            self.umount_image()
         except ImageUtilError, e:
             # Cleanup after failed sync
             self.unmount_image()
