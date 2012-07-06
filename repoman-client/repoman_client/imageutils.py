@@ -113,16 +113,13 @@ class ImageUtils(object):
         log.debug("Recreated '%s' at '%s' (uid:%s,gid:%s,mode:%s)" 
                  % (origin, dest, stats['uid'], stats['gid'], stats['mode']))
         
-    def get_volume_name(self, path='/'):
-    	#TODO: fixme
-        return '/'
-        
     def label_image(self, path, label='/'):
         cmd = ['tune2fs', '-L', label, path]
         log.debug("Labeling image: '%s'" % cmd)
         if subprocess.Popen(cmd, shell=False, env=config.get_restricted_env()).wait():
             log.error("Unable to label image")
-            raise ImageUtilError("Unable to label Image")
+            raise ImageUtilError("Unable to label image")
+        log.debug("%s labeled as %s" % (path, label))
         
     def dd_sparse(self, path, size_bytes):
         cmd = ['dd', 'if=/dev/zero', 'of=%s' % path, 'count=0', 'bs=1', 'seek=%s' % size_bytes]
@@ -325,31 +322,38 @@ class ImageUtils(object):
             self.mkfs(imagepath, fs_type = self.detect_fs_type('/'))
 
 
-
-    def get_fs_label(self, partition = '/'):
+    def get_partition_for_fs(self, fs):
         """
-        Returns the given partition's label, or None if the partition has no label.
+        Returns the disk for a given fs.
         """
-        log.debug("Detecting label for %s ..." % (partition))
-
-        # First detect the partition's disk.
-        cmd = ['df', partition]
+        cmd = ['df', fs]
         p = subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=config.get_restricted_env())
         if not p:
             log.error("Error calling: %s" % (cmd))
-            raise ImageUtilError("Error getting partition's disk for %s" % (partition))
+            raise ImageUtilError("Error getting partition for filesystem %s" % (fs))
 
         stdout = p.communicate()[0]
         log.debug("[%s] output:\n%s" % (cmd, stdout))
         feilds = stdout.split('\n')[1].split()
-        log.debug("'%s' is on disk %s" % (partition, feilds[0]))
+        log.debug("Filesystem %s is on partition %s" % (fs, feilds[0]))
+        return feilds[0]
+
+
+    def get_fs_label(self, fs = '/'):
+        """
+        Returns the given filesystem's label, or None if the filesystem has no label.
+        """
+        log.debug("Detecting label for %s ..." % (fs))
+
+        # First detect the filesystem's partition.
+        partition = self.get_partition_for_fs(fs)
 
         # Now use tune2fs to extract that partition's label
-        cmd = ['tune2fs', '-l', feilds[0]]
+        cmd = ['tune2fs', '-l', partition]
         p = subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=config.get_restricted_env())
         if not p:
             log.error("Error calling: %s" % (cmd))
-            raise ImageUtilError("Error getting label for partition %s" % (feilds[0]))
+            raise ImageUtilError("Error getting label for partition %s" % (partition))
 
         stdout = p.communicate()[0]
         log.debug("[%s] output:\n%s" % (cmd, stdout))
@@ -359,7 +363,7 @@ class ImageUtils(object):
             if l.startswith('Filesystem volume name'):
                 label = l.split(':')[1].strip()
                 if label == '<none>':
-                    log.debug("Partition %s has no label." % (feilds[0]))
+                    log.debug("Filesystem %s has no label." % (partition))
                     label = None
                 break
         return label
@@ -450,7 +454,16 @@ class ImageUtils(object):
             log.info("Creating new image")
             self.create_image(self.imagepath, self.imagesize)
 
-        
+        # Re-label image in case the label was changed between save-image invocations.
+        if self.is_disk_partitioned():
+            label = self.get_fs_label('/')
+            if label == None:
+                raise ImageUtilError("Your VM is partitioned but the partition where / is mounted is not labeled.  Please see the repoman manpages for more information about the requirements for partitioned images.")
+            if not self.device_map:
+                self.device_map = self.create_device_map(self.imagepath)
+            self.label_image(self.device_map, label)
+            self.delete_device_map(self.imagepath)
+
         log.info("Mounting image")
         self.mount_image()
         try:
