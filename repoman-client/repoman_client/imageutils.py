@@ -460,19 +460,19 @@ class ImageUtils(object):
         try:
             log.info("Syncing file system")
             self.sync_fs(verbose)
-            self.umount_image()
+            #self.umount_image()
         except ImageUtilError, e:
             # Cleanup after failed sync
             self.unmount_image()
             self.destroy_files(self.imagepath, self.mountpoint)
             raise e
 
-       # Re-label image in case the label was changed between save-image invocations.
-        if self.is_disk_partitioned():
-            label = self.get_fs_label('/')
-            if label == None:
-                raise ImageUtilError("Your VM is partitioned but the partition where / is mounted is not labeled.  Please see the repoman manpages for more information about the requirements for partitioned images.")
-            if not self.device_map:
-                self.device_map = self.create_device_map(self.imagepath)
-            self.label_image(self.device_map, label)
-            self.delete_device_map(self.imagepath)
+        # Re-label image in case the label was changed between save-image invocations.
+        #if self.is_disk_partitioned():
+        #    label = self.get_fs_label('/')
+        #    if label == None:
+        #        raise ImageUtilError("Your VM is partitioned but the partition where / is mounted is not labeled.  Please see the repoman manpages for more information about the requirements for partitioned images.")
+        #    if not self.device_map:
+        #        self.device_map = self.create_device_map(self.imagepath)
+        #    self.label_image(self.device_map, label)
+        #    self.delete_device_map(self.imagepath)
