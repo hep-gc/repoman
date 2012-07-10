@@ -168,6 +168,9 @@ class ImageUtils(object):
         null_f.close()
             
     def create_device_map(self, path):
+        if self.device_map != None:
+            log.error("Attempt to create device map over existing one.  Aborting.")
+            raise ImageUtilError("Error creating device map.")
         cmd = ['kpartx', '-av' , path]
         log.debug("Creating device map for %s" % (path))
         p = subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=config.get_restricted_env())
@@ -185,7 +188,8 @@ class ImageUtils(object):
             log.error("Error extracting location of new device map from:\n%s" % (stdout))
             raise ImageUtilError("Error extracting location of new device map.")
         log.debug("Device map created for %s" % (path))
-        return '/dev/mapper/%s' % (m.group(1))
+        self.device_map = '/dev/mapper/%s' % (m.group(1))
+        return self.device_map
 
     def delete_device_map(self, path):
         cmd = ['kpartx', '-d', path]
@@ -200,6 +204,7 @@ class ImageUtils(object):
             log.error("Error deleting device map for %s" % (path))
             raise ImageUtilError("Error deleting device map.")
         log.debug("Device map deleted for %s" % (path))
+        self.device_map = None
 
     def install_mbr(self, path):
         cmd = ['grub']
@@ -230,7 +235,7 @@ class ImageUtils(object):
         cmd = None
         if self.partition:
             if not self.device_map:
-                self.device_map = self.create_device_map(self.imagepath)
+                self.create_device_map(self.imagepath)
             cmd = ['mount', self.device_map, self.mountpoint]
         else:
             cmd = ['mount', '-o', 'loop', self.imagepath, self.mountpoint]
@@ -313,11 +318,12 @@ class ImageUtils(object):
         self.dd_sparse(imagepath, size)
         if self.partition:
             self.create_bootable_partition(imagepath)
-            self.device_map = self.create_device_map(imagepath)
+            self.create_device_map(imagepath)
             label = self.get_fs_label('/')
             if label == None:
                 raise ImageUtilError("Your VM is partitioned but the partition where / is mounted is not labeled.  Please see the repoman manpages for more information about the requirements for partitioned images.")
             self.mkfs(self.device_map, label=label, fs_type = self.detect_fs_type('/'))
+            self.delete_device_map(imagepath)
         else:
             self.mkfs(imagepath, fs_type = self.detect_fs_type('/'))
 
@@ -456,11 +462,11 @@ class ImageUtils(object):
 
  
 
-        self.mount_image()
         try:
             log.info("Syncing file system")
+            self.mount_image()
             self.sync_fs(verbose)
-            #self.umount_image()
+            self.umount_image()
         except ImageUtilError, e:
             # Cleanup after failed sync
             self.unmount_image()
@@ -468,11 +474,11 @@ class ImageUtils(object):
             raise e
 
         # Re-label image in case the label was changed between save-image invocations.
-        #if self.is_disk_partitioned():
-        #    label = self.get_fs_label('/')
-        #    if label == None:
-        #        raise ImageUtilError("Your VM is partitioned but the partition where / is mounted is not labeled.  Please see the repoman manpages for more information about the requirements for partitioned images.")
-        #    if not self.device_map:
-        #        self.device_map = self.create_device_map(self.imagepath)
-        #    self.label_image(self.device_map, label)
-        #    self.delete_device_map(self.imagepath)
+        if self.is_disk_partitioned():
+            label = self.get_fs_label('/')
+            if label == None:
+                raise ImageUtilError("Your VM is partitioned but the partition where / is mounted is not labeled.  Please see the repoman manpages for more information about the requirements for partitioned images.")
+            if not self.device_map:
+                self.create_device_map(self.imagepath)
+            self.label_image(self.device_map, label)
+            self.delete_device_map(self.imagepath)
