@@ -73,6 +73,9 @@ class RawController(BaseController):
             except Exception, e:
             	abort(500, '500 Internal Error')
 
+            # Set the filename
+            #response.headers['Content-Disposition'] = str('attachment; filename="%s"' % (image.name))
+
             etag_cache(str(('%s_%s_%s' % (user, image.name, hypervisor)) + '_' + str(image.version)))
 
             image_file = open(file_path, 'rb')
