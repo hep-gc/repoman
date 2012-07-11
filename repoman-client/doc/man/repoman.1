@@ -624,7 +624,7 @@ ilesystem label. Partitions can be labelled with either the "mkfs" or "tune2fs" 
 For example, if you have a bootable partition "/dev/hda1" labelled "/" and a blankspace partition "/dev/hdb" label
 led "blankspace", then the following would be appropriate "/boot/grub/grub.conf" entries:
 .sp
-.nf
+.na
         title Scientific Linux SL (2.6.18-308.8.2.el5)
             root (hd0,0)
             kernel /boot/vmlinuz-2.6.18-308.8.2.el5 ro root=LABEL=/
@@ -633,7 +633,7 @@ led "blankspace", then the following would be appropriate "/boot/grub/grub.conf"
 .sp
 and
 .sp
-.nf
+.na
             LABEL=/             /            ext3   defaults   1 1
             LABEL=blankspace    /scratch     ext2   defaults   1 0
 .ad
@@ -654,14 +654,13 @@ would be appropriate "/etc/fstab" entries
 
 \(bu A GRUB configuration file named "grub.conf-xen" accessible by the GRUB boot loader and capable of booting a Linux kernel in a para-virtualized machine running under the Xen hypervisor.
 
-\(bu A symolic link named "grub.conf" pointing to the active GRUB configuration file, either "grub.conf-kvm" or "grub.conf-xen".
-
-\(bu A second symolic link pointing to the inactive GRUB configuration file. This symbolic link will be named either "grub.conf-kvm_symlink" if the KVM configuration file is inactive or "grub.conf-xen_symlink" if the Xen configuration is inactive.
+\(bu The standard grub configuration file, grub.conf, should be a copy of one of the special purpose grub configuration files.
 
 .in
 
-The "save-image" function of the repoman client recognizes the structure of the running VM image and faithfully reproduces the partition layout in preparation for the image upload to the server.
-For its part, the server recognizes a dual-hypervisor image by inspecting the partition layout and the presnce of the necessary GRUB configuration files/symbolic links, to provide an appropriate image on request either for a client on a KVM hypervisor host or a client on a Xen hypervisor host. 
+The "save-image" function of the repoman client recognizes the structure of the running dual-hypervisor VM by the partition layout and by the presence of multiple hypervisor specific grub configaurations.
+Having generated a faithful image of the environment, the repoman client will configure and upload multiple copies to the repoman server, one for each hypervisor environment.
+For its part, the server maintains multiple copies of a dual-hypervisor image, each configured for its respective environment, serving the appropriate image upon request.
 
 .SH FILES
 .TP
