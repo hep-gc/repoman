@@ -5,6 +5,7 @@ import subprocess
 import logging
 import fcntl
 import tempfile
+import shutil
 from repoman_client.logger import log
 from repoman_client.exceptions import ImageUtilError
 from repoman_client.config import config
@@ -91,6 +92,19 @@ class ImageUtils(object):
             hypervisors.append('kvm')
         return hypervisors
 
+    def setup_grub_conf(self, hypervisor):
+        try:
+            log.debug('Setting grub.conf for hypervisor %s' % (hypervisor))
+            self.mount_image()
+            grub_conf = os.path.join(self.mountpoint, 'boot', 'grub', 'grub.conf')
+            hypervisor_grub_conf = os.path.join(self.mountpoint, 'boot', 'grub', 'grub.conf-%s' % hypervisor)
+            if os.path.exists(hypervisor_grub_conf):
+                shutil.copy2(hypervisor_grub_conf, grub_conf)
+                log.debug('%s copied over %s' % (hypervisor_grub_conf, grub_conf))
+            else:
+                raise ImageUtilError('Could not locate %s' % (hypervisor_grub_conf))
+        finally:
+            self.umount_image()
     #
     # This method is used to recreate a file or directory on the
     # destination if it is present in the origin.
@@ -173,12 +187,13 @@ class ImageUtils(object):
             raise ImageUtilError("Error creating device map.")
         cmd = ['kpartx', '-av' , path]
         log.debug("Creating device map for %s" % (path))
+        log.debug(cmd)
         p = subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=config.get_restricted_env())
         if not p:
             log.error("Error calling: %s" % (cmd))
             raise ImageUtilError("Error creating device map.")
         (stdout, stderr) = p.communicate()
-        log.debug("[%s] output stdout:\n%s\n\noutput stderr:\n%s" % (cmd, stdout, stderr))
+        log.debug("[%s] kpartx output stdout:\n%s\n\nkpartx output stderr:\n%s" % (cmd, stdout, stderr))
         if p.returncode != 0:
             log.error("Device map creation command returned error: %d" % (p.returncode))
             raise ImageUtilError("Error creating device map.")
@@ -469,7 +484,7 @@ class ImageUtils(object):
             self.umount_image()
         except ImageUtilError, e:
             # Cleanup after failed sync
-            self.unmount_image()
+            self.umount_image()
             self.destroy_files(self.imagepath, self.mountpoint)
             raise e
 

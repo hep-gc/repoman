@@ -176,7 +176,7 @@ def make_map(config):
 #                action='upload_raw_by_user',
 #                conditions=dict(method=['POST']))
 
-    map.connect(None, '/api/images/raw/:(user)/:(image)', controller='api/images',
+    map.connect(None, '/api/images/raw/:(user)/:(image)/:(hypervisor)', controller='api/images',
                 action='put_raw_by_user',
                 conditions=dict(method=['PUT']))
 
@@ -188,7 +188,7 @@ def make_map(config):
 #                action='upload_raw',
 #                conditions=dict(method=['POST']))
 
-    map.connect(None, '/api/images/raw/:(image)', controller='api/images',
+    map.connect(None, '/api/images/raw/:(image)/:(hypervisor)', controller='api/images',
                 action='put_raw',
                 conditions=dict(method=['PUT']))
 

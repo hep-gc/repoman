@@ -46,61 +46,29 @@ class ImagesController(BaseController):
     def __before__(self):
         inline_auth(IsAthuenticated(), auth_403)
 
-    def put_raw_by_user(self, user, image, format='json'):
+    def put_raw_by_user(self, user, image, hypervisor, format='json'):
         log.debug('put_raw_by_user')
         image_q = meta.Session.query(Image)
         image = image_q.filter(Image.name==image)\
                        .filter(Image.owner.has(User.user_name==user)).first()
         
-        # Determine which hypervisors this image is valid for.
-        # Many hypervisors can be specified by using a ',' delimiter.
-        # Note:
-        #  Multi-hypervisors images are a special case; most of the time
-        #  images will be associated with only 1 hypervisor.
-        hypervisors = image.hypervisor.split(',')
-
         if image:
             inline_auth(OwnsImage(image), auth_403)
             image_file = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE')
             
             if image_file:
-                # Check if we are in multi-hypervisor mode and if the image is zipped.
-                # We currently don't support multi-hypervisor on zipped images.
-                if (len(hypervisors) > 1) and self.is_gzip(image_file):
-                    abort(501, 'Multi-hypervisor support with compressed images is not implemented yet.')
-                
+                final_path = None
                 try:
-                    # Make a copy for each supported hypervisors.
-                    # We need to make (n-1) copies, where n = (number of supported hypervisors).
-                    # (The existing uploaded copy is renamed; this saves one copy operation.)
-                    file_names = []
-                    for h in hypervisors:
-                        file_name = '%s_%s_%s' % (user, image.name, h)
-                        file_names.append(file_name)
-                        final_path = path.join(app_globals.image_storage, file_name)
-                        if h == hypervisors[-1]:
-                            # last element; move/rename, don't copy
-                            log.debug("Moving %s to %s" % (image_file, final_path))
-                            shutil.move(image_file, final_path)
-                        else:
-                            log.debug("Copying %s to %s" % (image_file, final_path))
-                            shutil.copy2(image_file, final_path)
+                    file_name = '%s_%s_%s' % (user, image.name, hypervisor)
+                    final_path = path.join(app_globals.image_storage, file_name)
+                    log.debug("Moving %s to %s" % (image_file, final_path))
+                    shutil.move(image_file, final_path)
                 except Exception, e:
                     abort(500, '500 Internal Error - Error uploading file %s' %e)
                 finally:
                     pass
 
 
-                # If image supports multiple hypervisors, mount each of the images and
-                # set the grub.conf symlink accordingly.
-                if len(hypervisors) > 1:
-                    for hypervisor in hypervisors:
-                        try:
-                            image_path = path.join(app_globals.image_storage, '%s_%s_%s' % (user, image.name, hypervisor))
-                            self.create_grub_symlink(image_path, hypervisor)
-                        except Exception, e:
-                            abort(500, '500 Internal Error - Error creating grub symlinks for image %s\n%s' % (image.name, e))
-                            
                 image.checksum.cvalue = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_HASH')
                 image.checksum.ctype = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_HASH_TYPE')
                 image.size = request.environ.get('STORAGE_MIDDLEWARE_EXTRACTED_FILE_LENGTH')
@@ -110,14 +78,19 @@ class ImagesController(BaseController):
                 # more than one image file per VM, and only a single checksum in the metadata.
                 # Ultimately, we could modify the image metadata to contain a list of checksums
                 # (one per hypervisor), but for now, let's simply void the checksum.
-                if len(hypervisors) > 1:
+                if len(image.hypervisor.split(',')) > 1:
                     log.debug("Voiding image checksum for multi-hypervisor images.")
                     image.checksum.cvalue = None # Reset to no checksum.
                     image.checksum.ctype = None
 
                 image.raw_uploaded = True
                 image.uploaded = datetime.utcfromtimestamp(time())
-                image.path = ';'.join(file_names) # For multi-hypervisor images, this will be ';' delimited
+                
+                # Add the image path to the image.path metadata attribute.
+                image_paths = image.path.split(';')
+                if final_path not in image_paths:
+                    image_paths.append(final_path)
+                image.path = ';'.join(image_paths) # For multi-hypervisor images, this will be ';' delimited
                 image.version += 1
                 image.modified = datetime.utcfromtimestamp(time())
                 meta.Session.commit()
@@ -125,9 +98,9 @@ class ImagesController(BaseController):
             abort(404, '404 Item not found')
 
 
-    def put_raw(self, image, format='json'):
+    def put_raw(self, image, hypervisor, format='json'):
         user = request.environ['REPOMAN_USER'].user_name
-        return self.put_raw_by_user(user=user, image=image, format=format)
+        return self.put_raw_by_user(user=user, image=image, hypervisor=hypervisor, format=format)
 
     def user_share_by_user(self, user, image, share_with, format='json'):
         image = meta.Session.query(Image)\

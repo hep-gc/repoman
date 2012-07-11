@@ -274,7 +274,7 @@ class RepomanClient(object):
         resp = self._delete('/api/images/%s/share/group/%s' % (image, group))
         return True
 
-    def upload_image(self, image, image_file, gzip=False):
+    def upload_image(self, image, image_file, gzip=False, hypervisor='xen'):
         log.info("Checking to see if image slot exists on repository")
         resp = self._get('/api/images/%s' % image)
         if resp.status != 200:
@@ -290,7 +290,7 @@ class RepomanClient(object):
         if not os.path.exists(image_file):
             raise RepomanError('Specified source not found: %s' % (image_file))
             
-        url = 'https://' + config.host + '/api/images/raw/%s' % image
+        url = 'https://' + config.host + '/api/images/raw/%s/%s' % (image, hypervisor)
         try:
             if gzip:
                 log.info("Performing gzip on image prior to upload")
@@ -301,7 +301,7 @@ class RepomanClient(object):
                 gzip.wait()
                 image_file = gzip_image
                 log.info('Gzip complete')
-                
+
             args = ['curl',
                     '--cert', config.proxy,
                     '--insecure',

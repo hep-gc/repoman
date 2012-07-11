@@ -174,11 +174,15 @@ class Save(SubCommand):
                 raise SubcommandFailure(self, "Could not modify image '%s'" % (kwargs['name']), e)
             
         #upload
-        print "Uploading snapshot"
-        try:
-            self.get_repoman_client(args).upload_image(name, config.snapshot, gzip=args.gzip)
-        except RepomanError, e:
-            raise SubcommandFailure(self, "Error while uploading the image.", e)
+        for hypervisor in hypervisors:
+            # Setup grub.conf before upload if needed
+            if len(hypervisors) > 1:
+                image_utils.setup_grub_conf(hypervisor)
+            print "Uploading snapshot for hypervisor %s" % (hypervisor)
+            try:
+                self.get_repoman_client(args).upload_image(name, config.snapshot, gzip=args.gzip, hypervisor=hypervisor)
+            except RepomanError, e:
+                raise SubcommandFailure(self, "Error while uploading the image for hypervisor %s." % (hypervisor), e)
 
         # Set save comment if needed.
         if args.comment:
