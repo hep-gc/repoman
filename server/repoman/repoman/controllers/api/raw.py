@@ -53,7 +53,7 @@ class RawController(BaseController):
                                   auth_403)
 
             if hypervisor == None:
-                hypervisor = image.hypervisor
+                hypervisor = request.params.get('hypervisor', image.hypervisor)
 
             # If hypervisor is still None, then let's default to 'xen'.
             # This is mostly to support images that do not have the hypervisor variable

@@ -164,17 +164,13 @@ def make_map(config):
                 action='group_unshare',
                 conditions=dict(method=['DELETE']))
 
-    map.connect('raw_by_user_wh', '/api/images/raw/:(user)/:(image)/:(hypervisor)', controller='api/raw',
-                action='get_raw_by_user',
-                conditions=dict(method=['GET']))
+#    map.connect('raw_by_user_wh', '/api/images/raw/:(user)/:(image)/:(hypervisor)', controller='api/raw',
+#                action='get_raw_by_user',
+#                conditions=dict(method=['GET']))
 
     map.connect('raw_by_user', '/api/images/raw/:(user)/:(image)', controller='api/raw',
                 action='get_raw_by_user',
                 conditions=dict(method=['GET']))
-
-#    map.connect(None, '/api/images/raw/:(user)/:(image)', controller='api/images',
-#                action='upload_raw_by_user',
-#                conditions=dict(method=['POST']))
 
     map.connect(None, '/api/images/raw/:(user)/:(image)/:(hypervisor)', controller='api/images',
                 action='put_raw_by_user',
@@ -183,10 +179,6 @@ def make_map(config):
     map.connect('raw', '/api/images/raw/:(image)', controller='api/raw',
                 action='get_raw',
                 conditions=dict(method=['GET']))
-
-#    map.connect(None, '/api/images/raw/:(image)', controller='api/images',
-#                action='upload_raw',
-#                conditions=dict(method=['POST']))
 
     map.connect(None, '/api/images/raw/:(image)/:(hypervisor)', controller='api/images',
                 action='put_raw',

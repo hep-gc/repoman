@@ -39,13 +39,13 @@ def display_image(image, long_output=False, full_output=False, urls=False, forma
         if image_copy['http_file_url'] != None:
             if len(hypervisors) > 1:
                 for hypervisor in hypervisors:
-                    print "  %s/%s" % (image_copy['http_file_url'], hypervisor)
+                    print "  %s?hypervisor=%s" % (image_copy['http_file_url'], hypervisor)
             else:
                 print "  %s" % (image_copy['http_file_url'])
         if image_copy['file_url'] != None:
             if len(hypervisors) > 1:
                 for hypervisor in hypervisors:
-                    print "  %s/%s" % (image_copy['file_url'], hypervisor)
+                    print "  %s?hypervisor=%s" % (image_copy['file_url'], hypervisor)
             else:
                 print "  %s" % (image_copy['file_url'])
         print ""
