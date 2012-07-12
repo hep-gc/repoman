@@ -169,7 +169,7 @@ def make_map(config):
 
 
 
-    map.connect('raw_by_user_wh', '/api/images/raw/:(user)/:(hypervisor)/:(image)', controller='api/raw',
+    map.connect('raw_by_user', '/api/images/raw/:(user)/:(hypervisor)/:(image)', controller='api/raw',
                 action='get_raw_by_user',
                 conditions=dict(method=['GET']))
 
