@@ -29,7 +29,7 @@ def group(group):
 def image(image):
     if image.unauthenticated_access:
         http_url = url('raw_by_user', user=image.owner.user_name, 
-                       image=image.name, hypervisor=literal('__hypervisor__'), protocol='http')
+                       image=image.name, hypervisor='__hypervisor__', protocol='http')
     else:
         http_url = None
 
