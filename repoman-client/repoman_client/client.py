@@ -290,7 +290,7 @@ class RepomanClient(object):
         if not os.path.exists(image_file):
             raise RepomanError('Specified source not found: %s' % (image_file))
             
-        url = 'https://' + config.host + '/api/images/raw/%s/%s' % (image, hypervisor)
+        url = 'https://' + config.host + '/api/images/raw/%s/%s' % (hypervisor, image)
         try:
             if gzip:
                 log.info("Performing gzip on image prior to upload")
