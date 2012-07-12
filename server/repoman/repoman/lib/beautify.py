@@ -1,5 +1,5 @@
 from pylons import url
-
+from webhelpers.html import literal
 
 def user(user):
     perms = []
@@ -30,7 +30,7 @@ def group(group):
 def image(image):
     if image.unauthenticated_access:
         http_url = url('raw_by_user', user=image.owner.user_name, 
-                       image=image.name, hypervisor='<hypervisor>', protocol='http')
+                       image=image.name, hypervisor=literal('<hypervisor>'), protocol='http')
     else:
         http_url = None
 
