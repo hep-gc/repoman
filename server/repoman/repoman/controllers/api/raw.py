@@ -52,8 +52,11 @@ class RawController(BaseController):
                                   AllOf(SharedWith(image), IsAthuenticated())),
                                   auth_403)
 
-            if hypervisor == None:
-                hypervisor = request.params.get('hypervisor', image.hypervisor)
+            # If no hypervisor is given, and the image has the hypervisor
+            # metadata variable set to something, then lets set the
+            # hypervisor to the metadata variable.
+            if (hypervisor == None) and (image.hypervisor != None):
+                hypervisor = image.hypervisor.split(',')[0]
 
             # If hypervisor is still None, then let's default to 'xen'.
             # This is mostly to support images that do not have the hypervisor variable

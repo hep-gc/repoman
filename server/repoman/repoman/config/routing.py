@@ -164,25 +164,34 @@ def make_map(config):
                 action='group_unshare',
                 conditions=dict(method=['DELETE']))
 
-#    map.connect('raw_by_user_wh', '/api/images/raw/:(user)/:(image)/:(hypervisor)', controller='api/raw',
-#                action='get_raw_by_user',
-#                conditions=dict(method=['GET']))
 
-    map.connect('raw_by_user', '/api/images/raw/:(user)/:(image)', controller='api/raw',
+
+
+
+
+    map.connect('raw_by_user_wh', '/api/images/raw/:(user)/:(hypervisor)/:(image)', controller='api/raw',
                 action='get_raw_by_user',
                 conditions=dict(method=['GET']))
+
+    #map.connect('raw_by_user', '/api/images/raw/:(user)/:(image)', controller='api/raw',
+    #            action='get_raw_by_user',
+    #            conditions=dict(method=['GET']))
 
     map.connect(None, '/api/images/raw/:(user)/:(image)/:(hypervisor)', controller='api/images',
                 action='put_raw_by_user',
                 conditions=dict(method=['PUT']))
 
-    map.connect('raw', '/api/images/raw/:(image)', controller='api/raw',
-                action='get_raw',
-                conditions=dict(method=['GET']))
+    #map.connect('raw', '/api/images/raw/:(image)', controller='api/raw',
+    #            action='get_raw',
+    #            conditions=dict(method=['GET']))
 
     map.connect(None, '/api/images/raw/:(image)/:(hypervisor)', controller='api/images',
                 action='put_raw',
                 conditions=dict(method=['PUT']))
+
+
+
+
 
     map.connect('image_by_user', '/api/images/:(user)/:(image)', controller='api/images',
                 action='show_meta_by_user',
