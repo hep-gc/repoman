@@ -1,5 +1,4 @@
 from pylons import url
-from webhelpers.html import literal
 
 def user(user):
     perms = []
@@ -30,7 +29,7 @@ def group(group):
 def image(image):
     if image.unauthenticated_access:
         http_url = url('raw_by_user', user=image.owner.user_name, 
-                       image=image.name, hypervisor=literal('<hypervisor>'), protocol='http')
+                       image=image.name, hypervisor=literal('__hypervisor__'), protocol='http')
     else:
         http_url = None
 
@@ -54,7 +53,7 @@ def image(image):
              'version':image.version,
              'size':image.size,
              'file_url':url('raw_by_user', user=image.owner.user_name,
-                            image=image.name, hypervisor='<hypervisor>', qualified=True),
+                            image=image.name, hypervisor='__hypervisor__', qualified=True),
              'shared_with':{'groups':[url('group', group=g.name, qualified=True)
                                       for g in image.shared.groups],
                             'users':[url('user', user=u.user_name, qualified=True)

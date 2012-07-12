@@ -96,7 +96,7 @@ class ListImages(SubCommand):
     description = 'List images stored in the repository.  By default, only images owned by the current user are listed.'
     # We need to override the usage else argparse will not formet the second
     # mutually exclusive group correctly. (bug in argparse?)
-    usage = '%(prog)s [-o owner] [-l | -U] [-a | -g group | -u user | image]'
+    usage = '%(prog)s [-o owner] [-l] [-a | -g group | -u user | image]'
 
     def __init__(self):
         SubCommand.__init__(self)
@@ -111,7 +111,6 @@ class ListImages(SubCommand):
         # First mutually exclusive group
         group = self.get_arg_parser().add_mutually_exclusive_group()
         group.add_argument('-l', '--long',  action = 'store_true', default = False, help = 'List images, together with additional information, in a table.')
-        group.add_argument('-U', '--url', action = 'store_true', default = False, help = 'List images and associated URLs.')
 
         # Second mutually exclusive group
         group2 = self.get_arg_parser().add_mutually_exclusive_group()
