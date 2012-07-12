@@ -37,17 +37,11 @@ def display_image(image, long_output=False, full_output=False, urls=False, forma
         print "%s/%s" % (image_copy['owner'].rsplit('/', 1)[-1], image_copy['name'])
         hypervisors = image_copy['hypervisor'].split(',')
         if image_copy['http_file_url'] != None:
-            if len(hypervisors) > 1:
-                for hypervisor in hypervisors:
-                    print "  %s/%s" % (image_copy['http_file_url'], hypervisor)
-            else:
-                print "  %s" % (image_copy['http_file_url'])
+            for hypervisor in hypervisors:
+                print "  %s" % (image_copy['http_file_url'].replace('__hypervisor__', hypervisor))
         if image_copy['file_url'] != None:
-            if len(hypervisors) > 1:
-                for hypervisor in hypervisors:
-                    print "  %s/%s" % (image_copy['file_url'], hypervisor)
-            else:
-                print "  %s" % (image_copy['file_url'])
+            for hypervisor in hypervisors:
+                print "  %s" % (image_copy['file_url'].replace('__hypervisor__', hypervisor))
         print ""
     else:
         print "%s/%s" % (image_copy['owner'], image_copy['name'])
