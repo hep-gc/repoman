@@ -96,7 +96,7 @@ class RepomanClient(object):
             message = "Requested resource could not be found"
         elif resp.status == httplib.REQUEST_TIMEOUT:
             # 408
-            message = "Request has timed out.  Please retry or seek asistance."
+            message = "Request has timed out.  Please retry or seek assistance."
         elif resp.status == httplib.CONFLICT:
             # 409
             message = "Conflict in request"
@@ -104,7 +104,7 @@ class RepomanClient(object):
         elif resp.status == httplib.INTERNAL_SERVER_ERROR:
             # 500
             message = ("The server has encountered an error and was unable to "
-                       "process your request.  If problem persists, seek asistance.")
+                       "process your request.  If problem persists, seek assistance.")
         elif resp.status == httplib.NOT_IMPLEMENTED:
             # 501
             message = ("The requested functionality has yet to be implemented by the server")
