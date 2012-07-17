@@ -456,8 +456,9 @@ class ImagesController(BaseController):
         response.headers['content-type'] = app_globals.json_content_type
         response.headers['Location'] = url('raw_by_user',
                                            user=user.user_name,
-                                           image=new_image.name)
-        response.status = ("201 Object created.  upload raw file to 'Location'")
+                                           image=new_image.name,
+                                           hypervisor='__hypervisor__')
+        response.status = ("201 Object created.  upload raw file(s) to 'Location'")
         return h.render_json(beautify.image(new_image))
 
 
