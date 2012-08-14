@@ -50,7 +50,7 @@ class UploadImage(SubCommand):
             if args.hypervisor:
                 hypervisor = args.hypervisor
             else:
-                hypervisor = image['hypervisor'].trim()
+                hypervisor = image['hypervisor'].strip()
 
             print "Uploading %s to image '%s', hypervisor %s ..." % (args.file, args.image, hypervisor)
             self.get_repoman_client(args).upload_image(image_name, args.file, hypervisor=hypervisor)
