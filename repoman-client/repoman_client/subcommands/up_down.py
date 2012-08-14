@@ -43,7 +43,7 @@ class UploadImage(SubCommand):
 
             # If the image is multi-hypervisor and an hypervisor was given at command line,
             # check to make sure it is in the list of hypervisors of that image.
-            if args.hypervisor not in image['hypervisor'].split(','):
+            if args.hypervisor and (args.hypervisor not in image['hypervisor'].split(',')):
                 print "ERROR:  The given hypervisor is not supported by this image.  Supported hypervisors for this image are: %s" % (image['hypervisor'])
                 return
 
