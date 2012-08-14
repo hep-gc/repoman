@@ -16,7 +16,16 @@
 ..
 .de image_hypervisor
 \fB-h\fP, \fB--hypervisor\fP \fIvalue\fP
-\- The hypervisor. Ex: xen, kvm, etc.
+\- Specifies a comma separated list of one or more hypervisors supported by this image slot.
+Example: "--hypervisor kvm,xen".
+..
+.de image_hypervisor_pi
+\fB-h\fP, \fB--hypervisor\fP \fIvalue\fP
+\- Specifies the single hypervisor that the upload image is configured to run under.
+The specifaction must match one of the specifications for the image slot.
+For single hypervisor image slots, this parameter is optional.
+For muti-hypervisor image slots, this parameter is mandatory.
+Example: "--hypervisor kvm".
 ..
 .de image_new_name
 \fB-n\fP, \fB--new_name\fP \fIvalue\fP
@@ -38,11 +47,11 @@ The specified user name must be a registered repoman user; use the \fBrepoman li
 ..
 .de image_os_type
 \fB--os_type\fP \fIvalue\fP
--\ The operating system type. Ex: linux, unix, windows, etc.
+-\ The operating system type. Example: linux, unix, windows, etc.
 ..
 .de image_os_variant
 \fB--os_variant\fP \fIvalue\fP
--\ The operating system variant. Ex: redhat, centos, ubuntu, etc.
+-\ The operating system variant. Example: redhat, centos, ubuntu, etc.
 ..
 .de image_path
 \fB-p\fP, \fB--path\fP \fIpath\fP
@@ -160,6 +169,7 @@ Options:
 The path to the image file that will be uploaded to the repository.
 
 .image_hypervisor
+Default: "--hypervisor xen". 
 
 .image_owner
 
@@ -207,6 +217,7 @@ Options:
 .image_description
 
 .image_hypervisor
+Default: the hypervisor attribute of the image slot remains unchanged.
 
 .image_new_name
 
@@ -241,7 +252,7 @@ Options:
 
 \fB--force\fP \- Overwrite destination image (if present) without confirmation.
 
-.image_hypervisor
+.image_hypervisor_pi
 
 .image_owner
 
