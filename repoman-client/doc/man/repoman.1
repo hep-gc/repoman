@@ -226,7 +226,7 @@ Example:
     - renames myImage to myNewImage and updates the description 
 
 .TP
-\fBpi\fP, \fBput-image\fP \fIfile\fP \fIimage\fP [--force] [\fB--owner\fP \fIuser\fP]
+\fBpi\fP, \fBput-image\fP \fIfile\fP \fIimage\fP [--force] [\fB--hypervisor\fP hypervisor] [\fB--owner\fP \fIuser\fP]
 \#-----------------------------------------------------------------------------------------------------
 Upload an image file from local disk space to the repoman repository and associate it with an existing image-slot.
 
@@ -240,6 +240,8 @@ The name of the image slot to be used. Use \fBrepoman list-images\fP to see poss
 Options:
 
 \fB--force\fP \- Overwrite destination image (if present) without confirmation.
+
+.image_hypervisor
 
 .image_owner
 
