@@ -71,6 +71,15 @@ class Save(SubCommand):
 
         kwargs['name'] = name
 
+        # Check to see if the image name has the '.gz' suffix and
+        # compression not enabled.  Having uncompressed images named with
+        # a '.gz' suffix will break things in Nimbus.
+        if (not args.gzip) and name.endswith('.gz'):
+            print ("WARNING: The image name you gave ends with '.gz' but you did not enable image compression with the --gzip command line argument.  Having uncompressed images with a '.gz' suffix to the image name can cause problems in some cloud frameworks.")
+            if not yes_or_no('Do you want to continue? [yes]/[n]o: '):
+                print "Aborting.  Please select a new image name or enable compression via the --gzip command line argument."
+                return
+
         exists = False
         try:
             image = self.get_repoman_client(args).describe_image(name)
