@@ -24,6 +24,7 @@ class UploadImage(SubCommand):
         self.get_arg_parser().add_argument('-o', '--owner', metavar = 'user', help = 'The owner of the named image.  The default is the ID of the current repoman user whih can be determined with the "repoman whoami" command.')
 
     def __call__(self, args):
+        hypervisor = None
         try:
             image_name = args.image
             if args.owner:
