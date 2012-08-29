@@ -30,16 +30,12 @@ class UploadImage(SubCommand):
             if args.owner:
                 image_name = "%s/%s" % (args.owner, args.image)
 
-            # Check if destination image already contains an image.
             image = self.get_repoman_client(args).describe_image(image_name)
-            if image['raw_file_uploaded'] == True and not args.force:
-                if not yes_or_no("Image '%s' already contains an image file.  Overwrite? [yes]/[n]o:" % (args.image)):
-                    return
 
             # Check if image is multi-hypervisor.  If yes, then make sure the user specified
             # the hypervisor at command line.
             if (len(image['hypervisor'].split(',')) > 1) and (not args.hypervisor):
-                print "ERROR:  This %s image is a multi-hypervisor image.  You must specify an hypervisor using the --hypervisor command line argument.  Do a 'repoman help put-image' for more information." % image_name
+                print "ERROR:  This %s image is a multi-hypervisor image.  You must specify an hypervisor using the --hypervisor command line argument.  Do a 'repoman help put-image' for more information." % args.image
                 return
 
             # If the image is multi-hypervisor and an hypervisor was given at command line,
@@ -53,8 +49,13 @@ class UploadImage(SubCommand):
             else:
                 hypervisor = image['hypervisor'].strip()
 
+            # Check if destination image already contains an image.
+            if self.get_repoman_client(args).uploaded_image_exist(args.image, args.owner, hypervisor=hypervisor) == True and not args.force:
+                if not yes_or_no("Image '%s' already contains an image file for hypervisor %s.  Overwrite? [yes]/[n]o:" % (args.image, hypervisor)):
+                    return
+
             print "Uploading %s to image '%s', hypervisor %s ..." % (args.file, args.image, hypervisor)
-            self.get_repoman_client(args).upload_image(image_name, args.file, hypervisor=hypervisor)
+            self.get_repoman_client(args).upload_image(args.image, args.owner, args.file, hypervisor=hypervisor)
             print "[OK]     %s uploaded to image '%s', hypervisor %s" % (args.file, args.image, hypervisor)
         except RepomanError, e:
             raise SubcommandFailure(self, "Could not upload %s to image '%s', hypervisor %s" % (args.file, args.image, hypervisor), e)

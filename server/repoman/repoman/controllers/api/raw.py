@@ -81,6 +81,11 @@ class RawController(BaseController):
             return
 
 
+    def test_raw(self, image, hypervisor=None, format='json'):
+        user = request.environ['REPOMAN_USER'].user_name
+        return self.test_raw_by_user(user=user, image=image, hypervisor=hypervisor, format=format)
+
+
     def get_raw_by_user(self, user, image, hypervisor=None, format='json'):
         image_q = meta.Session.query(Image)
         image = image_q.filter(Image.name==image)\

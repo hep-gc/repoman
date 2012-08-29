@@ -1,4 +1,4 @@
-import sys, os, time, errno
+import sys, os, time, errno, re
 from repoman_client.logger import log
 from repoman_client.config import config
 from repoman_client import imageutils
@@ -198,8 +198,11 @@ class RepomanClient(object):
         resp = self._get('/api/users/%s' % user)
         return self._parse_response(resp)
 
-    def describe_image(self, image):
-        resp = self._get('/api/images/%s' % image)
+    def describe_image(self, image, owner = None):
+        if owner:
+            resp = self._get('/api/images/%s/%s' % (owner, image))
+        else:
+            resp = self._get('/api/images/%s' % image)
         return self._parse_response(resp)
 
     def describe_group(self, group):
@@ -274,9 +277,56 @@ class RepomanClient(object):
         resp = self._delete('/api/images/%s/share/group/%s' % (image, group))
         return True
 
-    def upload_image(self, image, image_file, gzip=False, hypervisor='xen'):
+    def uploaded_image_exist(self, image, owner, hypervisor='xen'):
+        """
+        This method will test if an image has an uploaded file for a given hypervisor.
+        """
+        log.info("Checking to see if image %s, owner %s, has an uploaded file for hypervisor %s" % (image, owner, hypervisor))
+        if owner:
+            resp = self._get('/api/images/%s/%s' % (owner, image))
+        else:
+            resp = self._get('/api/images/%s' % (image))
+        if resp.status != 200:
+            log.info("Image slot does not yet exist.")
+            raise RepomanError('Image does not yet exist.', resp)
+
+        if owner:
+            url = 'https://' + config.host + '/api/images/raw/%s/%s/%s' % (owner, hypervisor, image)
+        else:
+            url = 'https://' + config.host + '/api/images/raw/%s/%s' % (hypervisor, image)
+        try:
+            cmd = ['curl',
+                    '--cert', config.proxy,
+                    '--insecure',
+                    '--head',
+                    url]
+            log.debug(" ".join(cmd))
+            p = subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=config.get_restricted_env())
+            if not p:
+                log.error("Error calling: %s" % (cmd))
+                raise RepomanError("Error checking if image %s, owner %s, has an uploaded file for hypervisor %s" % (image, owner, hypervisor))
+            log.info("Command complete")
+            stdout = p.communicate()[0]
+            log.debug(stdout)
+            m = re.search('^HTTP/.+200 OK', stdout, flags=re.M)
+            if m:
+                log.info("Uploaded file exist for image %s, owner %s, hypervisor %s." % (image, owner, hypervisor))
+                return True
+            else:
+                log.info("Uploaded file does not exist for image %s, owner %s, hypervisor %s." % (image, owner, hypervisor))
+                return False
+        except Exception, e:
+            log.error("%s" % e)
+            raise RepomanError(str(e))
+           
+
+    def upload_image(self, image, owner, image_file, gzip=False, hypervisor='xen'):
         log.info("Checking to see if image slot exists on repository")
-        resp = self._get('/api/images/%s' % image)
+        if owner:
+            resp = self._get('/api/images/%s/%s' % (owner, image))
+        else:
+            resp = self._get('/api/images/%s' % (image))
+
         if resp.status != 200:
             log.info("Image slot does not yet exist.")
             raise RepomanError('Image does not yet exist.  Create an image before uploading to it', resp)
@@ -290,7 +340,11 @@ class RepomanClient(object):
         if not os.path.exists(image_file):
             raise RepomanError('Specified source not found: %s' % (image_file))
             
-        url = 'https://' + config.host + '/api/images/raw/%s/%s' % (hypervisor, image)
+        if owner:
+            url = 'https://' + config.host + '/api/images/raw/%s/%s/%s' % (owner, hypervisor, image)
+        else:
+            url = 'https://' + config.host + '/api/images/raw/%s/%s' % (hypervisor, image)
+
         try:
             if gzip:
                 log.info("Performing gzip on image prior to upload")

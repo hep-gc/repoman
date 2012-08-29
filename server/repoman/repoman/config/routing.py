@@ -169,14 +169,22 @@ def make_map(config):
 
 
 
-    map.connect('raw_by_user', '/api/images/raw/:(user)/:(hypervisor)/:(image)', controller='api/raw',
+    map.connect('get_raw_by_user', '/api/images/raw/:(user)/:(hypervisor)/:(image)', controller='api/raw',
                 action='get_raw_by_user',
                 conditions=dict(method=['GET']))
 
-    # The following map is to allow clients to test for existence of image uploaded files via
+    map.connect('get_raw', '/api/images/raw/:(hypervisor)/:(image)', controller='api/raw',
+                action='get_raw',
+                conditions=dict(method=['GET']))
+
+    # The following 2 maps are to allow clients to test for existence of image uploaded files via
     # the HEAD HTTP request.
-    map.connect('test_by_user', '/api/images/raw/:(user)/:(hypervisor)/:(image)', controller='api/raw',
+    map.connect('test_raw_by_user', '/api/images/raw/:(user)/:(hypervisor)/:(image)', controller='api/raw',
                 action='test_raw_by_user',
+                conditions=dict(method=['HEAD']))
+
+    map.connect('test_raw', '/api/images/raw/:(hypervisor)/:(image)', controller='api/raw',
+                action='test_raw',
                 conditions=dict(method=['HEAD']))
 
     map.connect(None, '/api/images/raw/:(user)/:(hypervisor)/:(image)', controller='api/images',

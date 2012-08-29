@@ -53,7 +53,7 @@ class Save(SubCommand):
     def __call__(self, args):
         # Check if sudo...
         if os.getuid() != 0:
-            raise SubcommandFailure(self, "Error.  This command requires root privlidges, try again with sudo.")
+            raise SubcommandFailure(self, "Error.  This command requires root privileges, try again with sudo.")
 
         kwargs={}
 
@@ -82,7 +82,7 @@ class Save(SubCommand):
 
         exists = False
         try:
-            image = self.get_repoman_client(args).describe_image(name)
+            image = self.get_repoman_client(args).describe_image(name, args.owner)
             if image:
                 log.info("Found existing image")
                 exists = True
@@ -178,7 +178,7 @@ class Save(SubCommand):
             if args.owner:
                 image_name = "%s/%s" % (args.owner, kwargs['name'])
             try:
-                self.get_repoman_client(args).modify_image(kwargs['name'], **kwargs)
+                self.get_repoman_client(args).modify_image(image_name, **kwargs)
             except RepomanError, e:
                 raise SubcommandFailure(self, "Could not modify image '%s'" % (kwargs['name']), e)
             
@@ -189,7 +189,7 @@ class Save(SubCommand):
                 image_utils.setup_grub_conf(hypervisor)
             print "Uploading snapshot for hypervisor %s" % (hypervisor)
             try:
-                self.get_repoman_client(args).upload_image(name, config.snapshot, gzip=args.gzip, hypervisor=hypervisor)
+                self.get_repoman_client(args).upload_image(name, args.owner, config.snapshot, gzip=args.gzip, hypervisor=hypervisor)
             except RepomanError, e:
                 raise SubcommandFailure(self, "Error while uploading the image for hypervisor %s." % (hypervisor), e)
 
@@ -197,7 +197,7 @@ class Save(SubCommand):
         if args.comment:
             image = None
             try:
-                image = self.get_repoman_client(args).describe_image(name)
+                image = self.get_repoman_client(args).describe_image(name, args.owner)
             except RepomanError,e:
                 if e.status == 404:
                     log.debug("Did not find the image to update the save comment.  This might be caused by someone else who deleted the image just before we were able to update the comment.")
@@ -224,7 +224,10 @@ class Save(SubCommand):
                     new_description = '%s %s' % (old_description, comment_string)
                 kwargs = {'description':new_description}
                 try:
-                    self.get_repoman_client(args).modify_image(image.get('name'), **kwargs)
+                    image_name = kwargs['name']
+                    if args.owner:
+                        image_name = "%s/%s" % (args.owner, kwargs['name'])
+                    self.get_repoman_client(args).modify_image(image_name, **kwargs)
                 except RepomanError, e:
                     raise SubcommandFailure(self, "Failed to add/update image save comment.", e)
 
