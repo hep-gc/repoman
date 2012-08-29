@@ -1,5 +1,5 @@
 major = '0.2'
-minor = '4'
+minor = '5'
 tag = None
 revision = ''
 version = major

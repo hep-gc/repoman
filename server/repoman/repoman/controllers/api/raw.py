@@ -34,6 +34,53 @@ def auth_403(message):
 
 class RawController(BaseController):
 
+    def test_raw_by_user(self, user, image, hypervisor=None, format='json'):
+        """
+        This method is use to test if an image has an uploaded file for a given hypervisor.
+        Returns only the headers.
+        """
+        image_q = meta.Session.query(Image)
+        image = image_q.filter(Image.name==image)\
+                       .filter(Image.owner.has(User.user_name==user))\
+                       .first()
+
+        if not image:
+            abort(404, '404 Not Found')
+        else:
+            #pass through http requests and unauthenticated https requests
+            if not image.unauthenticated_access:
+                inline_auth(AnyOf(AllOf(OwnsImage(image), IsAthuenticated()),
+                                  AllOf(SharedWith(image), IsAthuenticated())),
+                                  auth_403)
+
+            # If no hypervisor is given, and the image has the hypervisor
+            # metadata variable set to something, then lets set the
+            # hypervisor to the metadata variable.
+            if (hypervisor == None) and (image.hypervisor != None):
+                hypervisor = image.hypervisor.split(',')[0]
+
+            # If hypervisor is still None, then let's default to 'xen'.
+            # This is mostly to support images that do not have the hypervisor variable
+            # set. (pre multi-hypervisor support)
+            if hypervisor == None:
+                hypervisor = 'xen'
+
+            file_path = path.join(app_globals.image_storage, '%s_%s_%s' % (user, image.name, hypervisor))
+
+            # Check if file actually exists
+            if not path.exists(file_path):
+                abort(404, '404 Not Found')
+
+            try:
+            	content_length = path.getsize(file_path)
+            	response.headers['X-content-length'] = str(content_length)
+                etag_cache(str(('%s_%s_%s' % (user, image.name, hypervisor)) + '_' + str(image.version)))
+            except Exception, e:
+            	abort(500, '500 Internal Error')
+
+            return
+
+
     def get_raw_by_user(self, user, image, hypervisor=None, format='json'):
         image_q = meta.Session.query(Image)
         image = image_q.filter(Image.name==image)\
