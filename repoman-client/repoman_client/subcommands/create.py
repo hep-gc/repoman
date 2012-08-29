@@ -112,7 +112,6 @@ class CreateImage(SubCommand):
         self.get_arg_parser().add_argument('image', help = 'The name of the newly created image-slot on the repository.  This will be used to reference the image when running other repoman commands.  It must be unique within the owner\'s domain and can only contain ([a-Z][0-0][_][-][.]) characters.') 
         self.get_arg_parser().add_argument('-a', '--unauthenticated_access', help = 'Defaults to False.  If set to true, the image may be retrieved by anybody who has the correct URL.', choices=['true', 'false'])
         self.get_arg_parser().add_argument('-d', '--description', metavar = 'value', help = 'Description of the image.')
-        self.get_arg_parser().add_argument('-f', '--file', metavar = 'path', help = 'The path to the image file that will be uploaded to the repository.')
         self.get_arg_parser().add_argument('-h', '--hypervisor', metavar = 'value', help = 'The hypervisor.  Ex: xen, kvm, etc.')
         self.get_arg_parser().add_argument('-o', '--owner', metavar = 'user', help = 'The owner of the named image.  The default is the ID of the current repoman user which can be determined with the command "repoman whoami" command.')
         self.get_arg_parser().add_argument('--os_arch', help = 'The operating system architecture.', choices = ['x86', 'x86_64'])
@@ -152,10 +151,4 @@ class CreateImage(SubCommand):
         except RepomanError, e:
             raise SubcommandFailure(self, "Could not create new image '%s'" % (kwargs['name']), e)
 
-        if args.file:
-            try:
-                print "Uploading %s to new image '%s'..." % (args.file, kwargs['name'])
-                self.get_repoman_client(args).upload_image(kwargs['name'], args.file)
-                print "[OK]     %s uploaded to image '%s'" % (args.file, kwargs['name'])
-            except Exception, e:
-                raise SubcommandFailure(self, "Could not upload %s to new image '%s'..." % (args.file, kwargs['name']), e)
+
