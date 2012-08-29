@@ -28,7 +28,7 @@ def group(group):
 
 def image(image):
     if image.unauthenticated_access:
-        http_url = url('raw_by_user', user=image.owner.user_name, 
+        http_url = url('get_raw_by_user', user=image.owner.user_name, 
                        image=image.name, hypervisor='__hypervisor__', protocol='http')
     else:
         http_url = None
@@ -52,7 +52,7 @@ def image(image):
              'raw_file_uploaded':image.raw_uploaded,
              'version':image.version,
              'size':image.size,
-             'file_url':url('raw_by_user', user=image.owner.user_name,
+             'file_url':url('get_raw_by_user', user=image.owner.user_name,
                             image=image.name, hypervisor='__hypervisor__', qualified=True),
              'shared_with':{'groups':[url('group', group=g.name, qualified=True)
                                       for g in image.shared.groups],

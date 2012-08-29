@@ -454,7 +454,7 @@ class ImagesController(BaseController):
         meta.Session.commit()
 
         response.headers['content-type'] = app_globals.json_content_type
-        response.headers['Location'] = url('raw_by_user',
+        response.headers['Location'] = url('get_raw_by_user',
                                            user=user.user_name,
                                            image=new_image.name,
                                            hypervisor='__hypervisor__')
