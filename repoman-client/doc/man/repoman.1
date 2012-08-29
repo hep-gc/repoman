@@ -147,7 +147,7 @@ In a repoman VM repository, an image is identified by the owning user and a name
 In addition to the image itself, the repoman repository maintains \'metadata\' or information about the image (for example: name, description, architecture, etc.) in an image-slot within a database.
 
 .TP
-\fBci\fP, \fBcreate-image\fP \fIimage\fP [\fB--unauthenticated_access\fP [\fBtrue\fP|\fBfalse\fP]] [\fB--description\fP \fIvalue\fP] [\fB--file\fP \fIfile\fP] [\fB--hypervisor\fP \fIvalue\fP] [\fB--owner\fP \fIuser\fP] [\fB--os_variant\fP \fIvalue\fP] [\fB--os_arch\fP \fIvalue\fP] [\fB--os_type\fP \fIvalue\fP]
+\fBci\fP, \fBcreate-image\fP \fIimage\fP [\fB--unauthenticated_access\fP [\fBtrue\fP|\fBfalse\fP]] [\fB--description\fP \fIvalue\fP] [\fB--hypervisor\fP \fIvalue\fP] [\fB--owner\fP \fIuser\fP] [\fB--os_variant\fP \fIvalue\fP] [\fB--os_arch\fP \fIvalue\fP] [\fB--os_type\fP \fIvalue\fP]
 \#-----------------------------------------------------------------------------------------------------
 Create a new repoman image-slot based on the given information.
 If an image file is supplied, then \fIfile\fP is uploaded to the repoman repository after the entry is created.
@@ -164,9 +164,6 @@ Options:
 .image_access
 
 .image_description
-
-.image_file
-The path to the image file that will be uploaded to the repository.
 
 .image_hypervisor
 Default: "--hypervisor xen". 
