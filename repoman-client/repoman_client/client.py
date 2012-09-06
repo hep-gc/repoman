@@ -351,7 +351,7 @@ class RepomanClient(object):
                 print "Gzipping image before upload"
                 gzip_image = os.path.join(os.path.dirname(image_file), image)
                 gzip = subprocess.Popen("gzip --stdout %s > %s" % (image_file, gzip_image),
-                                        shell=True)
+                                        shell=True, env=config.get_restricted_env())
                 gzip.wait()
                 image_file = gzip_image
                 log.info('Gzip complete')
@@ -362,7 +362,7 @@ class RepomanClient(object):
                     '-T', image_file, url]
             cmd = " ".join(args)
             log.info("Running command: '%s'" % cmd)
-            curl = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+            curl = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, env=config.get_restricted_env())
             for line in curl.stdout.readlines():
                 print line
             log.info("Command complete")
@@ -408,7 +408,7 @@ class RepomanClient(object):
                     url, '>', dest]
             cmd = " ".join(args)
             log.info("Running Command: '%s'" % cmd)
-            p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+            p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, env=config.get_restricted_env())
             for line in p.stdout.readlines():
                 print line
             log.info("Command complete")
