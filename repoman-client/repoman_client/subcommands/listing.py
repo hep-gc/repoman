@@ -94,9 +94,9 @@ class ListImages(SubCommand):
     command = 'list-images'
     alias = 'li'
     description = 'List images stored in the repository.  By default, only images owned by the current user are listed.'
-    # We need to override the usage else argparse will not formet the second
+    # We need to override the usage else argparse will not format the second
     # mutually exclusive group correctly. (bug in argparse?)
-    usage = '%(prog)s [-o owner] [-l | -U] [-a | -g group | -u user | image]'
+    usage = '%(prog)s [-o owner] [-s | -U] [-a | -g group | -u user | image]'
 
     def __init__(self):
         SubCommand.__init__(self)
