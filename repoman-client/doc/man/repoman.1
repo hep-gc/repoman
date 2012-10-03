@@ -177,7 +177,7 @@ Default: "--hypervisor xen".
 .image_os_variant
 
 .TP
-\fBli\fP, \fBlist-images\fP [\fB--owner\fP \fIuser\fP] [\fB--long\fP | \fB--url\fP] [\fB--all\fP | \fB--group\fP \fIgroup\fP | \fB--user\fP \fIuser\fP | \fBimage\fP]  
+\fBli\fP, \fBlist-images\fP [\fB--owner\fP \fIuser\fP] [\fB--short\fP | \fB--url\fP] [\fB--all\fP | \fB--group\fP \fIgroup\fP | \fB--user\fP \fIuser\fP | \fBimage\fP]  
 \#-----------------------------------------------------------------------------------------------------
 List images stored in the repository. By default, only images owned by the current user are listed.
 
@@ -189,7 +189,7 @@ Options:
 
 \fBimage\fP \- If given, information about this image only will be displayed.
 
-\fB-l\fP, \fB--long\fP \- List images, together with additional information, in a table.
+\fB-s\fP, \fB--short\fP \- List image names with no additional information.
 
 .image_owner
 
@@ -392,7 +392,7 @@ Options:
 .user_full_name
 
 .TP
-\fBlu\fP, \fBlist-users\fP [\fB--group\fP \fIgroup\fP] [\fB--long\fP] [\fBuser\fP]
+\fBlu\fP, \fBlist-users\fP [\fB--group\fP \fIgroup\fP] [\fB--short\fP] [\fBuser\fP]
 \#-----------------------------------------------------------------------------------------------------
 List repoman users.
 
@@ -400,7 +400,7 @@ Options:
 
 \fB-g\fP, \fB--group\fP \fIgroup\fP \- Only display users that belong to the group \fIgroup\fP
 
-\fB-l\fP, \fB--long\fP \- Display a table with extra information.
+\fB-s\fP, \fB--short\fP \- List user names with no additional information.
 
 \fBuser\fP \- If given, information about this user only will be displayed.
 
@@ -483,7 +483,7 @@ Options:
 .group_users
 
 .TP
-\fBlg\fP, \fBlist-groups\fP [\fB--long\fP] [\fB--all\fP | \fB--user\fP \fIuser\fP | \fBgroup\fP]
+\fBlg\fP, \fBlist-groups\fP [\fB--short\fP] [\fB--all\fP | \fB--user\fP \fIuser\fP | \fBgroup\fP]
 \#-----------------------------------------------------------------------------------------------------
 List user groups on the repoman repository.  By default, this command will only list groups that you belong to.
 
@@ -493,7 +493,7 @@ Options:
 
 \fBgroup\fP \- If given, information about this group only will be displayed.
 
-\fB-l\fP, \fB--long\fP \- Display extra information in a table.
+\fB-s\fP, \fB--short\fP \- List group names with no additional information.
 
 \fB-u\fP, \fB--user\fP \fIuser\fP \- Display group membership for the user \fIuser\fP.
 

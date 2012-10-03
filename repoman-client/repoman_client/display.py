@@ -5,16 +5,16 @@ import calendar
 import time
 
 # Single line listings of users/groups/images
-def display_user(user, long_output=False, full_output=False, format_string=None):
-    if long_output:
-        print format_string % (user['user_name'], user['full_name'], user['client_dn'])
-    elif full_output:
-        describe_user(user)
-    else:
+def display_user(user, short_output=False, full_output=False, format_string=None):
+    if short_output:
         print user['user_name']
+    elif full_output:
+        _pprint_dict(user)
+    else:
+        print format_string % (user['user_name'], user['full_name'], user['client_dn'])
         
 
-def display_image(image, long_output=False, full_output=False, urls=False, format_string=None):
+def display_image(image, short_output=False, full_output=False, urls=False, format_string=None):
     # Convert times to local timezone first.
     # This is a bit of a hack because the server does not give us a tz independant
     # value and we must assume that the value given to us is a ctime in UTC and
@@ -29,10 +29,10 @@ def display_image(image, long_output=False, full_output=False, urls=False, forma
     if image_copy['expires'] != None:
         image_copy['expires'] = datetime.datetime.fromtimestamp(calendar.timegm(time.strptime(image['expires']))).ctime()
 
-    if long_output:
-        print format_string % (image_copy['name'], image_copy['owner'], image_copy['hypervisor'], str(image_copy['size']), image_copy['modified'], image_copy['description'])
+    if short_output:
+        print "%s/%s" % (image_copy['owner'], image_copy['name'])
     elif full_output:
-        describe_image(image_copy)
+        _pprint_dict(image_copy)
     elif urls:
         print "%s/%s" % (image_copy['owner'].rsplit('/', 1)[-1], image_copy['name'])
         hypervisors = image_copy['hypervisor'].split(',')
@@ -44,27 +44,27 @@ def display_image(image, long_output=False, full_output=False, urls=False, forma
                 print "  %s" % (image_copy['file_url'].replace('__hypervisor__', hypervisor))
         print ""
     else:
-        print "%s/%s" % (image_copy['owner'], image_copy['name'])
+        print format_string % (image_copy['name'], image_copy['owner'], image_copy['hypervisor'], str(image_copy['size']), image_copy['modified'], image_copy['description'])
 
-def display_group(group, long_output=False, full_output=False, format_string=None):
-    if long_output:
-        print format_string % (group['name'], group['users'])
-    elif full_output:
-        describe_group(group)
-    else:
+def display_group(group, short_output=False, full_output=False, format_string=None):
+    if short_output:
         print group['name']
+    elif full_output:
+        _pprint_dict(group)
+    else:
+        print format_string % (group['name'], group['users'])
 
-def display_user_list(users, long_output=False, full_output=False):
+def display_user_list(users, short_output=False, full_output=False):
     format_string = None
     header = None
-    if long_output:
+    if not short_output and not full_output:
         column_headers = ['Username', 'Full Name', 'Client DN']
         (format_string, header) = get_format_string(users, ['user_name', 'full_name', 'client_dn'], column_headers, ['l', 'l', 'l'])
         print header
     for user in sorted(users, key = lambda user : user['user_name'].lower()):
-        display_user(user, long_output=long_output, full_output=full_output, format_string=format_string)
+        display_user(user, short_output=short_output, full_output=full_output, format_string=format_string)
 
-def display_image_list(images, long_output=False, full_output=False, urls=False):
+def display_image_list(images, short_output=False, full_output=False, urls=False):
     format_string = None
     header = None
     # Make a deep copy cause we are going to modify it if needed.
@@ -74,7 +74,7 @@ def display_image_list(images, long_output=False, full_output=False, urls=False)
     for image in images_copy:
         image['owner'] = image['owner'].rsplit('/', 1)[-1]
 
-    if long_output:
+    if not short_output and not full_output:
         column_headers = ['Image Name',
                           'Owner',
                           'Hypervisor', 
@@ -86,16 +86,16 @@ def display_image_list(images, long_output=False, full_output=False, urls=False)
         
     # Let's print each image.
     for image in sorted(images_copy, key = lambda image : image['name'].lower()):
-        display_image(image, long_output=long_output, full_output=full_output, urls=urls, format_string=format_string)
+        display_image(image, short_output=short_output, full_output=full_output, urls=urls, format_string=format_string)
 
 
-def display_group_list(groups, long_output=False, full_output=False):
+def display_group_list(groups, short_output=False, full_output=False):
     format_string = None
     header = None
     # Make a deep copy cause we are going to modify it if needed.
     groups_copy = copy.deepcopy(groups)
 
-    if long_output:
+    if not short_output and not full_output:
         # Shorten the users list (user URL -> username)
         for group in groups_copy:
             users = []
@@ -107,22 +107,10 @@ def display_group_list(groups, long_output=False, full_output=False):
         (format_string, header) = get_format_string(groups_copy, ['name', 'users'], column_headers, ['l', 'l'])
         print header
     for group in sorted(groups_copy, key = lambda group : group['name'].lower()):
-        display_group(group, long_output=long_output, full_output=full_output, format_string=format_string)
+        display_group(group, short_output=short_output, full_output=full_output, format_string=format_string)
 
 
-# detailed descriptions of user/groups/images
-def describe_user(user, long_output=False):
-    _pprint_dict(user)
-    print ''
-
-def describe_group(group, long_output=False):
-    _pprint_dict(group)
-    print ''
-
-def describe_image(image, long_output=False):
-    _pprint_dict(image)
-    print ''
-
+# Print detailed descriptions of user/groups/images
 def _pprint_dict(d):
     # find max key width
     max_key_width = 0
@@ -135,8 +123,7 @@ def _pprint_dict(d):
             print format_string % (key, ', '.join(d[key]))
         else:
             print format_string % (key, d[key])
-
-
+    print ''
 
 # Use this method to get a format string that will nicely align
 # the columns in a multi-column output of a list of items.

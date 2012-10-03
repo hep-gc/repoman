@@ -17,7 +17,7 @@ class ListUsers(SubCommand):
 
     def init_arg_parser(self):
         group = self.get_arg_parser().add_mutually_exclusive_group()
-        group.add_argument('-l', '--long', action = 'store_true', default = False, help = 'Display a table with extra information.')
+        group.add_argument('-s', '--short', action = 'store_true', default = False, help = 'List users with no additional information.')
         self.get_arg_parser().add_argument('-g', '--group', metavar = 'group', help = 'Only display users that belong to the given group.')
         self.get_arg_parser().add_argument('user', metavar = 'user', nargs = '?', help = 'If given, information about this user only will be displayed.')
         
@@ -38,7 +38,7 @@ class ListUsers(SubCommand):
                 for user_url in users_urls:
                     users.append(self.get_repoman_client(args).describe_user(user_url.rsplit('/',1)[-1]))
 
-            display.display_user_list(users, long_output=args.long, full_output=full_output)
+            display.display_user_list(users, short_output=args.short, full_output=full_output)
         except RepomanError, e:
             raise SubcommandFailure(self, 'Error listing user(s).', e)
 
@@ -54,7 +54,7 @@ class ListGroups(SubCommand):
 
     def init_arg_parser(self):
         group = self.get_arg_parser().add_mutually_exclusive_group()
-        group.add_argument('-l', '--long', action = 'store_true', default = False, help = 'Display extra information in a table.')
+        group.add_argument('-s', '--short', action = 'store_true', default = False, help = 'List groups with no additional information.')
         group2 = self.get_arg_parser().add_mutually_exclusive_group()
         group2.add_argument('-a', '--all', action = 'store_true', default = False, help = 'Display all groups.')
         group2.add_argument('-u', '--user', metavar = 'user', help = 'Display group membership for the given user.')
@@ -83,7 +83,7 @@ class ListGroups(SubCommand):
                 for group_url in groups_urls:
                     groups.append(self.get_repoman_client(args).describe_group(group_url.rsplit('/',1)[-1]))
 
-            display.display_group_list(groups, long_output=args.long, full_output=full_output)
+            display.display_group_list(groups, short_output=args.short, full_output=full_output)
         except RepomanError, e:
             raise SubcommandFailure(self, 'Error listing group(s).', e)
 
@@ -110,7 +110,7 @@ class ListImages(SubCommand):
 
         # First mutually exclusive group
         group = self.get_arg_parser().add_mutually_exclusive_group()
-        group.add_argument('-l', '--long',  action = 'store_true', default = False, help = 'List images, together with additional information, in a table.')
+        group.add_argument('-s', '--short',  action = 'store_true', default = False, help = 'List images with no additional information.')
         group.add_argument('-U', '--url', action = 'store_true', default = False, help = 'List images and associated URLs.')
 
         # Second mutually exclusive group
@@ -204,7 +204,7 @@ class ListImages(SubCommand):
             if i not in images_metadata_dedup:
                 images_metadata_dedup.append(i)
 
-        display.display_image_list(images_metadata_dedup, long_output=args.long, full_output=full_output, urls=args.url)
+        display.display_image_list(images_metadata_dedup, short_output=args.short, full_output=full_output, urls=args.url)
 
 
 
