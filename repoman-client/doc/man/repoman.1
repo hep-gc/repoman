@@ -122,11 +122,10 @@ Defaults to "/tmp/x509up_uNNNN", where "NNNN" is your effective UID.
 .TP
 \fIsubcommand\fP
 See the following sections for possible subcommands and subcommand parameters.
-
 .SH HELP SUBCOMMAND
 .TP
 \fBhelp\fP [\fIsubcommand\fP]
-\#-----------------------------------------------------------------------------------------------------
+
 Show the help dialog. If no subcommand is specified, a general overview of all subcommands is displayed.  Specifying a subcommand displays information specific to that subcommand.
 
 .SH CONFIGURATION SUBCOMMAND
@@ -134,7 +133,6 @@ Before other repoman subcommands can be used, a configuration file must be creat
 configuration file for you.
 .TP
 \fBmc\fP, \fBmake-config\fP [\fB--stdout\fP]
-\#-----------------------------------------------------------------------------------------------------
 
 Options:
 
@@ -148,7 +146,6 @@ In addition to the image itself, the repoman repository maintains \'metadata\' o
 
 .TP
 \fBci\fP, \fBcreate-image\fP \fIimage\fP [\fB--unauthenticated_access\fP [\fBtrue\fP|\fBfalse\fP]] [\fB--description\fP \fIvalue\fP] [\fB--hypervisor\fP \fIvalue\fP] [\fB--owner\fP \fIuser\fP] [\fB--os_variant\fP \fIvalue\fP] [\fB--os_arch\fP \fIvalue\fP] [\fB--os_type\fP \fIvalue\fP]
-\#-----------------------------------------------------------------------------------------------------
 Create a new repoman image-slot based on the given information.
 If an image file is supplied, then \fIfile\fP is uploaded to the repoman repository after the entry is created.
 
@@ -178,7 +175,6 @@ Default: "--hypervisor xen".
 
 .TP
 \fBli\fP, \fBlist-images\fP [\fB--owner\fP \fIuser\fP] [\fB--short\fP | \fB--url\fP] [\fB--all\fP | \fB--group\fP \fIgroup\fP | \fB--user\fP \fIuser\fP | \fBimage\fP]  
-\#-----------------------------------------------------------------------------------------------------
 List images stored in the repository. By default, only images owned by the current user are listed.
 
 Options:
@@ -199,7 +195,6 @@ Options:
 
 .TP
 \fBmi\fP, \fBmodify-image\fP \fIimage\fP [\fB--unauthenticated_access\fP [\fBtrue\fP|\fBfalse\fP]] [\fB--description\fP \fIvalue\fP] [\fB--hypervisor\fP \fIvalue\fP] [\fB--new_name\fP \fIvalue\fP] [\fB--new_owner\fP \fIuser\fP] [\fB--owner\fP \fIuser\fP] [\fB--os_variant\fP \fIvalue\fP] [\fB--os_arch\fP \fIvalue\fP] [\fB--os_type\fP \fIvalue\fP]
-\#-----------------------------------------------------------------------------------------------------
 Modify an image with the given information.
 
 Mandatory Parameters:
@@ -235,7 +230,6 @@ Example:
 
 .TP
 \fBpi\fP, \fBput-image\fP \fIfile\fP \fIimage\fP [--force] [\fB--hypervisor\fP hypervisor] [\fB--owner\fP \fIuser\fP]
-\#-----------------------------------------------------------------------------------------------------
 Upload an image file from local disk space to the repoman repository and associate it with an existing image-slot.
 
 Mandatory Parameters:
@@ -255,7 +249,6 @@ Options:
 
 .TP
 \fBri\fP, \fBremove-image\fP \fIimage\fP [\fB--force\fP] [\fB--owner\fP \fIuser\fP]
-\#-----------------------------------------------------------------------------------------------------
 Delete the specified image from the repository.
 
 Mandatory Parameters:
@@ -271,7 +264,6 @@ Options:
 
 .TP
 \fBsi\fP, \fBsave-image\fP \fIimage\fP [\fB--unauthenticated_access\fP [\fBtrue\fP|\fBfalse\fP]] [\fB--clean\fP] [\fB--description\fP \fIvalue\fP] [\fB--force\fP] [\fB--gzip\fP] [\fB--owner\fP \fIuser\fP] [\fB--os_variant\fP \fIvalue\fP] [\fB--os_arch\fP \fIvalue\fP] [\fB--os_type\fP \fIvalue\fP] [\fB--resize\fP \fISIZE\fP] [\fB--verbose\fP]
-\#-----------------------------------------------------------------------------------------------------
 Takes a snapshot of your running system's filesystem (except paths listed under \fIsystem-excludes\fP and \fI user-excludes\fP in repoman configuration file).
 If \fIname\fP is not in your user's domain, an image-slot entry is created with the supplied metadata information.
 If \fIname\fP does exist, the image-slot is updated with any given metadata.
@@ -312,7 +304,6 @@ If the size specified is not big enough, repoman will issue an error mesage and 
 
 .TP
 \fBsig\fP, \fBshare-image-with-groups\fP \fIimage\fP \fIgroups\fP  [\fB--owner\fP \fIuser\fP]
-\#-----------------------------------------------------------------------------------------------------
 Share an image with one or more groups.
 
 Mandatory Parameters:
@@ -327,7 +318,6 @@ Options:
 
 .TP
 \fBsiu\fP, \fBshare-image-with-users\fP \fIimage\fP \fIusers\fP [\fB--owner\fP \fIuser\fP]
-\#-----------------------------------------------------------------------------------------------------
 Share an image with one or more users.
 
 Mandatory Parameters:
@@ -342,7 +332,6 @@ Options:
 
 .TP
 \fBuig\fP, \fBunshare-image-with-groups\fP \fIimage\fP \fIgroups\fP [\fB--owner\fP \fIuser\fP]
-\#-----------------------------------------------------------------------------------------------------
 Unshare an image with one or more groups.
 
 Mandatory Parameters:
@@ -357,7 +346,6 @@ Options:
 
 .TP
 \fBuiu\fP, \fBunshare-image-with-users\fP \fIimage\fP \fIusers\fP [\fB--owner\fP \fIuser\fP]
-\#-----------------------------------------------------------------------------------------------------
 Unshare an image with one or more users.
 
 Mandatory Parameters:
@@ -376,7 +364,6 @@ The repoman user ID is associated with a user's x509 credentials and is used to 
 
 .TP
 \fBcu\fP, \fBcreate-user\fP \fIuser\fP \fIclient_dn\fP [\fB--email\fP \fIaddress\fP] [\fB--full_name\fP \fIname\fP]
-\#-----------------------------------------------------------------------------------------------------
 Create a new repoman user based on given information.
 
 Mandatory Parameters:
@@ -393,7 +380,6 @@ Options:
 
 .TP
 \fBlu\fP, \fBlist-users\fP [\fB--group\fP \fIgroup\fP] [\fB--short\fP] [\fBuser\fP]
-\#-----------------------------------------------------------------------------------------------------
 List repoman users.
 
 Options:
@@ -406,7 +392,6 @@ Options:
 
 .TP
 \fBmu\fP, \fBmodify-user\fP \fIuser\fP [\fB--client_dn\fP \fIdn\fP] [\fB--email\fP \fIaddress\fP] [\fB--full_name\fP \fIname\fP] [\fB--new_name\fP \fIname\fP]
-\#-----------------------------------------------------------------------------------------------------
 Modify a repoman user with the given metadata information.
 
 Mandatory Parameters:
@@ -430,7 +415,6 @@ Example:
 
 .TP
 \fBru\fP, \fBremove-user\fP \fIuser\fP [\fB--force\fP]
-\#-----------------------------------------------------------------------------------------------------
 Remove a repoman user. \fBNote:\fP All images owned by \fIuser\fP will be deleted.
 
 Mandatory Parameters:
@@ -447,7 +431,6 @@ subcommands to create, maintain, and destroy user groups.
 
 .TP
 \fBapg\fP, \fBadd-permissions-to-group\fP \fIgroup\fP \fIpermissions\fP
-\#-----------------------------------------------------------------------------------------------------
 Add specified permissions to a group.
 
 Mandatory Parameters:
@@ -458,7 +441,6 @@ Mandatory Parameters:
 
 .TP
 \fBaug\fP, \fBadd-users-to-group\fP \fIgroup\fP \fIuser\fP [\fIuser\fP ...]
-\#-----------------------------------------------------------------------------------------------------
 Add specified users to a group.
 
 Mandatory Parameters:
@@ -469,7 +451,6 @@ Mandatory Parameters:
 
 .TP
 \fBcg\fP, \fBcreate-group\fP \fIgroup\fP [\fB--permissions\fP \fIlist\fP] [\fB--users\fP \fIlist\fP]
-\#-----------------------------------------------------------------------------------------------------
 Create a new group based on given information.
 
 Mandatory Parameters:
@@ -484,7 +465,6 @@ Options:
 
 .TP
 \fBlg\fP, \fBlist-groups\fP [\fB--short\fP] [\fB--all\fP | \fB--user\fP \fIuser\fP | \fBgroup\fP]
-\#-----------------------------------------------------------------------------------------------------
 List user groups on the repoman repository.  By default, this command will only list groups that you belong to.
 
 Options:
@@ -499,7 +479,6 @@ Options:
 
 .TP
 \fBmg\fP, \fBmodify-group\fP \fIgroup\fP [\fB--new_name\fP \fIvalue\fP] [\fB--permissions\fP \fIlist\fP] [\fB--users\fP \fIlist\fP]
-\#-----------------------------------------------------------------------------------------------------
 Modify a group with the given information.
 
 Mandatory Parameters:
@@ -521,7 +500,6 @@ Example:
 
 .TP
 \fBrg\fP, \fBremove-group\fP \fIgroup\fP [\fB--force\fP]
-\#-----------------------------------------------------------------------------------------------------
 Remove a group from the repoman repository.
 
 Mandatory Parameters:
@@ -534,7 +512,6 @@ Options:
 
 .TP
 \fBrpg\fP, \fBremove-permissions-from-group\fP \fIgroup\fP \fIpermissions\fP
-\#-----------------------------------------------------------------------------------------------------
 Remove specified permission(s) from a group.
 
 Mandatory Parameters:
@@ -545,7 +522,6 @@ Mandatory Parameters:
 
 .TP
 \fBrug\fP, \fBremove-users-from-group\fP \fIgroup\fP \fIuser\fP [\fIuser\fP ...]
-\#-----------------------------------------------------------------------------------------------------
 Remove specified users from a group.
 
 Mandatory Parameters:
@@ -557,20 +533,17 @@ Mandatory Parameters:
 .SH MISCELLANEOUS SUBCOMMANDS
 .TP
 \fBabout\fP
-\#-----------------------------------------------------------------------------------------------------
 Display the repoman client version and configuration information.
 
 .TP
 \fBversion\fP
-\#-----------------------------------------------------------------------------------------------------
 Display the repoman client version information.
 
 .TP
 \fBwhoami\fP
-\#-----------------------------------------------------------------------------------------------------
 Display information about the current user (ie, you)
 
-.SH GROUP PERMISSIONS  \fBNOTE: Andre C to verify\fP
+.SH GROUP PERMISSIONS
 .TP
 \fBgroup_create\fP
 The ability to create new groups.
@@ -579,7 +552,7 @@ The ability to create new groups.
 The ability to delete groups.
 .TP
 \fBgroup_modify\fP
-The ability to modify any\fB???\fP of the group's attributes.
+The ability to modify group attributes.
 .TP
 \fBgroup_modify_membership\fP
 The ability to modify a group's user list.
@@ -609,7 +582,7 @@ The ability to create new users.
 The ability to delete users.
 .TP
 \fBuser_modify\fP
-The ability to modify any\fB???\fP of a user's attributes.
+The ability to modify user attributes.
 .TP
 \fBuser_modify_self\fP
 The ability to modify your own attributes.

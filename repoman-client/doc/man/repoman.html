@@ -1,0 +1,745 @@
+Content-type: text/html
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML><HEAD><TITLE>Man page of REPOMAN</TITLE>
+</HEAD><BODY>
+<H1>REPOMAN</H1>
+Section: User Commands  (1)<BR>Updated: 27 June 2012<BR><A HREF="#index">Index</A>
+<A HREF="/cgi-bin/man/man2html">Return to Main Contents</A><HR>
+
+<A NAME="lbAB">&nbsp;</A>
+<H2>NAME</H2>
+
+repoman - a command to interact with repoman Virtual Machine (VM) image repositories
+<A NAME="lbAC">&nbsp;</A>
+<H2>SYNOPSIS</H2>
+
+<P>
+<B>repoman</B> help [<I>subcommand</I>]
+<P>
+<B>repoman</B> [options] <I>subcommand</I>
+<P>
+<A NAME="lbAD">&nbsp;</A>
+<H2>DESCRIPTION</H2>
+
+Repoman is the name given to both a user command and a server software package that provides Virtual Machine (VM) image
+repository management over the web (HTTP/HTTPS). This man page describes the command used to interact with a repoman server,
+allowing you to create, manage, and delete Virtual Machine images.
+<A NAME="lbAE">&nbsp;</A>
+<H3>Options</H3>
+
+<DL COMPACT>
+<DT><B>-r</B>, <B>--repository</B> <I>fully_qualified_host_name</I><DD>
+Override the configuration file default <I>repository</I> setting with a <I>fully_qualified_host_name</I>.
+For example: &quot;vmrepo.example.ca&quot;.
+<DT><B>-p</B>, <B>--port</B> <I>port</I><DD>
+Override the configuration file default <I>port</I> setting with <I>port</I>.
+Defaults to 443, the default port for a repoman server.
+<DT><B>-P</B>, <B>--proxy</B> <I>path</I><DD>
+Override the configuration file default proxy certificate path with <I>path</I>.
+Defaults to &quot;/tmp/x509up_uNNNN&quot;, where &quot;NNNN&quot; is your effective UID.
+<DT><I>subcommand</I><DD>
+See the following sections for possible subcommands and subcommand parameters.
+</DL>
+<A NAME="lbAF">&nbsp;</A>
+<H2>HELP SUBCOMMAND</H2>
+
+<DL COMPACT>
+<DT><B>help</B> [<I>subcommand</I>]<DD>
+<P>
+Show the help dialog. If no subcommand is specified, a general overview of all subcommands is displayed.  Specifying a subcommand displays information specific to that subcommand.
+<P>
+</DL>
+<A NAME="lbAG">&nbsp;</A>
+<H2>CONFIGURATION SUBCOMMAND</H2>
+
+Before other repoman subcommands can be used, a configuration file must be created. The following subcommand will create the
+configuration file for you.
+<DL COMPACT>
+<DT><B>mc</B>, <B>make-config</B> [<B>--stdout</B>]<DD>
+<P>
+Options:
+<P>
+<B>--stdout</B>
+Send the configuration to stdout instead of writing it to a file under the current user's home directory.
+<P>
+</DL>
+<A NAME="lbAH">&nbsp;</A>
+<H2>IMAGE MANIPULATION SUBCOMMANDS</H2>
+
+A VM image is a file containing a bootable copy of a configured operating system.
+In a repoman VM repository, an image is identified by the owning user and a name unique within the owner's domain.
+In addition to the image itself, the repoman repository maintains 'metadata' or information about the image (for example: name, description, architecture, etc.) in an image-slot within a database.
+<P>
+<DL COMPACT>
+<DT><B>ci</B>, <B>create-image</B> <I>image</I> [<B>--unauthenticated_access</B> [<B>true</B>|<B>false</B>]] [<B>--description</B> <I>value</I>] [<B>--hypervisor</B> <I>value</I>] [<B>--owner</B> <I>user</I>] [<B>--os_variant</B> <I>value</I>] [<B>--os_arch</B> <I>value</I>] [<B>--os_type</B> <I>value</I>]<DD>
+Create a new repoman image-slot based on the given information.
+If an image file is supplied, then <I>file</I> is uploaded to the repoman repository after the entry is created.
+<P>
+Mandatory Parameters:
+<P>
+
+<I>image</I>
+- 
+
+The name of the newly created image-slot on the repository.
+This will be used to reference the image when running other repoman commands.
+It must be unique within the owner's domain and can only contain ([a-Z][0-9][_][-][.]) characters.
+<P>
+Options:
+<P>
+
+<B>-a</B>, <B>--unauthenticated_access</B> [<B>true</B>|<B>false</B>]
+-&nbsp;Defaults to false. If set to true, the image may be retrieved by anybody who has the correct URL.
+
+<P>
+
+<B>-d</B>, <B>--description</B> <I>value</I>
+-&nbsp;Description of the image.
+
+<P>
+
+<B>-h</B>, <B>--hypervisor</B> <I>value</I>
+- Specifies a comma separated list of one or more hypervisors supported by this image slot.
+Example: &quot;--hypervisor kvm,xen&quot;.
+
+Default: &quot;--hypervisor xen&quot;. 
+<P>
+
+<B>-o</B>, <B>--owner</B> <I>user</I>
+- The owner of the named image. The default is the ID of the current repoman user which can be determined with the &quot;<B>repoman whoami</B>&quot; command. 
+
+<P>
+
+<B>--os_arch</B> <I>value</I>
+-&nbsp;The operating system architecture. x86 or x86_64
+
+<P>
+
+<B>--os_type</B> <I>value</I>
+-&nbsp;The operating system type. Example: linux, unix, windows, etc.
+
+<P>
+
+<B>--os_variant</B> <I>value</I>
+-&nbsp;The operating system variant. Example: redhat, centos, ubuntu, etc.
+
+<P>
+<DT><B>li</B>, <B>list-images</B> [<B>--owner</B> <I>user</I>] [<B>--short</B> | <B>--url</B>] [<B>--all</B> | <B>--group</B> <I>group</I> | <B>--user</B> <I>user</I> | <B>image</B>]  <DD>
+List images stored in the repository. By default, only images owned by the current user are listed.
+<P>
+Options:
+<P>
+<B>-a</B>, <B>--all</B> - List all images accessible by you.
+<P>
+<B>-g</B>, <B>--group</B> <I>group</I> - List all images shared between you and the named group.
+<P>
+<B>image</B> - If given, information about this image only will be displayed.
+<P>
+<B>-s</B>, <B>--short</B> - List image names with no additional information.
+<P>
+
+<B>-o</B>, <B>--owner</B> <I>user</I>
+- The owner of the named image. The default is the ID of the current repoman user which can be determined with the &quot;<B>repoman whoami</B>&quot; command. 
+
+<P>
+<B>-u</B>, <B>--user</B> <I>user</I> - List all images shared between you and the named user.
+<P>
+<B>-U</B>, <B>--url</B> - List images and associated URLs.
+<P>
+<DT><B>mi</B>, <B>modify-image</B> <I>image</I> [<B>--unauthenticated_access</B> [<B>true</B>|<B>false</B>]] [<B>--description</B> <I>value</I>] [<B>--hypervisor</B> <I>value</I>] [<B>--new_name</B> <I>value</I>] [<B>--new_owner</B> <I>user</I>] [<B>--owner</B> <I>user</I>] [<B>--os_variant</B> <I>value</I>] [<B>--os_arch</B> <I>value</I>] [<B>--os_type</B> <I>value</I>]<DD>
+Modify an image with the given information.
+<P>
+Mandatory Parameters:
+<P>
+
+<I>image</I>
+- 
+
+The name of the image to modify. Use repoman list-images to see possible values.
+<P>
+Options:
+<P>
+
+<B>-a</B>, <B>--unauthenticated_access</B> [<B>true</B>|<B>false</B>]
+-&nbsp;Defaults to false. If set to true, the image may be retrieved by anybody who has the correct URL.
+
+<P>
+
+<B>-d</B>, <B>--description</B> <I>value</I>
+-&nbsp;Description of the image.
+
+<P>
+
+<B>-h</B>, <B>--hypervisor</B> <I>value</I>
+- Specifies a comma separated list of one or more hypervisors supported by this image slot.
+Example: &quot;--hypervisor kvm,xen&quot;.
+
+Default: the hypervisor attribute of the image slot remains unchanged.
+<P>
+
+<B>-n</B>, <B>--new_name</B> <I>value</I>
+- The new name of the image-slot on the repository. This will be used to reference the image when running
+other repoman commands. It must be unique to the owner's domain and can only contain ([a-Z][0-9][_][-][.]) characters.
+
+<P>
+
+<B>-N</B>, <B>--new_owner</B> <I>user</I>
+- The user name of the new owner of the image.
+The specified user name must be a registered repoman user; use the <B>repoman list-users</B> to display possible valid values.
+
+<P>
+
+<B>-o</B>, <B>--owner</B> <I>user</I>
+- The owner of the named image. The default is the ID of the current repoman user which can be determined with the &quot;<B>repoman whoami</B>&quot; command. 
+
+<P>
+
+<B>--os_arch</B> <I>value</I>
+-&nbsp;The operating system architecture. x86 or x86_64
+
+<P>
+
+<B>--os_type</B> <I>value</I>
+-&nbsp;The operating system type. Example: linux, unix, windows, etc.
+
+<P>
+
+<B>--os_variant</B> <I>value</I>
+-&nbsp;The operating system variant. Example: redhat, centos, ubuntu, etc.
+
+<P>
+Example:
+<P>
+<B>repoman modify-image myImage --new_name myNewImage --description 'This is an example of a rename image'</B>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;renames&nbsp;myImage&nbsp;to&nbsp;myNewImage&nbsp;and&nbsp;updates&nbsp;the&nbsp;description&nbsp;
+<P>
+<DT><B>pi</B>, <B>put-image</B> <I>file</I> <I>image</I> [--force] [<B>--hypervisor</B> hypervisor] [<B>--owner</B> <I>user</I>]<DD>
+Upload an image file from local disk space to the repoman repository and associate it with an existing image-slot.
+<P>
+Mandatory Parameters:
+<P>
+<I>file</I> - The local image file to upload to the repository.
+<P>
+
+<I>image</I>
+- 
+
+The name of the image slot to be used. Use <B>repoman list-images</B> to see possible values. 
+<P>
+Options:
+<P>
+<B>--force</B> - Overwrite destination image (if present) without confirmation.
+<P>
+
+<B>-h</B>, <B>--hypervisor</B> <I>value</I>
+- Specifies the single hypervisor that the upload image is configured to run under.
+The specifaction must match one of the specifications for the image slot.
+For single hypervisor image slots, this parameter is optional.
+For muti-hypervisor image slots, this parameter is mandatory.
+Example: &quot;--hypervisor kvm&quot;.
+
+<P>
+
+<B>-o</B>, <B>--owner</B> <I>user</I>
+- The owner of the named image. The default is the ID of the current repoman user which can be determined with the &quot;<B>repoman whoami</B>&quot; command. 
+
+<P>
+<DT><B>ri</B>, <B>remove-image</B> <I>image</I> [<B>--force</B>] [<B>--owner</B> <I>user</I>]<DD>
+Delete the specified image from the repository.
+<P>
+Mandatory Parameters:
+<P>
+
+<I>image</I>
+- 
+
+The name of the image to be deleted.
+<P>
+Options:
+<P>
+<B>--force</B> - Delete image without confirmation.
+<P>
+
+<B>-o</B>, <B>--owner</B> <I>user</I>
+- The owner of the named image. The default is the ID of the current repoman user which can be determined with the &quot;<B>repoman whoami</B>&quot; command. 
+
+<P>
+<DT><B>si</B>, <B>save-image</B> <I>image</I> [<B>--unauthenticated_access</B> [<B>true</B>|<B>false</B>]] [<B>--clean</B>] [<B>--description</B> <I>value</I>] [<B>--force</B>] [<B>--gzip</B>] [<B>--owner</B> <I>user</I>] [<B>--os_variant</B> <I>value</I>] [<B>--os_arch</B> <I>value</I>] [<B>--os_type</B> <I>value</I>] [<B>--resize</B> <I>SIZE</I>] [<B>--verbose</B>]<DD>
+Takes a snapshot of your running system's filesystem (except paths listed under <I>system-excludes</I> and <I> user-excludes</I> in repoman configuration file).
+If <I>name</I> is not in your user's domain, an image-slot entry is created with the supplied metadata information.
+If <I>name</I> does exist, the image-slot is updated with any given metadata.
+Finally, the snapshot is uploaded to the image-slot on the repoman repository.
+<P>
+Mandatory Parameters:
+<P>
+
+<I>image</I>
+- 
+
+The name of the newly created or existing image-slot on the repository.
+This will be used to reference the image when running other repoman commands.
+It can only contain ([a-Z][0-9][_][-][.]) characters.
+<P>
+Options:
+<P>
+
+<B>-a</B>, <B>--unauthenticated_access</B> [<B>true</B>|<B>false</B>]
+-&nbsp;Defaults to false. If set to true, the image may be retrieved by anybody who has the correct URL.
+
+<P>
+<B>--clean</B> - Remove any existing local snapshots before creating a new one.
+<P>
+
+<B>-d</B>, <B>--description</B> <I>value</I>
+-&nbsp;Description of the image.
+
+<P>
+<B>--force</B> - Force uploading even if it overwrites an existing image.
+<P>
+<B>--gzip</B> - Upload the image compressed with gzip.
+<P>
+
+<B>-o</B>, <B>--owner</B> <I>user</I>
+- The owner of the named image. The default is the ID of the current repoman user which can be determined with the &quot;<B>repoman whoami</B>&quot; command. 
+
+<P>
+
+<B>--os_arch</B> <I>value</I>
+-&nbsp;The operating system architecture. x86 or x86_64
+
+<P>
+
+<B>--os_type</B> <I>value</I>
+-&nbsp;The operating system type. Example: linux, unix, windows, etc.
+
+<P>
+
+<B>--os_variant</B> <I>value</I>
+-&nbsp;The operating system variant. Example: redhat, centos, ubuntu, etc.
+
+<P>
+<B>--resize</B> <I>SIZE</I> - Create an image with a size of <I>SIZE</I> MB.
+The size selected must be big enough to contain the entire filesystem image.
+If the size specified is not big enough, repoman will issue an error mesage and exit.
+<P>
+<B>--verbose</B> - Display verbose output during snapshot.
+<P>
+<DT><B>sig</B>, <B>share-image-with-groups</B> <I>image</I> <I>groups</I>  [<B>--owner</B> <I>user</I>]<DD>
+Share an image with one or more groups.
+<P>
+Mandatory Parameters:
+<P>
+<I>image</I> - The image to share. Use <B>repoman list-images</B> to see possible values.
+<P>
+<I>groups</I> - Comma separated list of the groups to share the image with. Use &quot;repoman list-groups&quot; to see possible values.
+<P>
+Options:
+<P>
+
+<B>-o</B>, <B>--owner</B> <I>user</I>
+- The owner of the named image. The default is the ID of the current repoman user which can be determined with the &quot;<B>repoman whoami</B>&quot; command. 
+
+<P>
+<DT><B>siu</B>, <B>share-image-with-users</B> <I>image</I> <I>users</I> [<B>--owner</B> <I>user</I>]<DD>
+Share an image with one or more users.
+<P>
+Mandatory Parameters:
+<P>
+<I>image</I> - The image to share. Use <B>repoman list-images</B> to see possible values.
+<P>
+<I>users</I> - Comma separated list of the users to share the image with. Use <B>repoman list-users</B> to see possible values.
+<P>
+Options:
+<P>
+
+<B>-o</B>, <B>--owner</B> <I>user</I>
+- The owner of the named image. The default is the ID of the current repoman user which can be determined with the &quot;<B>repoman whoami</B>&quot; command. 
+
+<P>
+<DT><B>uig</B>, <B>unshare-image-with-groups</B> <I>image</I> <I>groups</I> [<B>--owner</B> <I>user</I>]<DD>
+Unshare an image with one or more groups.
+<P>
+Mandatory Parameters:
+<P>
+<I>image</I> - The image to unshare. Use <B>repoman list-images</B> to see possible values.
+<P>
+<I>groups</I> - Comma separated list of the groups to unshare the image with. Use <B>repoman describe-image</B> to see possible values.
+<P>
+Options:
+<P>
+
+<B>-o</B>, <B>--owner</B> <I>user</I>
+- The owner of the named image. The default is the ID of the current repoman user which can be determined with the &quot;<B>repoman whoami</B>&quot; command. 
+
+<P>
+<DT><B>uiu</B>, <B>unshare-image-with-users</B> <I>image</I> <I>users</I> [<B>--owner</B> <I>user</I>]<DD>
+Unshare an image with one or more users.
+<P>
+Mandatory Parameters:
+<P>
+<I>image</I> - The image to unshare. Use <B>repoman list-images</B> to see possible values.
+<P>
+<I>users</I> - Comma separated list of the users to unshare the image with. Use <B>repoman describe-image</B> to see possible values.
+<P>
+Options:
+<P>
+
+<B>-o</B>, <B>--owner</B> <I>user</I>
+- The owner of the named image. The default is the ID of the current repoman user which can be determined with the &quot;<B>repoman whoami</B>&quot; command. 
+
+<P>
+</DL>
+<A NAME="lbAI">&nbsp;</A>
+<H2>USER MANIPULATION SUBCOMMANDS</H2>
+
+Each user of a repoman image repository must be registered.
+The repoman user ID is associated with a user's x509 credentials and is used to uniquely identify images within the repository.
+<P>
+<DL COMPACT>
+<DT><B>cu</B>, <B>create-user</B> <I>user</I> <I>client_dn</I> [<B>--email</B> <I>address</I>] [<B>--full_name</B> <I>name</I>]<DD>
+Create a new repoman user based on given information.
+<P>
+Mandatory Parameters:
+<P>
+<I>user</I> - The name of the newly created user. Must be unique and only contain characters ([a-Z][0-9][_][-]).
+<P>
+<I>client_dn</I> - The Distinguished Name (DN, looks like: <B>'/C=CA/O=Grid/OU=dept.org.ca/CN=John Doe'</B>) of the certificate owned by the user and issued by a certificate authority, for example GridCanada.ca.
+<P>
+Options:
+<P>
+
+<B>-e</B>, <B>--email</B> <I>address</I> - The email address of the user.
+
+<P>
+
+<B>-f</B>, <B>--full_name</B> <I>name</I> - The full name of the user.
+
+<P>
+<DT><B>lu</B>, <B>list-users</B> [<B>--group</B> <I>group</I>] [<B>--short</B>] [<B>user</B>]<DD>
+List repoman users.
+<P>
+Options:
+<P>
+<B>-g</B>, <B>--group</B> <I>group</I> - Only display users that belong to the group <I>group</I>
+<P>
+<B>-s</B>, <B>--short</B> - List user names with no additional information.
+<P>
+<B>user</B> - If given, information about this user only will be displayed.
+<P>
+<DT><B>mu</B>, <B>modify-user</B> <I>user</I> [<B>--client_dn</B> <I>dn</I>] [<B>--email</B> <I>address</I>] [<B>--full_name</B> <I>name</I>] [<B>--new_name</B> <I>name</I>]<DD>
+Modify a repoman user with the given metadata information.
+<P>
+Mandatory Parameters:
+<P>
+<I>user</I> - The name of the user to be modified. See <B>repoman list-users</B> to see possible values.
+<P>
+Options:
+<P>
+
+<B>-c</B>, <B>--client_dn</B> <I>dn</I> - The Distinguished Name (DN) of the certificate which is owned by the user.
+
+<P>
+
+<B>-e</B>, <B>--email</B> <I>address</I> - The email address of the user.
+
+<P>
+
+<B>-f</B>, <B>--full_name</B> <I>name</I> - The full name of the user.
+
+<P>
+
+<B>-n</B>, <B>--new_name</B> <I>user</I> - The new unique username for the user.
+
+<P>
+Example:
+<P>
+<B>repoman modify-user jdoe --new_name johndoe --email <A HREF="mailto:johndoe@uvic.ca">johndoe@uvic.ca</A></B>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;renames&nbsp;a&nbsp;repoman&nbsp;user&nbsp;and&nbsp;updates&nbsp;their&nbsp;email&nbsp;address.
+<P>
+<DT><B>ru</B>, <B>remove-user</B> <I>user</I> [<B>--force</B>]<DD>
+Remove a repoman user. <B>Note:</B> All images owned by <I>user</I> will be deleted.
+<P>
+Mandatory Parameters:
+<P>
+<I>user</I> - The user to delete. Use <B>repoman list-users</B> to see possible values.
+<P>
+Options:
+<P>
+<B>-f</B>, <B>--force</B> - Delete user without confirmation.
+<P>
+</DL>
+<A NAME="lbAJ">&nbsp;</A>
+<H2>GROUP MANIPULATION SUBCOMMANDS</H2>
+
+Repoman facilitates the concept of user groups for the purpose of sharing images. The following section details
+subcommands to create, maintain, and destroy user groups.
+<P>
+<DL COMPACT>
+<DT><B>apg</B>, <B>add-permissions-to-group</B> <I>group</I> <I>permissions</I><DD>
+Add specified permissions to a group.
+<P>
+Mandatory Parameters:
+<P>
+<I>group</I> - The group that you are adding permissions to. Use <B>repoman list-groups</B> to see possible values.
+<P>
+<I>permissions</I> -&nbsp;Comma separated list of permissions to add to the group. Possible values are: <B>group_create, group_delete, group_modify, group_modify_membership, group_modify_permissions, image_create, image_delete, image_delete_group, image_modify, image_modify_group, user_create, user_delete, user_modify, user_modify_self</B>. See GROUP PERMISSIONS section for a description of each permission.
+<P>
+<DT><B>aug</B>, <B>add-users-to-group</B> <I>group</I> <I>user</I> [<I>user</I> ...]<DD>
+Add specified users to a group.
+<P>
+Mandatory Parameters:
+<P>
+<I>group</I> - The group to add the specified user(s) to.
+<P>
+<I>user</I> - The user(s) to add to the group.
+<P>
+<DT><B>cg</B>, <B>create-group</B> <I>group</I> [<B>--permissions</B> <I>list</I>] [<B>--users</B> <I>list</I>]<DD>
+Create a new group based on given information.
+<P>
+Mandatory Parameters:
+<P>
+<I>group</I> - The name of the newly created group. It must be unique and can only contain ([a-Z][0-9][_][-]) characters.
+<P>
+Options:
+<P>
+
+<B>-p</B>, <B>--permissions</B> <I>list</I>
+- The permissions that the members of the group have (Comma separated list Ex: <B>'user_delete,image_modify'</B>). Possible values are: <B>group_create, group_delete, group_modify, group_modify_membership, group_modify_permissions, image_create, image_delete, image_delete_group, image_modify, image_modify_group, user_create, user_delete, user_modify, user_modify_self</B>. See GROUP PERMISSIONS section for a description of each permission.
+
+<P>
+
+<B>-u</B>, <B>--users</B> <I>list</I>
+-&nbsp;The users that are members of the group. (Comma separated list) Ex: 'msmith,sjobs'
+
+<P>
+<DT><B>lg</B>, <B>list-groups</B> [<B>--short</B>] [<B>--all</B> | <B>--user</B> <I>user</I> | <B>group</B>]<DD>
+List user groups on the repoman repository.  By default, this command will only list groups that you belong to.
+<P>
+Options:
+<P>
+<B>-a</B>, <B>--all</B> - Display all groups.
+<P>
+<B>group</B> - If given, information about this group only will be displayed.
+<P>
+<B>-s</B>, <B>--short</B> - List group names with no additional information.
+<P>
+<B>-u</B>, <B>--user</B> <I>user</I> - Display group membership for the user <I>user</I>.
+<P>
+<DT><B>mg</B>, <B>modify-group</B> <I>group</I> [<B>--new_name</B> <I>value</I>] [<B>--permissions</B> <I>list</I>] [<B>--users</B> <I>list</I>]<DD>
+Modify a group with the given information.
+<P>
+Mandatory Parameters:
+<P>
+<I>group</I> - The group you want to modify. Use <B>repoman list-groups</B> to see possible values.
+<P>
+Options:
+<P>
+
+<B>-n</B>, <B>--new_name</B> <I>value</I>
+- The name of the group. It must be unique and can only contain ([a-Z][0-9][_][-]) characters.
+
+<P>
+
+<B>-p</B>, <B>--permissions</B> <I>list</I>
+- The permissions that the members of the group have (Comma separated list Ex: <B>'user_delete,image_modify'</B>). Possible values are: <B>group_create, group_delete, group_modify, group_modify_membership, group_modify_permissions, image_create, image_delete, image_delete_group, image_modify, image_modify_group, user_create, user_delete, user_modify, user_modify_self</B>. See GROUP PERMISSIONS section for a description of each permission.
+
+<P>
+
+<B>-u</B>, <B>--users</B> <I>list</I>
+-&nbsp;The users that are members of the group. (Comma separated list) Ex: 'msmith,sjobs'
+
+<P>
+Example:
+<P>
+<B>repoman modify-group mygroup --new_name mynewgroup --permissions 'user_modify_self,image_create'</B>
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;renames&nbsp;a&nbsp;repoman&nbsp;group&nbsp;and&nbsp;sets&nbsp;some&nbsp;basic&nbsp;permissions
+<P>
+<DT><B>rg</B>, <B>remove-group</B> <I>group</I> [<B>--force</B>]<DD>
+Remove a group from the repoman repository.
+<P>
+Mandatory Parameters:
+<P>
+<I>group</I> - The group to delete.
+<P>
+Options:
+<P>
+<B>-f</B>, <B>--force</B> - Delete group without confirmation.
+<P>
+<DT><B>rpg</B>, <B>remove-permissions-from-group</B> <I>group</I> <I>permissions</I><DD>
+Remove specified permission(s) from a group.
+<P>
+Mandatory Parameters:
+<P>
+<I>group</I> - The group that you are removing permissions from. Use <B>repoman list-groups</B> to see possible values.
+<P>
+<I>permissions</I> -&nbsp;Comma separated list of the permissions to remove from the group. Use the <B>repoman describe-group</B> command to see possible values for a particular group.
+<P>
+<DT><B>rug</B>, <B>remove-users-from-group</B> <I>group</I> <I>user</I> [<I>user</I> ...]<DD>
+Remove specified users from a group.
+<P>
+Mandatory Parameters:
+<P>
+<I>group</I> - The group to remove the specified user(s) from.
+<P>
+<I>user</I> - The user(s) to remove from the group.
+<P>
+</DL>
+<A NAME="lbAK">&nbsp;</A>
+<H2>MISCELLANEOUS SUBCOMMANDS</H2>
+
+<DL COMPACT>
+<DT><B>about</B><DD>
+Display the repoman client version and configuration information.
+<P>
+<DT><B>version</B><DD>
+Display the repoman client version information.
+<P>
+<DT><B>whoami</B><DD>
+Display information about the current user (ie, you)
+<P>
+</DL>
+<A NAME="lbAL">&nbsp;</A>
+<H2>GROUP PERMISSIONS</H2>
+
+<DL COMPACT>
+<DT><B>group_create</B><DD>
+The ability to create new groups.
+<DT><B>group_delete</B><DD>
+The ability to delete groups.
+<DT><B>group_modify</B><DD>
+The ability to modify group attributes.
+<DT><B>group_modify_membership</B><DD>
+The ability to modify a group's user list.
+<DT><B>group_modify_permissions</B><DD>
+The ability to modify a group's permissions list.
+<DT><B>image_create</B><DD>
+The ability to create images.
+<DT><B>image delete.</B><DD>
+The ability to delete images owned by you.
+<DT><B>image_delete_group</B><DD>
+The ability to delete images that belong to any member of your group.
+<DT><B>image_modify</B><DD>
+The ability to modify images owned by you.
+<DT><B>image_modify_group</B><DD>
+The ability to modify images that belong to any member of your group.
+<DT><B>user_create</B><DD>
+The ability to create new users.
+<DT><B>user_delete</B><DD>
+The ability to delete users.
+<DT><B>user_modify</B><DD>
+The ability to modify user attributes.
+<DT><B>user_modify_self</B><DD>
+The ability to modify your own attributes.
+<P>
+</DL>
+<A NAME="lbAM">&nbsp;</A>
+<H2>DUAL-HYPERVISOR SUPPORT</H2>
+
+The repoman client and server contain logic to manage specially crafted VM images capable of running para-virtualized (pvm) under the Xen hypervisor and hardware virtualized (hvm) under the KVM hypervisor.   
+Such an image is said to be a &quot;dual-hypervisor&quot; image.
+This section discribes the requiements of a dual-hypervisor image and any special considerations associated with its use and management.
+<P>
+A dual-hypervisor image is a single file and must have the following attributes:
+<P>
+&bull; Contains a Master Boot Record (MBR).
+<P>
+&bull; Contains the GRUB boot loader images.
+<P>
+&bull; Contains a single bootable linux partition.
+<P>
+&bull; The linux partition must be formatted with a filesystem supported by the GRUB boot loader and given a valid f
+ilesystem label. Partitions can be labelled with either the &quot;mkfs&quot; or &quot;tune2fs&quot; commands.
+<P>
+&bull; All booting and mounting of patitions must be via filesystem labels and not device names.
+For example, if you have a bootable partition &quot;/dev/hda1&quot; labelled &quot;/&quot; and a blankspace partition &quot;/dev/hdb&quot; label
+led &quot;blankspace&quot;, then the following would be appropriate &quot;/boot/grub/grub.conf&quot; entries:
+<P>
+
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;title&nbsp;Scientific&nbsp;Linux&nbsp;SL&nbsp;(2.6.18-308.8.2.el5)
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;root&nbsp;(hd0,0)
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;kernel&nbsp;/boot/vmlinuz-2.6.18-308.8.2.el5&nbsp;ro&nbsp;root=LABEL=/
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;initrd&nbsp;/boot/initrd-2.6.18-308.8.2.el5.img
+
+<P>
+and
+<P>
+
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;LABEL=/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ext3&nbsp;&nbsp;&nbsp;defaults&nbsp;&nbsp;&nbsp;1&nbsp;1
+<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;LABEL=blankspace&nbsp;&nbsp;&nbsp;&nbsp;/scratch&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ext2&nbsp;&nbsp;&nbsp;defaults&nbsp;&nbsp;&nbsp;1&nbsp;0
+
+<P>
+would be appropriate &quot;/etc/fstab&quot; entries
+<P>
+&bull; The linux partition must contain the /boot, /boot/grub, /lib/modules directories, and any required swap files.
+<P>
+&bull; The /boot directory must contain all kernel images that may be booted either under KVM or under Xen.
+<P>
+&bull; The /lib/modules directory will contain a subdirectory for each bootable kernel which in turn must contain all kernel modules required by the associated kernel.
+<P>
+&bull; The /boot/grub directory must contain the following GRUB configuration files:
+<P>
+
+<P>
+&bull; A GRUB configuration file named &quot;grub.conf-kvm&quot; accessible by the GRUB boot loader and capable of booting a Linux kernel in a hardware virtualized machine running under the KVM hypervisor.
+<P>
+&bull; A GRUB configuration file named &quot;grub.conf-xen&quot; accessible by the GRUB boot loader and capable of booting a Linux kernel in a para-virtualized machine running under the Xen hypervisor.
+<P>
+&bull; The standard grub configuration file, grub.conf, should be a copy of one of the special purpose grub configuration files.
+<P>
+
+<P>
+The &quot;save-image&quot; function of the repoman client recognizes the structure of the running dual-hypervisor VM by the partition layout and by the presence of multiple hypervisor specific grub configaurations.
+Having generated a faithful image of the environment, the repoman client will configure and upload multiple copies to the repoman server, one for each hypervisor environment.
+For its part, the server maintains multiple copies of a dual-hypervisor image, each configured for its respective environment, serving the appropriate image upon request.
+<P>
+<A NAME="lbAN">&nbsp;</A>
+<H2>FILES</H2>
+
+<DL COMPACT>
+<DT>~/.repoman/repoman.conf<DD>
+This is a per-user configuration file. It can be created and maintained manually with your favorite text editor, or
+via use of the <B>make-config</B> subcommand.
+<P>
+</DL>
+<A NAME="lbAO">&nbsp;</A>
+<H2>AUTHORS</H2>
+
+Andre Charbonneau, Kyle Fransham, Andrey Polyakov, Colin Leavett-Brown, Drew Harris, Ian Gable, Matt Vliet, Patrick Armstrong, Tubego Phamphang
+<P>
+<A NAME="lbAP">&nbsp;</A>
+<H2>BUGS</H2>
+
+If you have any issues or ideas for improving Repoman, please use the github issue tracker to allow others to follow along with problems and ideas. The issue tracker can be found at: 
+<P>
+<A HREF="https://github.com/hep-gc/repoman/issues">https://github.com/hep-gc/repoman/issues</A>
+<P>
+
+<HR>
+<A NAME="index">&nbsp;</A><H2>Index</H2>
+<DL>
+<DT><A HREF="#lbAB">NAME</A><DD>
+<DT><A HREF="#lbAC">SYNOPSIS</A><DD>
+<DT><A HREF="#lbAD">DESCRIPTION</A><DD>
+<DL>
+<DT><A HREF="#lbAE">Options</A><DD>
+</DL>
+<DT><A HREF="#lbAF">HELP SUBCOMMAND</A><DD>
+<DT><A HREF="#lbAG">CONFIGURATION SUBCOMMAND</A><DD>
+<DT><A HREF="#lbAH">IMAGE MANIPULATION SUBCOMMANDS</A><DD>
+<DT><A HREF="#lbAI">USER MANIPULATION SUBCOMMANDS</A><DD>
+<DT><A HREF="#lbAJ">GROUP MANIPULATION SUBCOMMANDS</A><DD>
+<DT><A HREF="#lbAK">MISCELLANEOUS SUBCOMMANDS</A><DD>
+<DT><A HREF="#lbAL">GROUP PERMISSIONS</A><DD>
+<DT><A HREF="#lbAM">DUAL-HYPERVISOR SUPPORT</A><DD>
+<DT><A HREF="#lbAN">FILES</A><DD>
+<DT><A HREF="#lbAO">AUTHORS</A><DD>
+<DT><A HREF="#lbAP">BUGS</A><DD>
+</DL>
+<HR>
+This document was created by
+<A HREF="/cgi-bin/man/man2html">man2html</A>,
+using the manual pages.<BR>
+Time: 14:15:38 GMT, October 04, 2012
+</BODY>
+</HTML>
