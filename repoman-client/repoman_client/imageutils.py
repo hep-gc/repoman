@@ -173,7 +173,7 @@ class ImageUtils(object):
     def mkfs(self, path, fs_type='ext3', label='/'):
         if fs_type == None:
             fs_type = 'ext3' # Default to ext3 if autodetection failed.
-        cmd = ['mkfs', '-t', fs_type, '-F', '-L', label, path]
+        cmd = ['mkfs', '-t', fs_type, '-I', '128', '-F', '-L', label, path]
         log.debug("Creating file system: '%s'" % cmd)
         null_f = open('/dev/null', 'w')
         if subprocess.Popen(cmd, shell=False, stdout=null_f, stderr=null_f, env=config.get_restricted_env()).wait():
