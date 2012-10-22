@@ -232,8 +232,11 @@ def is_current_user_admin():
     """
     user = request.environ.get('REPOMAN_USER')
     group = meta.Session.query(Group).filter(Group.name=='admins').first()
-    if group and (group in user.groups):
-        return True
-    else:
+    try:
+        if group and (group in user.groups):
+            return True
+        else:
+            return False
+    except:
         return False
 
