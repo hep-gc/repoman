@@ -26,8 +26,7 @@ class Save(SubCommand):
         self.get_arg_parser().add_argument('image', help = 'The name of the newly created or existing image-slot on the repository.  This will be used to  reference the image when running other repoman commands.  It can only contain ([a-Z][0-9][_][-][.]) characters.')
         self.get_arg_parser().add_argument('-u', '--unauthenticated_access', choices=['true', 'false'], help = 'Defaults  to false. If set to true, the image may be retrieved by anybody who has the correct URL.')
         self.get_arg_parser().add_argument('--clean', action = 'store_true', default = False, help = 'Remove any existing local snapshots before creating a new one.')
-        self.get_arg_parser().add_argument('-c', '--comment', metavar = 'comment', help='Add/Replace the image comment at the end of the description.')
-        self.get_arg_parser().add_argument('-d', '--description', metavar = 'value', help = 'Description of the image.')
+        self.get_arg_parser().add_argument('-d', '--description', metavar = 'description', help = 'Description of the image.')
         self.get_arg_parser().add_argument('-f', '--force', action = 'store_true', default = False, help = 'Force uploading even if it overwrites an existing image.')
         self.get_arg_parser().add_argument('--gzip', action='store_true', default = False, help = 'Upload the image compressed with gzip.')
         self.get_arg_parser().add_argument('-o', '--owner', metavar = 'user', help = 'The owner of the named image. The default is the ID of the current repoman user which can  be determined with the command "repoman whoami" command.')
@@ -192,44 +191,6 @@ class Save(SubCommand):
                 self.get_repoman_client(args).upload_image(name, args.owner, config.snapshot, gzip=args.gzip, hypervisor=hypervisor)
             except RepomanError, e:
                 raise SubcommandFailure(self, "Error while uploading the image for hypervisor %s." % (hypervisor), e)
-
-        # Set save comment if needed.
-        if args.comment:
-            image = None
-            try:
-                image = self.get_repoman_client(args).describe_image(name, args.owner)
-            except RepomanError,e:
-                if e.status == 404:
-                    log.debug("Did not find the image to update the save comment.  This might be caused by someone else who deleted the image just before we were able to update the comment.")
-                    raise SubcommandFailure(self, 'Error updating save comment.', e)
-                else:
-                    log.error("Unexpected response occurred when testing if image exists.")
-                    log.error("%s" % e)
-                    raise SubcommandFailure(self, "Unexpected response from server.  Image save comment not updated.", e)
-
-            if image:
-                # Here we will search for an existing comment and replace it
-                # with the new comment (if it exist).  If it does not exist,
-                # then a new comment will be added at the end of the existing
-                # description.
-                comment_re = '\[\[Comment: .+\]\]'
-                comment_string = '[[Comment: %s]]' % (args.comment)
-                old_description = image.get('description')
-                new_description = ''
-                if image.get('description') is None:
-                    new_description = comment_string
-                elif re.search(comment_re, old_description):
-                    new_description = re.sub(comment_re, comment_string, old_description)
-                else:
-                    new_description = '%s %s' % (old_description, comment_string)
-                kwargs = {'description':new_description}
-                try:
-                    image_name = kwargs['name']
-                    if args.owner:
-                        image_name = "%s/%s" % (args.owner, kwargs['name'])
-                    self.get_repoman_client(args).modify_image(image_name, **kwargs)
-                except RepomanError, e:
-                    raise SubcommandFailure(self, "Failed to add/update image save comment.", e)
 
     def check_required_grub_configs(self, hypervisors):
         """
