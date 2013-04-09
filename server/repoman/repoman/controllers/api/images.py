@@ -353,6 +353,12 @@ class ImagesController(BaseController):
                 # else the setattr call below will not like it.
                 del params['owner']
 
+            # If we rename the image slot, don't forget to rename the associated image files accordingly.
+            # Calling the image.rename() method will take care of this.
+            if ('name' in params) and (params['name'] != image.name):
+                if not image.rename(params['name']):
+                    abort(409, 'Could not rename the image because it conflicts with an image already owned by the target user.  Operation aborted.')
+
             for k,v in params.iteritems():
                 if v != None:
                     setattr(image, k, v)

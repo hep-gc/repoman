@@ -145,6 +145,54 @@ class Image(Base):
         return True
 
 
+    def rename(self, new_name):
+        """
+        This method will change the image slot's name, and update the
+        associated image files accordingly.
+        Note that this method will only change the image slot name if it does not conflict
+        with any existing image already owned by the target user.
+        """
+        new_paths = []
+        hypervisors = []
+
+        if self.hypervisor == None:
+            hypervisors = ['xen']
+        else:
+            hypervisors = self.hypervisor.split(',')
+
+        # Let's do a dry run first to make sure we are not overwriting any existing
+        # image files.  Theoretically, this should not happen, but let's be on the safe side.
+        log.debug("Checking to make sure image name change will not overwrite any existing image files.")
+        for hypervisor in hypervisors:
+            path = os.path.join(app_globals.image_storage, 
+                                '%s_%s_%s' % (self.owner.user_name, self.name, hypervisor))
+            new_path = os.path.join(app_globals.image_storage, 
+                                '%s_%s_%s' % (self.owner.user_name, new_name, hypervisor))
+            if os.path.exists(new_path):
+                # Abort operation.
+                log.warn("Image name change aborted because of image collision: %s" % (new_path))
+                return False
+
+        log.debug("No conflict detected; proceeding with image name change.")
+
+        for hypervisor in hypervisors:
+            path = os.path.join(app_globals.image_storage, 
+                                '%s_%s_%s' % (self.owner.user_name, self.name, hypervisor))
+            new_path = os.path.join(app_globals.image_storage, 
+                                '%s_%s_%s' % (self.owner.user_name, new_name, hypervisor))
+            if os.path.exists(path):
+                log.debug("Renaming %s to %s" % (path, new_path))
+                shutil.move(path, new_path)
+                new_paths.append(new_path)
+
+        # Finally, let's change the image name and path metadata.
+        log.debug("Changing image name from %s to %s" % (self.name, new_name))
+        self.name = new_name
+        log.debug("Updating image's path metadata variable to point to new image paths after image name change.")
+        self.path = ';'.join(new_paths)
+
+        return True
+
 
 
 class ImageShare(Base):
